@@ -410,10 +410,11 @@ fcorner.CornerRadius = UDim.new(0, 18)
 fcorner.Parent = floatBtn
 
 -- drag du bouton flottant
-local fDragging, fStart, btnStart
+local fDragging, fMoved, fStart, btnStart
 floatBtn.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
         fDragging = true
+        fMoved = false
         fStart = input.Position
         btnStart = floatBtn.Position
     end
@@ -426,6 +427,7 @@ end)
 UserInput.InputChanged:Connect(function(input)
     if fDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
         local d = input.Position - fStart
+        if math.abs(d.X) + math.abs(d.Y) > 8 then fMoved = true end
         floatBtn.Position = UDim2.new(btnStart.X.Scale, btnStart.X.Offset + d.X, btnStart.Y.Scale, btnStart.Y.Offset + d.Y)
     end
 end)
@@ -827,8 +829,8 @@ local function ensureWindow()
     end
 end
 
-floatBtn.MouseButton1Click:Connect(function()
-    if not fDragging then
+floatBtn.Activated:Connect(function()
+    if not fMoved then
         ensureWindow()
         mainFrame.Visible = not mainFrame.Visible
     end
