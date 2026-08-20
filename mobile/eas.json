@@ -1,0 +1,39 @@
+{
+  "cli": {
+    "version": ">= 3.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": {
+        "resourceClass": "m1-medium"
+      },
+      "android": {
+        "buildType": "apk",
+        "resourceClass": "large"
+      }
+    },
+    "preview": {
+      "android": {
+        "buildType": "apk",
+        "resourceClass": "large",
+        "gradle": {
+          "androidApiLevel": 33
+        }
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "apk",
+        "resourceClass": "large",
+        "gradle": {
+          "androidApiLevel": 33
+        }
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
