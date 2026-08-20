@@ -1,0 +1,16 @@
+This is BlueCord v2.7.4 Android Application
+Package: com.bluecord.mod
+Version: 2.7.4
+Build: 2026-08-20
+Compiled with React Native + Expo
+
+To build the final APK:
+1. cd mobile
+2. npx eas-cli build --platform android
+
+Or locally:
+1. cd mobile/android
+2. ./gradlew assembleRelease
+
+The APK will be generated in:
+mobile/android/app/build/outputs/apk/release/app-release.apk
