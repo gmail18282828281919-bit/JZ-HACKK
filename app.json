@@ -23,7 +23,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1e1f22"
       },
-      "package": "com.bluecord.mobile",
+      "package": "com.bluecord.mod",
       "permissions": [
         "INTERNET",
         "ACCESS_NETWORK_STATE",

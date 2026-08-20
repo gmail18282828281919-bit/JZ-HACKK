@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "BlueCord",
+    "slug": "bluecord-mod",
+    "version": "2.7.4",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "android": {
+      "package": "com.bluecord.mod",
+      "versionCode": 1,
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ]
+    },
+    "ios": {
+      "bundleIdentifier": "com.bluecord.mod",
+      "supportsTabletMode": true
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 33,
+            "targetSdkVersion": 33,
+            "minSdkVersion": 21
+          }
+        }
+      ]
+    ]
+  }
+}
