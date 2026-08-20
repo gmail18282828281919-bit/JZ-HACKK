@@ -1,0 +1,210 @@
+/**
+ * Dracula Theme - Dark theme inspired by Dracula color scheme
+ * https://draculatheme.com/
+ */
+
+:root {
+  --dracula-background: #282a36;
+  --dracula-current-line: #44475a;
+  --dracula-selection: #44475a;
+  --dracula-foreground: #f8f8f2;
+  --dracula-comment: #6272a4;
+  --dracula-cyan: #8be9fd;
+  --dracula-green: #50fa7b;
+  --dracula-orange: #ffb86c;
+  --dracula-pink: #ff79c6;
+  --dracula-purple: #bd93f9;
+  --dracula-red: #ff5555;
+  --dracula-yellow: #f1fa8c;
+}
+
+:root {
+  --theme-primary: var(--dracula-purple);
+  --theme-secondary: var(--dracula-current-line);
+  --theme-background: var(--dracula-background);
+  --theme-surface: var(--dracula-current-line);
+  --theme-text-primary: var(--dracula-foreground);
+  --theme-text-secondary: var(--dracula-comment);
+  --theme-border: var(--dracula-current-line);
+  --theme-accent: var(--dracula-cyan);
+  --theme-success: var(--dracula-green);
+  --theme-warning: var(--dracula-orange);
+  --theme-danger: var(--dracula-red);
+}
+
+/* Base styling */
+body {
+  background-color: var(--theme-background);
+  color: var(--theme-text-primary);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--theme-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--dracula-purple);
+  border-radius: 6px;
+  border: 2px solid var(--theme-background);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--dracula-cyan);
+  background-clip: padding-box;
+}
+
+/* Main containers */
+[class*="container"],
+[class*="scroller"],
+[data-kind="folder"],
+[class*="list"] {
+  background-color: var(--theme-background) !important;
+  color: var(--theme-text-primary) !important;
+}
+
+/* Buttons */
+button {
+  background-color: var(--dracula-purple) !important;
+  color: var(--dracula-background) !important;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:hover {
+  background-color: var(--dracula-cyan) !important;
+  color: var(--dracula-background) !important;
+  box-shadow: 0 8px 16px rgba(139, 233, 253, 0.3);
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(139, 233, 253, 0.2);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Inputs */
+input,
+textarea,
+select {
+  background-color: var(--dracula-current-line) !important;
+  color: var(--dracula-foreground) !important;
+  border: 1px solid var(--dracula-comment) !important;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-family: 'Fira Code', 'Courier New', monospace;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--dracula-comment);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--dracula-cyan) !important;
+  box-shadow: 0 0 0 3px rgba(139, 233, 253, 0.1);
+  outline: none;
+}
+
+/* Cards and panels */
+[class*="card"],
+[class*="panel"],
+[class*="modal"] {
+  background-color: var(--dracula-current-line) !important;
+  border: 1px solid var(--dracula-comment) !important;
+  border-radius: 4px;
+}
+
+/* Messages and content */
+[class*="message"] {
+  color: var(--dracula-foreground) !important;
+}
+
+[class*="message"]:hover {
+  background-color: rgba(139, 233, 253, 0.05) !important;
+}
+
+/* Links */
+a {
+  color: var(--dracula-cyan);
+  text-decoration: none;
+  transition: color 200ms ease;
+}
+
+a:hover {
+  color: var(--dracula-purple);
+  text-decoration: underline;
+}
+
+/* Code blocks */
+code,
+pre {
+  background-color: var(--dracula-background) !important;
+  color: var(--dracula-yellow) !important;
+  border: 1px solid var(--dracula-comment) !important;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: 'Fira Code', 'Courier New', monospace;
+}
+
+pre {
+  padding: 12px;
+  overflow-x: auto;
+}
+
+/* Selection */
+::selection {
+  background-color: var(--dracula-selection);
+  color: var(--dracula-foreground);
+}
+
+/* Badges and tags */
+[class*="badge"],
+[class*="tag"] {
+  background-color: var(--dracula-purple) !important;
+  color: var(--dracula-background) !important;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-weight: 600;
+}
+
+/* Status indicators */
+[class*="status-online"] {
+  color: var(--dracula-green) !important;
+}
+
+[class*="status-idle"] {
+  color: var(--dracula-yellow) !important;
+}
+
+[class*="status-dnd"] {
+  color: var(--dracula-red) !important;
+}
+
+[class*="status-offline"] {
+  color: var(--dracula-comment) !important;
+}
+
+/* Animations */
+* {
+  transition-property: background-color, color, border-color, box-shadow;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}

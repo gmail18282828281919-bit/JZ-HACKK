@@ -1,0 +1,167 @@
+/**
+ * Dark Blue Theme - Modern dark theme with blue accents
+ */
+
+:root {
+  --theme-primary: #5865f2;
+  --theme-secondary: #2c2f33;
+  --theme-background: #1e1f22;
+  --theme-surface: #2c2f33;
+  --theme-text-primary: #dbdee1;
+  --theme-text-secondary: #949ba4;
+  --theme-border: #404249;
+  --theme-accent: #5865f2;
+  --theme-success: #43b581;
+  --theme-warning: #faa61a;
+  --theme-danger: #f04747;
+}
+
+/* Base colors */
+body {
+  background-color: var(--theme-background);
+  color: var(--theme-text-primary);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--theme-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--theme-accent);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #7289da;
+}
+
+/* Main containers */
+[data-kind="folder"],
+[class*="scroller"],
+[class*="container"] {
+  background-color: var(--theme-background) !important;
+  color: var(--theme-text-primary) !important;
+}
+
+/* Buttons */
+button {
+  background-color: var(--theme-accent) !important;
+  color: white !important;
+  border: none;
+  border-radius: 4px;
+  transition: all 200ms ease;
+}
+
+button:hover {
+  background-color: #7289da !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(88, 101, 242, 0.4);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Inputs */
+input,
+textarea,
+select {
+  background-color: var(--theme-surface) !important;
+  color: var(--theme-text-primary) !important;
+  border: 1px solid var(--theme-border) !important;
+  border-radius: 4px;
+  padding: 8px 12px;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--theme-accent) !important;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.1);
+}
+
+/* Cards and panels */
+[class*="card"],
+[class*="panel"] {
+  background-color: var(--theme-surface) !important;
+  border: 1px solid var(--theme-border) !important;
+  border-radius: 4px;
+}
+
+/* Messages */
+[class*="message"] {
+  color: var(--theme-text-primary) !important;
+}
+
+[class*="message"]:hover {
+  background-color: rgba(88, 101, 242, 0.1) !important;
+}
+
+/* Links */
+a {
+  color: var(--theme-accent);
+  text-decoration: none;
+  transition: color 200ms ease;
+}
+
+a:hover {
+  color: #7289da;
+  text-decoration: underline;
+}
+
+/* Code blocks */
+code,
+pre {
+  background-color: var(--theme-surface) !important;
+  color: #b392f0 !important;
+  border: 1px solid var(--theme-border) !important;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-family: 'Fira Code', 'Courier New', monospace;
+}
+
+pre {
+  padding: 12px;
+  overflow-x: auto;
+}
+
+/* Badges and tags */
+[class*="badge"],
+[class*="tag"] {
+  background-color: var(--theme-accent) !important;
+  color: white !important;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Animations */
+* {
+  transition-property: background-color, color, border-color, box-shadow;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
+
+/* Status indicators */
+[class*="status-online"] {
+  color: var(--theme-success) !important;
+}
+
+[class*="status-idle"] {
+  color: var(--theme-warning) !important;
+}
+
+[class*="status-dnd"] {
+  color: var(--theme-danger) !important;
+}
+
+[class*="status-offline"] {
+  color: var(--theme-text-secondary) !important;
+}

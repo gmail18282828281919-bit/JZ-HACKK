@@ -1,0 +1,44 @@
+{
+  "themes": [
+    {
+      "id": "dark-blue",
+      "name": "Dark Blue",
+      "description": "Modern dark theme with blue accents",
+      "author": "DiscordMod",
+      "version": "1.0.0",
+      "tags": ["dark", "blue", "default"]
+    },
+    {
+      "id": "nord",
+      "name": "Nord",
+      "description": "Arctic, north-bluish color palette theme",
+      "author": "DiscordMod",
+      "version": "1.0.0",
+      "tags": ["dark", "cold", "arctic"]
+    },
+    {
+      "id": "dracula",
+      "name": "Dracula",
+      "description": "Dark theme inspired by Dracula color scheme",
+      "author": "DiscordMod",
+      "version": "1.0.0",
+      "tags": ["dark", "purple"]
+    },
+    {
+      "id": "solarized-dark",
+      "name": "Solarized Dark",
+      "description": "Precision colors for machines and people",
+      "author": "DiscordMod",
+      "version": "1.0.0",
+      "tags": ["dark", "warm", "accessible"]
+    },
+    {
+      "id": "material-darker",
+      "name": "Material Darker",
+      "description": "Material Design inspired dark theme",
+      "author": "DiscordMod",
+      "version": "1.0.0",
+      "tags": ["dark", "material"]
+    }
+  ]
+}

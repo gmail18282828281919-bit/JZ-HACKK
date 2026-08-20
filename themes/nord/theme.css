@@ -1,0 +1,167 @@
+/**
+ * Nord Theme - Arctic, north-bluish color palette
+ * https://www.nordtheme.com/
+ */
+
+:root {
+  --nord0: #2e3440;
+  --nord1: #3b4252;
+  --nord2: #434c5e;
+  --nord3: #4c566a;
+  --nord4: #d8dee9;
+  --nord5: #e5e9f0;
+  --nord6: #eceff4;
+  --nord7: #8fbcbb;
+  --nord8: #88c0d0;
+  --nord9: #81a1c1;
+  --nord10: #5e81ac;
+  --nord11: #bf616a;
+  --nord12: #d08770;
+  --nord13: #ebcb8b;
+  --nord14: #a3be8c;
+  --nord15: #b48ead;
+}
+
+:root {
+  --theme-primary: var(--nord9);
+  --theme-secondary: var(--nord1);
+  --theme-background: var(--nord0);
+  --theme-surface: var(--nord2);
+  --theme-text-primary: var(--nord4);
+  --theme-text-secondary: var(--nord3);
+  --theme-border: var(--nord1);
+  --theme-accent: var(--nord8);
+  --theme-success: var(--nord14);
+  --theme-warning: var(--nord13);
+  --theme-danger: var(--nord11);
+}
+
+/* Base styling */
+body {
+  background-color: var(--theme-background);
+  color: var(--theme-text-primary);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--theme-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--nord9);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--nord8);
+}
+
+/* Main elements */
+[class*="container"],
+[class*="scroller"],
+[data-kind="folder"] {
+  background-color: var(--theme-background) !important;
+  color: var(--theme-text-primary) !important;
+}
+
+/* Buttons */
+button {
+  background-color: var(--nord9) !important;
+  color: var(--nord6) !important;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+button:hover {
+  background-color: var(--nord8) !important;
+  box-shadow: 0 4px 12px rgba(136, 192, 208, 0.3);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* Inputs */
+input,
+textarea,
+select {
+  background-color: var(--nord2) !important;
+  color: var(--nord4) !important;
+  border: 1px solid var(--nord3) !important;
+  border-radius: 4px;
+  padding: 8px 12px;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--nord3);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--nord8) !important;
+  box-shadow: 0 0 0 3px rgba(136, 192, 208, 0.1);
+  outline: none;
+}
+
+/* Cards */
+[class*="card"],
+[class*="panel"] {
+  background-color: var(--nord2) !important;
+  border: 1px solid var(--nord3) !important;
+  border-radius: 4px;
+}
+
+/* Links */
+a {
+  color: var(--nord8);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--nord9);
+  text-decoration: underline;
+}
+
+/* Code blocks */
+code,
+pre {
+  background-color: var(--nord1) !important;
+  color: var(--nord13) !important;
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+pre {
+  padding: 12px;
+  overflow-x: auto;
+}
+
+/* Selection */
+::selection {
+  background-color: var(--nord8);
+  color: var(--nord0);
+}
+
+/* Badges */
+[class*="badge"],
+[class*="tag"] {
+  background-color: var(--nord9) !important;
+  color: var(--nord6) !important;
+  border-radius: 12px;
+  padding: 2px 8px;
+}
+
+/* Animations */
+* {
+  transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
+}
