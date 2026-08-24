@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">JZ-AI</string>
+    <string name="send">Envoyer</string>
+    <string name="input_hint">Écris ton message…</string>
+    <string name="clear_chat">Effacer la conversation</string>
+    <string name="settings_title">Réglages</string>
+    <string name="settings_short">Réglages</string>
+    <string name="save">Enregistrer</string>
+    <string name="cancel">Annuler</string>
+    <string name="server_url">Adresse du serveur</string>
+    <string name="server_url_hint">http://127.0.0.1:8000</string>
+    <string name="api_key">Clé d\'API</string>
+    <string name="api_key_hint">jz-…</string>
+    <string name="settings_help">Lance le serveur dans Termux avec « python3 -m ai.server.lite ». Si Termux tourne sur ce téléphone, garde 127.0.0.1:8000.</string>
+    <string name="settings_incomplete">Renseigne l\'adresse et la clé.</string>
+    <string name="status_unknown">Non connecté</string>
+    <string name="status_checking">Connexion…</string>
+    <string name="status_connected">Connecté à %1$s</string>
+    <string name="status_offline">Hors ligne : %1$s</string>
+    <string name="request_failed">La requête a échoué</string>
+    <string name="empty_answer">(réponse vide)</string>
+    <string name="unknown_error">Erreur inconnue</string>
+</resources>

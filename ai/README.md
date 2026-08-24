@@ -72,22 +72,17 @@ curl http://localhost:8000/v1/chat/completions \
 
 ## 6. Brancher l'apk
 
-Copie `ai/android/JZAiClient.kt` dans ton projet Android :
+L'application Android complète est dans [`apk/`](../apk/README.md) — elle se
+compile toute seule sur GitHub Actions, pas besoin d'Android Studio.
 
-```kotlin
-val ai = JZAiClient(
-    baseUrl = "http://192.168.1.20:8000",  // IP de ta machine sur le réseau
-    apiKey  = BuildConfig.JZ_API_KEY,       // ne code jamais la clé en dur
-)
+Dans l'app, ouvre le menu **⋮ → Réglages** et saisis :
 
-lifecycleScope.launch {
-    val reponse = ai.ask("Salut, tu fais quoi ?")
-    textView.text = reponse
-}
-```
+- **Adresse du serveur** : `http://127.0.0.1:8000` si Termux tourne sur le même
+  téléphone, sinon l'IP du serveur sur ton réseau.
+- **Clé d'API** : celle créée à l'étape 3.
 
-Il faut `<uses-permission android:name="android.permission.INTERNET"/>` dans le
-manifest, et `android:usesCleartextTraffic="true"` tant que tu es en HTTP simple.
+La clé est stockée dans les SharedPreferences privées de l'app, jamais compilée
+dans l'apk (qui se décompile en quelques minutes).
 
 ## Endpoints
 
