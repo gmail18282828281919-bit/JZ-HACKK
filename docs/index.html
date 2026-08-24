@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#05070f" />
+<title>JZScord</title>
+<style>
+  :root{
+    --bg-0:#05070f;
+    --bg-1:#0a1226;
+    --bg-2:#0f1d3d;
+    --line:rgba(90,140,255,.16);
+    --blue:#2f6bff;
+    --blue-2:#3b74ff;
+    --blue-soft:#6ea8ff;
+    --txt:#e6ecff;
+    --txt-dim:#8ea0ce;
+    --txt-faint:#54628c;
+    --danger:#ff6b7a;
+    --ok:#38d67f;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:'Segoe UI','Helvetica Neue',system-ui,sans-serif;
+    color:var(--txt);
+    background:
+      radial-gradient(circle at 15% -5%, #123a82 0%, rgba(18,58,130,0) 45%),
+      radial-gradient(circle at 110% 110%, #10305f 0%, rgba(16,48,95,0) 42%),
+      linear-gradient(160deg,#0a1a3f 0%,#06122b 45%,#000 100%);
+    background-attachment:fixed;
+    overflow:hidden;
+  }
+  button{font-family:inherit;cursor:pointer}
+  input,textarea{font-family:inherit}
+
+  /* ---------- LOGIN ---------- */
+  #login{
+    position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    padding:22px;z-index:20;
+  }
+  .card{
+    width:100%;max-width:420px;
+    background:linear-gradient(155deg,rgba(15,30,66,.92),rgba(7,15,33,.94) 60%,rgba(0,0,0,.96));
+    border:1px solid var(--line);border-radius:20px;padding:34px 26px;
+    box-shadow:0 24px 60px rgba(0,0,0,.55);
+  }
+  .logo{
+    width:104px;height:104px;margin:0 auto 16px;border-radius:26px;overflow:hidden;
+    border:1px solid rgba(90,140,255,.35);
+    box-shadow:0 10px 30px rgba(20,70,180,.45),0 0 0 6px rgba(30,95,255,.06);
+    display:block;
+  }
+  .logo img{width:100%;height:100%;object-fit:cover;display:block}
+  h1{
+    text-align:center;font-size:30px;font-weight:800;letter-spacing:.5px;margin-bottom:2px;
+    background:linear-gradient(90deg,#fff,#6ea8ff 60%,#2f6bff);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .sub{text-align:center;color:var(--txt-faint);font-size:12px;letter-spacing:1px;margin-bottom:24px}
+  label{display:block;font-size:11px;font-weight:700;color:var(--txt-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+  .field{
+    width:100%;padding:13px 14px;background:rgba(6,14,32,.85);border:1px solid var(--line);
+    border-radius:12px;color:var(--txt);font-size:14px;transition:.18s;
+  }
+  .field:focus{outline:none;border-color:var(--blue);background:rgba(9,20,45,.95);box-shadow:0 0 0 4px rgba(47,107,255,.15)}
+  .hint{font-size:12px;color:var(--txt-faint);margin-top:6px;line-height:1.4}
+  .btn{
+    width:100%;padding:14px;border:none;border-radius:12px;font-size:14px;font-weight:700;
+    letter-spacing:.3px;transition:transform .16s,box-shadow .2s,background .2s;margin-top:16px;
+    color:#fff;background:linear-gradient(180deg,var(--blue-2),#1b46c4);
+    box-shadow:0 10px 24px rgba(31,90,240,.45);
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(31,90,240,.6)}
+  .btn:active{transform:translateY(1px)}
+  .btn:disabled{opacity:.55;transform:none;cursor:not-allowed}
+  .warn{
+    margin-top:18px;padding:11px 12px;border-radius:10px;font-size:12px;line-height:1.5;
+    background:rgba(255,190,77,.1);border-left:3px solid #ffbe4d;color:#ffce7a;
+  }
+  .msg{margin-top:14px;padding:11px 12px;border-radius:10px;font-size:13px;display:none}
+  .msg.show{display:block}
+  .msg.err{background:rgba(255,71,87,.12);color:var(--danger);border-left:3px solid var(--danger)}
+  .msg.ok{background:rgba(56,214,127,.12);color:var(--ok);border-left:3px solid var(--ok)}
+  .msg.info{background:rgba(47,107,255,.12);color:var(--blue-soft);border-left:3px solid var(--blue)}
+
+  /* ---------- APP ---------- */
+  #app{position:fixed;inset:0;display:none;flex-direction:column;z-index:10}
+  #app.on{display:flex}
+  .topbar{
+    display:flex;align-items:center;gap:10px;padding:10px 14px;
+    background:rgba(5,8,18,.75);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+    padding-top:calc(10px + env(safe-area-inset-top));
+  }
+  .topbar .badge{width:30px;height:30px;border-radius:9px;overflow:hidden;flex:0 0 auto;border:1px solid var(--line)}
+  .topbar .badge img{width:100%;height:100%;object-fit:cover;display:block}
+  .topbar .name{font-weight:800;font-size:16px;letter-spacing:.5px}
+  .topbar .who{margin-left:auto;font-size:12px;color:var(--txt-dim);max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .topbar .logout{background:rgba(255,71,87,.14);color:var(--danger);border:1px solid rgba(255,71,87,.3);border-radius:9px;padding:7px 10px;font-size:12px;font-weight:700}
+
+  .body{flex:1;display:flex;min-height:0}
+  .sidebar{
+    width:38%;max-width:230px;min-width:150px;border-right:1px solid var(--line);
+    overflow-y:auto;background:rgba(4,8,20,.5);
+  }
+  .sec{padding:12px 12px 4px;font-size:10px;font-weight:800;letter-spacing:1px;color:var(--txt-faint);text-transform:uppercase}
+  .row{
+    display:flex;align-items:center;gap:9px;padding:9px 12px;font-size:13px;color:var(--txt-dim);
+    border:none;background:none;width:100%;text-align:left;transition:.14s;border-left:3px solid transparent;
+  }
+  .row:hover{background:rgba(47,107,255,.08);color:var(--txt)}
+  .row.active{background:rgba(47,107,255,.14);color:#fff;border-left-color:var(--blue)}
+  .row .av{width:26px;height:26px;border-radius:50%;flex:0 0 auto;background:linear-gradient(135deg,#1b3a7a,#0a1730);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#9dc0ff;overflow:hidden}
+  .row .av img{width:100%;height:100%;object-fit:cover}
+  .row .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row.chan .hash{color:var(--txt-faint);font-weight:700;width:16px;text-align:center;flex:0 0 auto}
+  .back{color:var(--blue-soft);font-weight:700;font-size:12px}
+
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .chan-head{padding:11px 14px;border-bottom:1px solid var(--line);font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;color:var(--txt)}
+  .chan-head .hash{color:var(--txt-faint)}
+  .messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:13px}
+  .empty{margin:auto;text-align:center;color:var(--txt-faint);font-size:13px;padding:30px;line-height:1.6}
+  .m{display:flex;gap:10px;align-items:flex-start}
+  .m .mav{width:36px;height:36px;border-radius:50%;flex:0 0 auto;background:linear-gradient(135deg,#1b3a7a,#0a1730);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#9dc0ff;overflow:hidden}
+  .m .mav img{width:100%;height:100%;object-fit:cover}
+  .m .mc{min-width:0;flex:1}
+  .m .mh{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+  .m .mu{font-weight:700;font-size:14px;color:#cfe0ff}
+  .m .mt{font-size:11px;color:var(--txt-faint)}
+  .m .mb{font-size:14px;line-height:1.45;color:var(--txt);word-wrap:break-word;white-space:pre-wrap}
+  .composer{display:flex;gap:9px;padding:12px;border-top:1px solid var(--line);padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+  .composer input{
+    flex:1;padding:13px 15px;background:rgba(6,14,32,.85);border:1px solid var(--line);
+    border-radius:14px;color:var(--txt);font-size:14px;
+  }
+  .composer input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px rgba(47,107,255,.15)}
+  .composer button{
+    width:46px;border:none;border-radius:14px;color:#fff;font-size:18px;
+    background:linear-gradient(180deg,var(--blue-2),#1b46c4);box-shadow:0 8px 18px rgba(31,90,240,.4);
+  }
+  .composer button:disabled{opacity:.5}
+  .spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;display:inline-block;animation:sp .7s linear infinite;vertical-align:middle}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .loading{margin:auto;color:var(--txt-faint);font-size:13px}
+
+  /* mobile: sidebar becomes a full slide-over when a channel is open */
+  @media(max-width:620px){
+    .sidebar{width:100%;max-width:none;position:absolute;inset:0 auto 0 0;z-index:5;transition:transform .22s}
+    .body.viewing .sidebar{transform:translateX(-100%)}
+    .body:not(.viewing) .main{display:none}
+    .chan-head .menu{margin-right:4px}
+  }
+  @media(min-width:621px){.chan-head .menu{display:none}}
+  .chan-head .menu{background:rgba(47,107,255,.14);border:1px solid var(--line);color:var(--blue-soft);border-radius:8px;padding:5px 9px;font-size:13px;font-weight:700}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="card">
+    <div class="logo"><img src="./jzs-logo.png" alt="JZScord" /></div>
+    <h1>JZScord</h1>
+    <div class="sub">CLIENT WEB · v3.0.0</div>
+
+    <label for="tok">Token Discord</label>
+    <input id="tok" class="field" type="password" placeholder="Colle ton token ici" autocomplete="off" spellcheck="false" />
+    <div class="hint">Ton token Discord (pas ton mot de passe). Il reste stocké uniquement sur ton téléphone.</div>
+
+    <button id="loginBtn" class="btn">Se connecter</button>
+
+    <div class="warn">⚠️ Utilise de préférence un <b>compte secondaire</b> : un client non-officiel peut faire bannir ton compte par Discord.</div>
+    <div id="loginMsg" class="msg"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="badge"><img src="./jzs-logo.png" alt="" /></div>
+    <div class="name">JZScord</div>
+    <div class="who" id="who"></div>
+    <button class="logout" id="logout">Déco</button>
+  </div>
+  <div class="body" id="bodyEl">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main" id="main">
+      <div class="empty" id="mainEmpty">Choisis une conversation ou un serveur à gauche 👈</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://discord.com/api/v10';
+const CDN = 'https://cdn.discordapp.com';
+const LS_KEY = 'jzscord_token';
+
+let token = null;
+let me = null;
+let currentChannel = null;
+let pollTimer = null;
+
+const $ = s => document.querySelector(s);
+const el = (tag, cls, txt) => { const e=document.createElement(tag); if(cls)e.className=cls; if(txt!=null)e.textContent=txt; return e; };
+
+function showLoginMsg(text, type){
+  const m = $('#loginMsg');
+  m.textContent = text;
+  m.className = 'msg show ' + type;
+}
+
+async function api(path, opts={}){
+  const res = await fetch(API + path, {
+    ...opts,
+    headers:{ 'Authorization': token, 'Content-Type':'application/json', ...(opts.headers||{}) }
+  });
+  if(res.status === 401) throw new Error('401');
+  if(res.status === 429){ const j=await res.json().catch(()=>({})); throw new Error('rate:'+(j.retry_after||1)); }
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  if(res.status === 204) return null;
+  return res.json();
+}
+
+/* ---------- LOGIN ---------- */
+async function doLogin(){
+  const t = $('#tok').value.trim().replace(/^"|"$/g,'');
+  if(!t){ showLoginMsg('Colle ton token d’abord.', 'err'); return; }
+  token = t;
+  const btn = $('#loginBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>';
+  showLoginMsg('Connexion…', 'info');
+  try{
+    me = await api('/users/@me');
+    localStorage.setItem(LS_KEY, token);
+    showLoginMsg('Connecté ! Bienvenue ' + me.username, 'ok');
+    setTimeout(enterApp, 500);
+  }catch(e){
+    token = null;
+    if(String(e.message).includes('401')) showLoginMsg('Token invalide. Vérifie et recommence.', 'err');
+    else if(String(e.message).startsWith('rate')) showLoginMsg('Trop de tentatives, attends un peu.', 'err');
+    else showLoginMsg('Échec : Discord a peut-être bloqué la requête ('+e.message+').', 'err');
+  }finally{
+    btn.disabled = false; btn.textContent = 'Se connecter';
+  }
+}
+
+function avatarUrl(user){
+  if(user.avatar) return `${CDN}/avatars/${user.id}/${user.avatar}.png?size=64`;
+  return null;
+}
+function initials(name){ return (name||'?').slice(0,2).toUpperCase(); }
+
+/* ---------- APP ---------- */
+async function enterApp(){
+  $('#login').style.display = 'none';
+  $('#app').classList.add('on');
+  $('#who').textContent = '@' + me.username;
+  await loadSidebar();
+}
+
+async function loadSidebar(){
+  const sb = $('#sidebar');
+  sb.innerHTML = '';
+  sb.appendChild(elLoading('Chargement…'));
+  try{
+    const [dms, guilds] = await Promise.all([
+      api('/users/@me/channels'),
+      api('/users/@me/guilds')
+    ]);
+    sb.innerHTML = '';
+
+    // DMs
+    sb.appendChild(sec('Messages privés'));
+    const dmSorted = (dms||[]).filter(c=>c.type===1||c.type===3);
+    if(!dmSorted.length) sb.appendChild(hintRow('Aucun MP'));
+    dmSorted.slice(0,40).forEach(c=>{
+      const other = (c.recipients&&c.recipients[0])||{username:'MP'};
+      const r = el('button','row');
+      const av = el('div','av'); const url=avatarUrl(other);
+      if(url){ const im=el('img'); im.src=url; av.appendChild(im); } else av.textContent=initials(other.username);
+      r.appendChild(av);
+      r.appendChild(el('div','t', other.global_name||other.username||'MP'));
+      r.onclick = ()=>openChannel(c.id, (other.global_name||other.username||'MP'), false, r);
+      sb.appendChild(r);
+    });
+
+    // Guilds
+    sb.appendChild(sec('Serveurs'));
+    if(!guilds||!guilds.length) sb.appendChild(hintRow('Aucun serveur'));
+    (guilds||[]).forEach(g=>{
+      const r = el('button','row');
+      const av = el('div','av');
+      if(g.icon){ const im=el('img'); im.src=`${CDN}/icons/${g.id}/${g.icon}.png?size=64`; av.appendChild(im); }
+      else av.textContent=initials(g.name);
+      r.appendChild(av);
+      r.appendChild(el('div','t', g.name));
+      r.onclick = ()=>openGuild(g);
+      sb.appendChild(r);
+    });
+  }catch(e){
+    sb.innerHTML='';
+    sb.appendChild(hintRow('Erreur de chargement ('+e.message+')'));
+  }
+}
+
+async function openGuild(g){
+  const sb = $('#sidebar');
+  sb.innerHTML = '';
+  const back = el('button','row');
+  back.appendChild(el('span','back','‹ Retour'));
+  back.onclick = loadSidebar;
+  sb.appendChild(back);
+  sb.appendChild(sec(g.name));
+  sb.appendChild(elLoading('Salons…'));
+  try{
+    const chans = await api(`/guilds/${g.id}/channels`);
+    sb.querySelector('.loading')?.remove();
+    const texts = (chans||[]).filter(c=>c.type===0)
+      .sort((a,b)=>(a.position||0)-(b.position||0));
+    if(!texts.length) sb.appendChild(hintRow('Aucun salon texte visible'));
+    texts.forEach(c=>{
+      const r = el('button','row chan');
+      r.appendChild(el('span','hash','#'));
+      r.appendChild(el('div','t', c.name));
+      r.onclick = ()=>openChannel(c.id, c.name, true, r);
+      sb.appendChild(r);
+    });
+  }catch(e){
+    sb.querySelector('.loading')?.remove();
+    sb.appendChild(hintRow('Erreur salons ('+e.message+')'));
+  }
+}
+
+async function openChannel(id, name, isGuildChan, rowEl){
+  currentChannel = id;
+  document.querySelectorAll('.row.active').forEach(r=>r.classList.remove('active'));
+  rowEl?.classList.add('active');
+  $('#bodyEl').classList.add('viewing');
+
+  const main = $('#main');
+  main.innerHTML = '';
+  const head = el('div','chan-head');
+  const menu = el('button','menu','☰');
+  menu.onclick = ()=>$('#bodyEl').classList.remove('viewing');
+  head.appendChild(menu);
+  if(isGuildChan) head.appendChild(el('span','hash','#'));
+  head.appendChild(el('span',null,name));
+  main.appendChild(head);
+
+  const msgs = el('div','messages'); msgs.id='messages';
+  main.appendChild(msgs);
+  msgs.appendChild(elLoading('Chargement des messages…'));
+
+  const comp = el('div','composer');
+  const input = el('input'); input.type='text'; input.placeholder='Message dans '+(isGuildChan?'#':'')+name; input.id='composerInput';
+  const send = el('button',null,'➤'); send.id='sendBtn';
+  const doSend = async ()=>{
+    const content = input.value.trim();
+    if(!content) return;
+    input.value=''; send.disabled=true;
+    try{
+      await api(`/channels/${id}/messages`, { method:'POST', body: JSON.stringify({content}) });
+      await loadMessages(id);
+    }catch(e){
+      input.value = content;
+      alert('Échec de l’envoi : '+e.message);
+    }finally{ send.disabled=false; input.focus(); }
+  };
+  send.onclick = doSend;
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') doSend(); });
+  comp.appendChild(input); comp.appendChild(send);
+  main.appendChild(comp);
+
+  await loadMessages(id);
+  startPolling(id);
+}
+
+async function loadMessages(id){
+  try{
+    const list = await api(`/channels/${id}/messages?limit=50`);
+    if(currentChannel !== id) return;
+    const box = $('#messages');
+    if(!box) return;
+    const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 120;
+    box.innerHTML = '';
+    if(!list.length){ box.appendChild(el('div','empty','Aucun message ici. Sois le premier ! ✍️')); return; }
+    list.slice().reverse().forEach(m=>box.appendChild(renderMsg(m)));
+    if(nearBottom) box.scrollTop = box.scrollHeight;
+  }catch(e){
+    const box = $('#messages');
+    if(box && !box.children.length){ box.innerHTML=''; box.appendChild(el('div','empty','Impossible de charger ('+e.message+').\nDiscord bloque peut-être la lecture de ce salon.')); }
+  }
+}
+
+function renderMsg(m){
+  const wrap = el('div','m');
+  const av = el('div','mav');
+  const url = avatarUrl(m.author);
+  if(url){ const im=el('img'); im.src=url; av.appendChild(im); } else av.textContent=initials(m.author.username);
+  wrap.appendChild(av);
+  const c = el('div','mc');
+  const h = el('div','mh');
+  h.appendChild(el('span','mu', m.author.global_name||m.author.username));
+  h.appendChild(el('span','mt', fmtTime(m.timestamp)));
+  c.appendChild(h);
+  let body = m.content || '';
+  if(!body && m.attachments && m.attachments.length) body = '📎 '+m.attachments.length+' pièce(s) jointe(s)';
+  if(!body && m.embeds && m.embeds.length) body = '🔗 (contenu intégré)';
+  c.appendChild(el('div','mb', body));
+  wrap.appendChild(c);
+  return wrap;
+}
+
+function fmtTime(iso){
+  const d = new Date(iso);
+  const now = new Date();
+  const sameDay = d.toDateString()===now.toDateString();
+  const t = d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  return sameDay ? t : d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})+' '+t;
+}
+
+function startPolling(id){
+  stopPolling();
+  pollTimer = setInterval(()=>{ if(currentChannel===id && document.visibilityState==='visible') loadMessages(id); }, 4000);
+}
+function stopPolling(){ if(pollTimer){ clearInterval(pollTimer); pollTimer=null; } }
+
+/* helpers */
+function sec(t){ return el('div','sec',t); }
+function hintRow(t){ const r=el('div','row'); r.style.color='var(--txt-faint)'; r.style.cursor='default'; r.textContent=t; return r; }
+function elLoading(t){ const d=el('div','loading'); d.innerHTML='<span class="spin"></span> '+t; return d; }
+
+function logout(){
+  stopPolling();
+  localStorage.removeItem(LS_KEY);
+  token=null; me=null; currentChannel=null;
+  $('#app').classList.remove('on');
+  $('#login').style.display='flex';
+  $('#tok').value='';
+  $('#loginMsg').className='msg';
+}
+
+/* wire up */
+$('#loginBtn').onclick = doLogin;
+$('#tok').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+$('#logout').onclick = logout;
+
+/* auto-login if token saved */
+(async function(){
+  const saved = localStorage.getItem(LS_KEY);
+  if(saved){
+    token = saved;
+    try{ me = await api('/users/@me'); enterApp(); }
+    catch(e){ token=null; localStorage.removeItem(LS_KEY); }
+  }
+})();
+</script>
+</body>
+</html>
