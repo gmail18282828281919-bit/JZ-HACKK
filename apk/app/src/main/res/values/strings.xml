@@ -21,4 +21,14 @@
     <string name="request_failed">La requête a échoué</string>
     <string name="empty_answer">(réponse vide)</string>
     <string name="unknown_error">Erreur inconnue</string>
+    <string name="attach">Joindre un fichier</string>
+    <string name="attach_icon">📎</string>
+    <string name="chip_file">%1$s  ✕</string>
+    <string name="uploading">Envoi de %1$s…</string>
+    <string name="default_file_prompt">Analyse ce fichier.</string>
+    <string name="too_many_files">Maximum %1$d fichiers par message.</string>
+    <string name="file_too_big">%1$s dépasse la limite de %2$d Mio.</string>
+    <string name="file_unreadable">Impossible de lire %1$s.</string>
+    <string name="file_empty">%1$s est vide.</string>
+    <string name="first_run_hint">Configure le serveur et ta clé d\'API (menu ⋮ en haut à droite). Le bouton 📎 permet de joindre un fichier ou une image.</string>
 </resources>

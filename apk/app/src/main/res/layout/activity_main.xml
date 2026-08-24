@@ -49,6 +49,23 @@
         android:indeterminate="true"
         android:visibility="gone" />
 
+    <HorizontalScrollView
+        android:id="@+id/attachmentScroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/surface"
+        android:paddingHorizontal="8dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/attachmentBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="8dp"
+            android:visibility="gone" />
+    </HorizontalScrollView>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -56,6 +73,17 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:padding="8dp">
+
+        <Button
+            android:id="@+id/attachButton"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:contentDescription="@string/attach"
+            android:minWidth="0dp"
+            android:paddingHorizontal="12dp"
+            android:text="@string/attach_icon" />
 
         <EditText
             android:id="@+id/input"
