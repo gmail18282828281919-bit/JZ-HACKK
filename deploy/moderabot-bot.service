@@ -1,0 +1,27 @@
+# Service du BOT seul (aucun port reseau ouvert).
+# cp deploy/*.service /etc/systemd/system/ && systemctl enable --now moderabot-bot
+[Unit]
+Description=ModeraBot - bot Discord
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=moderabot
+Group=moderabot
+WorkingDirectory=/opt/moderabot
+ExecStart=/opt/moderabot/venv/bin/python main.py --bot-only
+Restart=always
+RestartSec=5
+
+# Durcissement
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/moderabot/data
+ProtectKernelTunables=true
+RestrictNamespaces=true
+
+[Install]
+WantedBy=multi-user.target

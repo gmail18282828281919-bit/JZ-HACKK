@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ModeraBot — Mes Serveurs</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+<style>
+.page{position:relative;z-index:10;flex:1;max-width:1100px;width:100%;margin:0 auto;padding:36px 24px 60px}
+.page-head{margin-bottom:28px}
+.page-head h1{font-size:24px;font-weight:800;color:#fff;margin-bottom:4px}
+.page-head p{font-size:13px;font-weight:500;color:var(--muted)}
+.stats{display:flex;gap:12px;margin-bottom:32px;flex-wrap:wrap}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 20px;flex:1;min-width:120px}
+.stat-val{font-size:22px;font-weight:800;color:var(--accent)}
+.stat-lbl{font-size:12px;font-weight:600;color:var(--muted);margin-top:2px}
+.section-sep{grid-column:1/-1;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);padding:10px 0 4px}
+.section-sep svg{opacity:.6}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:12px}
+.srv{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:22px 14px 16px;display:flex;flex-direction:column;align-items:center;gap:9px;text-decoration:none;color:inherit;overflow:hidden;opacity:0;transform:translateY(14px);animation:fadeUp .4s ease forwards}
+.srv.clickable{cursor:pointer;transition:border-color .2s,box-shadow .2s,transform .18s}
+.srv.clickable:hover{border-color:var(--border-hi);box-shadow:0 0 0 1px var(--border-hi),0 8px 28px rgba(106,179,232,.12);transform:translateY(-3px)}
+.srv.greyed{cursor:default}
+.srv.greyed .srv-icon,.srv.greyed .srv-initials{filter:grayscale(1) brightness(.42)}
+.srv.invite-me{cursor:default;transition:border-color .2s}
+.srv.invite-me:hover{border-color:var(--border-hi)}
+.ripple{position:absolute;border-radius:50%;background:rgba(106,179,232,.22);transform:scale(0);animation:rpl .5s linear;pointer-events:none}
+@keyframes rpl{to{transform:scale(4);opacity:0}}
+.icon-wrap{position:relative;width:62px;height:62px;flex-shrink:0}
+.srv-icon{width:62px;height:62px;border-radius:15px;object-fit:cover;border:2px solid var(--border);display:block}
+.srv-initials{width:62px;height:62px;border-radius:15px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff}
+.badge-lock{position:absolute;top:-5px;right:-5px;width:20px;height:20px;background:var(--surface2);border:1.5px solid var(--border-hi);border-radius:6px;display:flex;align-items:center;justify-content:center;z-index:2}
+.srv-overlay{display:none;position:absolute;inset:0;border-radius:18px;background:rgba(11,14,24,.86);backdrop-filter:blur(3px);flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:5}
+.srv.invite-me:hover .srv-overlay{display:flex}
+.overlay-txt{font-size:12px;font-weight:600;color:var(--muted);text-align:center;padding:0 10px}
+.btn-add{display:flex;align-items:center;gap:7px;padding:9px 18px;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;font-size:13px;font-weight:800;border-radius:10px;text-decoration:none}
+.srv-name{font-size:13px;font-weight:700;color:var(--text);text-align:center;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srv-badge{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:3px 9px;border-radius:20px;display:flex;align-items:center;gap:5px}
+.badge-on{color:var(--accent);background:rgba(106,179,232,.12);border:1px solid rgba(106,179,232,.2)}
+.badge-off{color:var(--muted);background:rgba(90,99,135,.1);border:1px solid rgba(90,99,135,.2)}
+@media(max-width:600px){.page{padding:20px 12px 40px}.grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
+</style>
+</head>
+<body data-client-id="{{ client_id }}">
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<nav>
+  <a class="nav-left" href="/">
+    <img class="logo" src="{{ url_for('static', filename='logo.png') }}" alt="" onerror="this.style.visibility='hidden'">
+    <span class="name">ModeraBot</span>
+    <span class="tag">Dashboard</span>
+  </a>
+  <div class="user-pill">
+    <img id="uAvatar" src="https://cdn.discordapp.com/embed/avatars/0.png" alt="">
+    <span class="uname" id="uName">…</span>
+    <div class="dropdown">
+      <a class="dd" href="/">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Accueil
+      </a>
+      <div class="dd danger" onclick="logout()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Déconnexion
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-head">
+    <h1>Mes Serveurs</h1>
+    <p>Sélectionne un serveur pour le configurer avec ModeraBot.</p>
+  </div>
+  <div class="stats" id="stats" style="display:none">
+    <div class="stat"><div class="stat-val" id="sTot">0</div><div class="stat-lbl">Serveurs</div></div>
+    <div class="stat"><div class="stat-val" id="sBot">0</div><div class="stat-lbl">Avec le bot</div></div>
+    <div class="stat"><div class="stat-val" id="sAdm">0</div><div class="stat-lbl">Admin</div></div>
+  </div>
+  <div class="grid" id="grid">
+    <div class="loading"><div class="spinner"></div>Chargement de tes serveurs…</div>
+  </div>
+</div>
+
+<footer>
+  <span id="botStatus"><span class="dot"></span>Bot en ligne</span>
+  <span>ModeraBot © 2026 · <a href="#">Support</a></span>
+</footer>
+
+<script src="{{ url_for('static', filename='js/status.js') }}"></script>
+<script src="{{ url_for('static', filename='js/servers.js') }}"></script>
+</body>
+</html>

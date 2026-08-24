@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ModeraBot — Connexion</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+<style>
+.page{position:relative;z-index:10;flex:1;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:44px 36px;max-width:380px;width:100%;text-align:center;opacity:0;transform:translateY(14px);animation:fadeUp .45s ease forwards}
+.card-logo{width:72px;height:72px;border-radius:18px;object-fit:cover;margin:0 auto 20px;display:block;border:2px solid var(--border-hi);background:linear-gradient(135deg,var(--accent2),var(--accent))}
+.card h1{font-size:20px;font-weight:800;color:#fff;margin-bottom:8px}
+.card p{font-size:13px;font-weight:500;color:var(--muted);margin-bottom:28px;line-height:1.5}
+.btn-discord{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px 20px;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;font-size:14px;font-weight:800;border-radius:12px;text-decoration:none;transition:transform .18s,box-shadow .18s}
+.btn-discord:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(106,179,232,.25)}
+.card-foot{margin-top:22px;font-size:11px;color:var(--muted);line-height:1.5}
+@media(max-width:600px){.page{padding:16px}.card{padding:34px 26px}}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<nav>
+  <a class="nav-left" href="/">
+    <img class="logo" src="{{ url_for('static', filename='logo.png') }}" alt="" onerror="this.style.visibility='hidden'">
+    <span class="name">ModeraBot</span>
+    <span class="tag">Dashboard</span>
+  </a>
+</nav>
+
+<div class="page">
+  <div class="card">
+    <img class="card-logo" src="{{ url_for('static', filename='logo.png') }}" alt="" onerror="this.style.visibility='hidden'">
+    <h1>Bienvenue sur ModeraBot</h1>
+    <p>Connecte-toi avec Discord pour gérer tes serveurs et configurer le bot.</p>
+    {# Le lien passe par le serveur : c'est lui qui génère le state anti-CSRF. #}
+    <a class="btn-discord" href="{{ login_url }}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.056 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.099.246.197.372.291a.077.077 0 0 1-.006.128 12.3 12.3 0 0 1-1.873.892.076.076 0 0 0-.04.106c.36.698.772 1.362 1.225 1.994a.076.076 0 0 0 .084.028 19.84 19.84 0 0 0 6.002-3.03.077.077 0 0 0 .032-.055c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.418 2.157-2.418 1.21 0 2.176 1.094 2.157 2.418 0 1.334-.946 2.419-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.418 2.157-2.418 1.21 0 2.176 1.094 2.157 2.418 0 1.334-.946 2.419-2.157 2.419z"/></svg>
+      Se connecter avec Discord
+    </a>
+    <div class="card-foot">En te connectant, tu acceptes que ModeraBot accède à la liste de tes serveurs Discord.</div>
+  </div>
+</div>
+
+<footer>
+  <span id="botStatus"><span class="dot"></span>Bot en ligne</span>
+  <span>ModeraBot © 2026 · <a href="#">Support</a></span>
+</footer>
+
+<script src="{{ url_for('static', filename='js/status.js') }}"></script>
+</body>
+</html>
