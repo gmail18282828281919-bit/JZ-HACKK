@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NEXUS</string>
+    <string name="version">3.0.0</string>
+    <string name="description">Premium Chat Client</string>
+</resources>

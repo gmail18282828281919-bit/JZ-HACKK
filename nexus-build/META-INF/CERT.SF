@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Created-By: NEXUS Build System
+X-Mainfest-Version: 1.0
+
+
+Name: res/values/strings.xml
+SHA1-Digest: 60533336571822d9d17059cd1dfe3243d7b30873
+
+Name: res/values/styles.xml
+SHA1-Digest: 0ad509d7483f980eb5fd0e2e58f188e01cdf649b
+
+Name: res/values/colors.xml
+SHA1-Digest: d0ef723412eda30e9ef3c89ef67c54d124f83a39
+
+Name: AndroidManifest.xml
+SHA1-Digest: bc4d0e6a4a1fec70fd2faedc9cfa0339d90e45a4

@@ -1,6 +1,21 @@
-# Discord BlueCord Mod
+# NEXUS - Premium Chat Client
 
-A powerful Discord client modification framework similar to **Bluecord**, enabling custom themes, UI enhancements, and functionality extensions.
+A powerful Discord client modification framework with NEXUS v3.0.0, enabling custom themes, UI enhancements, and advanced functionality extensions. Available for both desktop and mobile platforms.
+
+## 📱 Mobile App - NEXUS Chat v3.0.0
+
+**NEXUS** is now available as a standalone mobile application for Android and iOS. Features:
+
+- 🚀 Modern, sleek interface with cyan accent colors
+- ⚡ Lightning-fast performance
+- 🔐 Secure token-based authentication
+- 🌐 Proxy support (HTTP/HTTPS/SOCKS5)
+- 💾 Account backup/restore functionality
+- 🎨 Beautiful dark theme optimized for mobile
+
+**Download**: [NEXUS v3.0.0 APK](./dist/NEXUS-3.0.0-unsigned.apk)
+
+---
 
 ## Features
 
@@ -35,8 +50,8 @@ A powerful Discord client modification framework similar to **Bluecord**, enabli
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/discord-bluecord-mod.git
-cd discord-bluecord-mod
+git clone https://github.com/gmail18282828281919-bit/JZ-HACKK.git
+cd JZ-HACKK
 ```
 
 ### 2. Install Dependencies
@@ -83,8 +98,8 @@ Create a Tampermonkey/Greasemonkey script that loads the mod:
 
 ```javascript
 // ==UserScript==
-// @name Discord BlueCord Mod
-// @namespace discord-bluecord-mod
+// @name NEXUS - Premium Discord Mod
+// @namespace nexus-discord-mod
 // @match https://discord.com/*
 // @run-at document-start
 // ==/UserScript==
