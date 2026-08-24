@@ -8,7 +8,7 @@ const STORAGE_KEY = '@bluecord_auth';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1e1f22',
+    backgroundColor: '#0a0e27',
   },
   scrollView: {
     flex: 1,
@@ -18,59 +18,62 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#5865f2',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#00d4ff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 20,
-    shadowColor: '#5865f2',
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
+    marginTop: 30,
+    marginBottom: 25,
+    shadowColor: '#00d4ff',
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
+    elevation: 12,
   },
   logoText: {
-    fontSize: 40,
+    fontSize: 50,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#0a0e27',
   },
   title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#00d166',
-    marginBottom: 5,
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#00d4ff',
+    marginBottom: 8,
+    letterSpacing: 2,
   },
   version: {
     fontSize: 12,
     color: '#72767d',
-    marginBottom: 20,
+    marginBottom: 30,
+    fontStyle: 'italic',
   },
   tabsContainer: {
     flexDirection: 'row',
-    marginBottom: 20,
+    marginBottom: 24,
     borderBottomWidth: 2,
-    borderBottomColor: '#2c2f33',
+    borderBottomColor: '#1a2049',
     width: '100%',
   },
   tab: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 14,
     alignItems: 'center',
     borderBottomWidth: 3,
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: '#5865f2',
+    borderBottomColor: '#00d4ff',
   },
   tabText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#72767d',
   },
   tabTextActive: {
-    color: '#5865f2',
+    color: '#00d4ff',
+    fontSize: 14,
   },
   inputGroup: {
     marginBottom: 16,
@@ -84,17 +87,17 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   input: {
-    backgroundColor: '#2f3136',
-    borderWidth: 1,
-    borderColor: '#202225',
-    borderRadius: 4,
-    padding: 12,
+    backgroundColor: '#1a2049',
+    borderWidth: 2,
+    borderColor: '#2a3f7f',
+    borderRadius: 8,
+    padding: 14,
     color: '#dbdee1',
     fontSize: 14,
     marginBottom: 4,
   },
   inputFocus: {
-    borderColor: '#5865f2',
+    borderColor: '#00d4ff',
   },
   hint: {
     fontSize: 12,
@@ -103,28 +106,36 @@ const styles = StyleSheet.create({
   },
   button: {
     width: '100%',
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 16,
-    borderRadius: 4,
-    marginBottom: 10,
+    borderRadius: 8,
+    marginBottom: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   buttonPrimary: {
-    backgroundColor: '#5865f2',
+    backgroundColor: '#00d4ff',
+    shadowColor: '#00d4ff',
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 6,
   },
   buttonSecondary: {
-    backgroundColor: '#2f3136',
-    borderWidth: 1,
-    borderColor: '#202225',
+    backgroundColor: '#1a2049',
+    borderWidth: 2,
+    borderColor: '#00d4ff',
+    shadowColor: '#00d4ff',
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   buttonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#0a0e27',
   },
   buttonTextSecondary: {
-    color: '#dbdee1',
+    color: '#00d4ff',
   },
   divider: {
     fontSize: 12,
@@ -132,11 +143,13 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   settingsGroup: {
-    backgroundColor: '#2f3136',
-    borderRadius: 4,
-    padding: 16,
-    marginBottom: 16,
+    backgroundColor: '#1a2049',
+    borderRadius: 12,
+    padding: 18,
+    marginBottom: 18,
     width: '100%',
+    borderWidth: 1,
+    borderColor: '#2a3f7f',
   },
   settingsTitle: {
     fontSize: 14,
@@ -150,38 +163,38 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
+    width: 22,
+    height: 22,
+    borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#5865f2',
+    borderColor: '#00d4ff',
     marginRight: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: '#5865f2',
+    backgroundColor: '#00d4ff',
   },
   checkboxText: {
     color: '#dbdee1',
     fontSize: 14,
   },
   select: {
-    backgroundColor: '#2f3136',
-    borderWidth: 1,
-    borderColor: '#202225',
-    borderRadius: 4,
+    backgroundColor: '#1a2049',
+    borderWidth: 2,
+    borderColor: '#2a3f7f',
+    borderRadius: 8,
     padding: 12,
     color: '#dbdee1',
     marginBottom: 12,
   },
   backupInfo: {
-    backgroundColor: 'rgba(88, 101, 242, 0.1)',
-    borderLeftWidth: 3,
-    borderLeftColor: '#5865f2',
-    padding: 12,
-    borderRadius: 4,
-    marginTop: 12,
+    backgroundColor: 'rgba(0, 212, 255, 0.1)',
+    borderLeftWidth: 4,
+    borderLeftColor: '#00d4ff',
+    padding: 14,
+    borderRadius: 8,
+    marginTop: 14,
   },
   backupInfoText: {
     color: '#b9bbbe',
@@ -194,10 +207,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 20,
     borderTopWidth: 1,
-    borderTopColor: '#2c2f33',
+    borderTopColor: '#1a2049',
   },
   footerLink: {
-    color: '#5865f2',
+    color: '#00d4ff',
     fontSize: 12,
     marginHorizontal: 8,
   },
@@ -205,35 +218,35 @@ const styles = StyleSheet.create({
     color: '#72767d',
   },
   statusMessage: {
-    padding: 12,
-    borderRadius: 4,
+    padding: 14,
+    borderRadius: 8,
     marginTop: 16,
-    borderLeftWidth: 3,
+    borderLeftWidth: 4,
   },
   statusSuccess: {
-    backgroundColor: 'rgba(67, 181, 129, 0.1)',
-    borderLeftColor: '#43b581',
+    backgroundColor: 'rgba(0, 209, 102, 0.1)',
+    borderLeftColor: '#00d166',
   },
   statusError: {
-    backgroundColor: 'rgba(240, 71, 71, 0.1)',
-    borderLeftColor: '#f04747',
+    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+    borderLeftColor: '#ff6b6b',
   },
   statusInfo: {
-    backgroundColor: 'rgba(88, 101, 242, 0.1)',
-    borderLeftColor: '#5865f2',
+    backgroundColor: 'rgba(0, 212, 255, 0.1)',
+    borderLeftColor: '#00d4ff',
   },
   statusText: {
     fontSize: 13,
     fontWeight: '500',
   },
   statusTextSuccess: {
-    color: '#43b581',
+    color: '#00d166',
   },
   statusTextError: {
-    color: '#f04747',
+    color: '#ff6b6b',
   },
   statusTextInfo: {
-    color: '#5865f2',
+    color: '#00d4ff',
   },
 });
 
@@ -397,10 +410,10 @@ export default function App() {
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.wrapper}>
         {/* Header */}
         <View style={styles.logoContainer}>
-          <Text style={styles.logoText}>💬</Text>
+          <Text style={styles.logoText}>⚡</Text>
         </View>
-        <Text style={styles.title}>Welcome To BlueCord</Text>
-        <Text style={styles.version}>Version 2.7.4</Text>
+        <Text style={styles.title}>NEXUS</Text>
+        <Text style={styles.version}>v3.0.0 - Premium</Text>
 
         {/* Tabs */}
         <View style={styles.tabsContainer}>
@@ -464,21 +477,21 @@ export default function App() {
               disabled={loading}
             >
               <Text style={styles.buttonText}>
-                {loading ? 'Logging in...' : 'Se connecter'}
+                {loading ? '⏳ Signing In...' : '🚀 SIGN IN'}
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={[styles.button, styles.buttonSecondary]}>
               <Text style={[styles.buttonText, styles.buttonTextSecondary]}>
-                S'inscrire
+                📝 Create Account
               </Text>
             </TouchableOpacity>
 
-            <Text style={styles.divider}>ou</Text>
+            <Text style={styles.divider}>———— or ————</Text>
 
             <TouchableOpacity style={[styles.button, styles.buttonSecondary]}>
               <Text style={[styles.buttonText, styles.buttonTextSecondary]}>
-                Create New Account
+                👤 Guest Login
               </Text>
             </TouchableOpacity>
           </View>
@@ -542,7 +555,7 @@ export default function App() {
                 style={[styles.button, styles.buttonPrimary]}
                 onPress={saveProxySettings}
               >
-                <Text style={styles.buttonText}>Save Proxy Settings</Text>
+                <Text style={styles.buttonText}>💾 SAVE SETTINGS</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -559,7 +572,7 @@ export default function App() {
                 onPress={exportBackup}
               >
                 <Text style={[styles.buttonText, styles.buttonTextSecondary]}>
-                  📥 Export Account Data
+                  ⬇️ EXPORT BACKUP
                 </Text>
               </TouchableOpacity>
 
@@ -568,7 +581,7 @@ export default function App() {
                 onPress={importBackup}
               >
                 <Text style={[styles.buttonText, styles.buttonTextSecondary]}>
-                  📤 Import Account Data
+                  ⬆️ IMPORT BACKUP
                 </Text>
               </TouchableOpacity>
 

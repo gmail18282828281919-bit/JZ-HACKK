@@ -1,29 +1,29 @@
 {
   "expo": {
-    "name": "BlueCord",
-    "slug": "bluecord-mod",
-    "version": "2.7.4",
+    "name": "NEXUS",
+    "slug": "nexus-chat",
+    "version": "3.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#1e1f22"
+      "backgroundColor": "#0a0e27"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
       "supportsTabletMode": true,
-      "bundleIdentifier": "com.bluecord.mobile"
+      "bundleIdentifier": "com.nexus.chat"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#1e1f22"
+        "backgroundColor": "#0a0e27"
       },
-      "package": "com.bluecord.mod",
+      "package": "com.nexus.chat",
       "permissions": [
         "INTERNET",
         "ACCESS_NETWORK_STATE",

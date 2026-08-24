@@ -1,6 +1,6 @@
 {
-  "name": "bluecord-mobile",
-  "version": "2.7.4",
+  "name": "nexus-chat-mobile",
+  "version": "3.0.0",
   "main": "app.js",
   "scripts": {
     "start": "expo start",

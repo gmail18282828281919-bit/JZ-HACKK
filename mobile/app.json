@@ -1,20 +1,20 @@
 {
   "expo": {
-    "name": "BlueCord",
-    "slug": "bluecord-mod",
-    "version": "2.7.4",
+    "name": "NEXUS",
+    "slug": "nexus-chat",
+    "version": "3.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "android": {
-      "package": "com.bluecord.mod",
-      "versionCode": 1,
+      "package": "com.nexus.chat",
+      "versionCode": 3,
       "permissions": [
         "INTERNET",
         "ACCESS_NETWORK_STATE"
       ]
     },
     "ios": {
-      "bundleIdentifier": "com.bluecord.mod",
+      "bundleIdentifier": "com.nexus.chat",
       "supportsTabletMode": true
     },
     "plugins": [
