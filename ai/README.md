@@ -5,11 +5,21 @@ clés d'API maison. Comme le modèle tourne sur ta machine, il n'y a **aucun quo
 ni facturation de tokens** — c'est ça, les « tokens illimités » (la vraie limite,
 c'est la puissance de ta machine, pas un compteur).
 
+> **Sur Android / Termux ?** Suis [TERMUX.md](TERMUX.md) : le serveur
+> `ai/server/lite.py` ne dépend que de la bibliothèque standard, donc
+> aucun `pip install` n'est nécessaire.
+
 ## 1. Installer
 
 ```bash
 cd ai
 pip install -r requirements.txt
+```
+
+Sans aucune dépendance (Termux, machine minimale), utilise le serveur *lite* :
+
+```bash
+python3 -m ai.server.lite   # memes routes, zero pip
 ```
 
 ## 2. Choisir le modèle
