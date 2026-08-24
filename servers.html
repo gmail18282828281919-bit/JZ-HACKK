@@ -354,7 +354,7 @@ async function fetchBotGuilds(){
 }
 
 /* ---------------- boot ---------------- */
-window.addEventListener('load', async () => {
+async function boot(){
   const search = new URLSearchParams(location.search);
   const hash   = new URLSearchParams(location.hash.replace(/^#/, ''));
 
@@ -417,7 +417,12 @@ window.addEventListener('load', async () => {
 
   const botIds = await fetchBotGuilds();   // null si le backend est HS
   render(guilds, botIds);
-});
+}
+
+/* On démarre dès que le DOM est prêt : ne pas attendre 'load', sinon une image
+   ou une police qui ne répond pas bloquerait la page sur « Chargement… ». */
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+else boot();
 
 /* ---------------- rendu ---------------- */
 function render(guilds, botIds){

@@ -723,7 +723,7 @@ function fatal(title, detail, actions){
 }
 
 /* ---------- démarrage ---------- */
-window.addEventListener('load', async () => {
+async function boot(){
   if(!guildId || !/^\d{5,25}$/.test(guildId)){
     fatal('Serveur introuvable', "L'adresse ne contient pas d'identifiant de serveur valide.",
       `<a class="btn primary" href="/servers.html">Choisir un serveur</a>`);
@@ -777,7 +777,12 @@ window.addEventListener('load', async () => {
   $('noteLocal').classList.toggle('hidden', apiAlive);
   $('boot').classList.add('hidden');
   $('app').classList.remove('hidden');
-});
+}
+
+/* Démarrage sur DOMContentLoaded (et pas 'load') : une police ou une image
+   bloquée ne doit jamais empêcher la config de s'afficher. */
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+else boot();
 </script>
 </body>
 </html>
