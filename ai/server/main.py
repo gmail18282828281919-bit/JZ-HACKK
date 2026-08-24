@@ -11,9 +11,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from . import config, db
+from . import config, db, files
+from . import messages as msg
 from .auth import require_admin, require_key
 from .engine import get_engine
+from .files import FileError
 
 app = FastAPI(title="JZ-AI", version="1.0.0")
 app.add_middleware(
@@ -25,14 +27,11 @@ app.add_middleware(
 
 
 # ----------------------------- schemas -----------------------------
-class ChatMessage(BaseModel):
-    role: str = "user"
-    content: str = ""
-
-
 class ChatRequest(BaseModel):
     model: Optional[str] = None
-    messages: List[ChatMessage]
+    # `content` accepte une chaine ou une liste de blocs (texte/fichier/image),
+    # d'ou le typage libre : la validation se fait dans messages.normalize().
+    messages: List[dict]
     temperature: float = 0.7
     max_tokens: int = Field(default=config.MAX_NEW_TOKENS, ge=1, le=8192)
     stream: bool = False
@@ -42,14 +41,13 @@ class KeyRequest(BaseModel):
     label: str = "apk"
 
 
+class FileRequest(BaseModel):
+    filename: str
+    content_base64: str
+    mime: str = ""
+
+
 # ----------------------------- helpers -----------------------------
-def _with_system(messages: List[ChatMessage]) -> list[dict]:
-    out = [m.model_dump() for m in messages]
-    if not any(m["role"] == "system" for m in out):
-        out.insert(0, {"role": "system", "content": config.SYSTEM_PROMPT})
-    return out
-
-
 def _sse(completion_id: str, created: int, delta: dict, finish: Optional[str] = None) -> str:
     payload = {
         "id": completion_id,
@@ -64,10 +62,14 @@ def _sse(completion_id: str, created: int, delta: dict, finish: Optional[str] = 
 # ----------------------------- routes ------------------------------
 @app.get("/health")
 def health():
+    engine = get_engine()
     return {
         "status": "ok",
         "model": config.MODEL_NAME,
-        "backend": get_engine().name,
+        "backend": engine.name,
+        "profile": config.PROFILE,
+        "vision": engine.vision,
+        "files": True,
         "active_keys": db.count_active(),
         "token_limit": "unlimited",
     }
@@ -88,13 +90,31 @@ def models(_key=Depends(require_key)):
     }
 
 
+@app.post("/v1/files")
+def upload_file(req: FileRequest, _key=Depends(require_key)):
+    try:
+        raw = files.decode_base64(req.content_base64)
+        stored = files.put(files.extract(req.filename, raw, req.mime))
+    except FileError as exc:
+        raise HTTPException(400, str(exc))
+    return files.describe(stored)
+
+
 @app.post("/v1/chat/completions")
 def chat_completions(req: ChatRequest, _key=Depends(require_key)):
-    if not req.messages:
-        raise HTTPException(400, "Le champ 'messages' est vide.")
-
     engine = get_engine()
-    messages = _with_system(req.messages)
+    try:
+        chat = msg.normalize(req.messages)
+    except FileError as exc:
+        raise HTTPException(400, str(exc))
+
+    messages = chat.multimodal if engine.vision else chat.plain
+    system = config.SYSTEM_PROMPT
+    if not engine.vision:
+        system += msg.note_missing_vision(chat)
+    if not any(m.get("role") == "system" for m in messages):
+        messages = [{"role": "system", "content": system}] + messages
+
     completion_id = "chatcmpl-" + uuid.uuid4().hex[:24]
     created = int(time.time())
 

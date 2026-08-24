@@ -31,6 +31,7 @@ def _to_prompt(messages: List[Message]) -> str:
 
 class BaseEngine:
     name = "base"
+    vision = False  # True si le backend sait lire les images
 
     def generate(self, messages: List[Message], max_tokens: int, temperature: float) -> Iterator[str]:
         raise NotImplementedError
@@ -39,13 +40,44 @@ class BaseEngine:
 class LlamaEngine(BaseEngine):
     name = "llama"
 
-    def __init__(self, gguf_path: str):
+    def __init__(self, gguf_path: str, mmproj_path: str = ""):
         from llama_cpp import Llama  # import tardif : dependance optionnelle
+
+        chat_handler = None
+        if mmproj_path:
+            # Le projecteur (mmproj) transforme l'image en tokens que le modele
+            # comprend. Sans lui, un .gguf vision reste aveugle. Chaque famille
+            # de modele a son propre format de prompt, d'ou le choix du handler.
+            from llama_cpp import llama_chat_format
+
+            handlers = {
+                "llava-1.5": "Llava15ChatHandler",
+                "llava-1.6": "Llava16ChatHandler",
+                "nanollava": "NanoLlavaChatHandler",
+                "moondream": "MoondreamChatHandler",
+                "llama-3-vision": "Llama3VisionAlphaChatHandler",
+                "minicpm-v-2.6": "MiniCPMv26ChatHandler",
+            }
+            wanted = config.VISION_HANDLER
+            if wanted not in handlers:
+                raise RuntimeError(
+                    f"JZAI_VISION_HANDLER='{wanted}' inconnu. "
+                    f"Valeurs possibles : {', '.join(sorted(handlers))}"
+                )
+            handler_cls = getattr(llama_chat_format, handlers[wanted], None)
+            if handler_cls is None:
+                raise RuntimeError(
+                    f"Ta version de llama-cpp-python ne fournit pas "
+                    f"{handlers[wanted]} : mets-la a jour (pip install -U llama-cpp-python)."
+                )
+            chat_handler = handler_cls(clip_model_path=mmproj_path, verbose=False)
+            self.vision = True
 
         self.llm = Llama(
             model_path=gguf_path,
             n_ctx=config.CONTEXT_SIZE,
             n_threads=config.N_THREADS,
+            chat_handler=chat_handler,
             verbose=False,
         )
 
@@ -128,6 +160,23 @@ class EchoEngine(BaseEngine):
                 break
         low = user.lower()
 
+        # Les pieces jointes passent en premier : le contenu d'un fichier peut
+        # contenir "salut" ou "merci" sans que ce soit une salutation.
+        if "--- Fichier joint :" in user:
+            noms = re.findall(r"--- Fichier joint : (.+?) \(", user)
+            lignes = user.count("\n")
+            return (
+                f"J'ai bien recu {len(noms)} fichier(s) : {', '.join(noms)} "
+                f"({lignes} lignes au total). Le backend 'echo' ne sait pas les analyser : "
+                "charge un vrai modele pour ca."
+            )
+
+        if "[image jointe" in user:
+            return (
+                "Une image a ete recue, mais le backend 'echo' ne lit pas les images. "
+                "Il faut un modele vision (JZAI_GGUF_PATH + JZAI_MMPROJ_PATH)."
+            )
+
         for pattern, reply in self.RULES:
             if re.search(pattern, low):
                 return reply
@@ -175,12 +224,13 @@ def get_engine() -> BaseEngine:
             if backend == "llama":
                 if not config.GGUF_PATH:
                     raise RuntimeError("JZAI_GGUF_PATH non defini")
-                _engine = LlamaEngine(config.GGUF_PATH)
+                _engine = LlamaEngine(config.GGUF_PATH, config.MMPROJ_PATH)
             elif backend == "transformers":
                 _engine = TransformersEngine(config.HF_MODEL)
             else:
                 _engine = EchoEngine()
-            print(f"[JZ-AI] backend actif : {_engine.name}")
+            print(f"[JZ-AI] backend actif : {_engine.name}"
+                  f"{' (vision activee)' if _engine.vision else ''}")
             return _engine
         except Exception as exc:  # noqa: BLE001 - on essaie le backend suivant
             errors.append(f"{backend}: {exc}")

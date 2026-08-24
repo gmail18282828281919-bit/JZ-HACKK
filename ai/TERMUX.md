@@ -82,18 +82,42 @@ llama.cpp — la compilation prend **20 à 40 minutes** sur téléphone :
 ```bash
 pkg install -y clang cmake ninja
 pip install llama-cpp-python
+```
 
-mkdir -p ai/models
-curl -L -o ai/models/qwen.gguf \
-  "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+Puis choisis un modèle :
 
-export JZAI_GGUF_PATH="$PWD/ai/models/qwen.gguf"
-export JZAI_BACKEND=llama
+```bash
+bash ai/scripts/models.sh list
+bash ai/scripts/models.sh get code     # 1 Go, spécialisé programmation
+```
+
+Le script affiche les variables à exporter, puis :
+
+```bash
 python3 -m ai.server.lite
 ```
 
-Compte ~1 Go de RAM libre et quelques secondes par réponse. Si la compilation
-échoue, reste sur `echo` et héberge le vrai modèle sur un PC.
+Compte ~1,5 Go de RAM libre et **10 à 60 secondes par réponse** sur téléphone.
+Si la compilation échoue ou que le modèle se fait tuer par manque de mémoire,
+reste sur `echo` et héberge le vrai modèle sur un PC.
+
+**La vision (lecture d'images) est hors de portée d'un téléphone** : le plus
+petit couple modèle + projecteur fiable pèse 4,4 Go. Fais-le tourner sur un PC
+et pointe l'app vers son adresse.
+
+## Lire des fichiers
+
+Ça marche quel que soit le modèle — l'extraction du texte est faite par le
+serveur, pas par l'IA :
+
+```bash
+curl -X POST http://127.0.0.1:8000/v1/files \
+  -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d "{\"filename\":\"note.txt\",\"content_base64\":\"$(base64 -w0 note.txt)\"}"
+```
+
+Formats : texte et code, PDF (`pip install pypdf`), DOCX, ODT, PPTX, HTML, JSON,
+CSV, ZIP, images. Détails dans [README.md](README.md#fichiers-et-images).
 
 ## Éviter que Android tue le serveur
 

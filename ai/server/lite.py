@@ -13,10 +13,11 @@ import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Optional
 
-from . import config, db
+from . import config, db, files, messages
 from .engine import get_engine
+from .files import FileError
 
-MAX_BODY = 1 << 20  # 1 Mio
+MAX_BODY = 24 << 20  # 24 Mio (assez pour un fichier joint en base64)
 
 
 def _extract_key(headers) -> str:
@@ -95,10 +96,14 @@ class Handler(BaseHTTPRequestHandler):
         path = self.path.split("?", 1)[0]
 
         if path == "/health":
+            engine = get_engine()
             self._send_json(200, {
                 "status": "ok",
                 "model": config.MODEL_NAME,
-                "backend": get_engine().name,
+                "backend": engine.name,
+                "profile": config.PROFILE,
+                "vision": engine.vision,
+                "files": True,
                 "active_keys": db.count_active(),
                 "token_limit": "unlimited",
                 "server": "lite",
@@ -127,6 +132,13 @@ class Handler(BaseHTTPRequestHandler):
             if body is None:
                 return
             self._chat(body)
+        elif path == "/v1/files":
+            if self._auth() is None:
+                return
+            body = self._read_body()
+            if body is None:
+                return
+            self._upload(body)
         elif path == "/admin/keys":
             if not self._auth_admin():
                 return
@@ -159,21 +171,39 @@ class Handler(BaseHTTPRequestHandler):
         else:
             self._error(404, f"Route inconnue : {path}")
 
+    # -------------------------- fichiers ---------------------------
+    def _upload(self, body: dict) -> None:
+        filename = str(body.get("filename") or "").strip()
+        payload = body.get("content_base64") or body.get("data")
+        if not filename:
+            self._error(400, "Champ 'filename' manquant.")
+            return
+        if not payload:
+            self._error(400, "Champ 'content_base64' manquant.")
+            return
+        try:
+            raw = files.decode_base64(str(payload))
+            stored = files.put(files.extract(filename, raw, str(body.get("mime") or "")))
+        except FileError as exc:
+            self._error(400, str(exc))
+            return
+        self._send_json(200, files.describe(stored))
+
     # --------------------------- chat ------------------------------
     def _chat(self, body: dict) -> None:
-        messages = body.get("messages")
-        if not isinstance(messages, list) or not messages:
-            self._error(400, "Le champ 'messages' est vide ou invalide.")
+        try:
+            chat = messages.normalize(body.get("messages"))
+        except FileError as exc:
+            self._error(400, str(exc))
             return
 
-        clean = []
-        for m in messages:
-            if not isinstance(m, dict):
-                self._error(400, "Chaque message doit etre un objet {role, content}.")
-                return
-            clean.append({"role": str(m.get("role", "user")), "content": str(m.get("content", ""))})
-        if not any(m["role"] == "system" for m in clean):
-            clean.insert(0, {"role": "system", "content": config.SYSTEM_PROMPT})
+        engine_ = get_engine()
+        clean = chat.multimodal if engine_.vision else chat.plain
+        system = config.SYSTEM_PROMPT
+        if not engine_.vision:
+            system += messages.note_missing_vision(chat)
+        if not any(m.get("role") == "system" for m in clean):
+            clean = [{"role": "system", "content": system}] + clean
 
         try:
             max_tokens = max(1, min(int(body.get("max_tokens") or config.MAX_NEW_TOKENS), 8192))
@@ -182,7 +212,7 @@ class Handler(BaseHTTPRequestHandler):
             self._error(400, "'max_tokens' ou 'temperature' invalide.")
             return
 
-        engine = get_engine()
+        engine = engine_
         completion_id = "chatcmpl-" + uuid.uuid4().hex[:24]
         created = int(time.time())
 
@@ -205,7 +235,7 @@ class Handler(BaseHTTPRequestHandler):
             "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
         })
 
-    def _chat_stream(self, engine, messages, max_tokens, temperature, completion_id, created) -> None:
+    def _chat_stream(self, engine, chat_messages, max_tokens, temperature, completion_id, created) -> None:
         self.send_response(200)
         self.send_header("Content-Type", "text/event-stream; charset=utf-8")
         self.send_header("Cache-Control", "no-cache")
@@ -228,7 +258,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             chunk({"role": "assistant", "content": ""})
             try:
-                for piece in engine.generate(messages, max_tokens, temperature):
+                for piece in engine.generate(chat_messages, max_tokens, temperature):
                     chunk({"content": piece})
             except Exception as exc:  # noqa: BLE001
                 chunk({"content": f"\n[erreur: {exc}]"})
