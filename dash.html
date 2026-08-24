@@ -61,7 +61,7 @@ nav{position:sticky;top:0;z-index:100;height:56px;border-bottom:1px solid var(--
 .row-txt span{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-top:2px;line-height:1.45}
 .row-ctl{flex-shrink:0}
 
-.sw{position:relative;width:44px;height:25px;flex-shrink:0;cursor:pointer}
+.sw{display:inline-block;position:relative;width:44px;height:25px;flex-shrink:0;cursor:pointer;vertical-align:middle}
 .sw input{opacity:0;width:0;height:0;position:absolute}
 .sw i{position:absolute;inset:0;background:var(--surface2);border:1px solid var(--border-hi);border-radius:20px;transition:.2s}
 .sw i::after{content:'';position:absolute;top:3px;left:3px;width:17px;height:17px;border-radius:50%;background:var(--muted);transition:.2s}
@@ -126,6 +126,7 @@ footer a{color:var(--muted);text-decoration:none}
   .back span{display:none}
   .row{flex-direction:column;align-items:flex-start;gap:9px}
   .row-ctl{width:100%}
+  .row-ctl .sw{margin-left:0}
   .w-md{max-width:none}
 }
 </style>
