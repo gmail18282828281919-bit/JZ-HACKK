@@ -1,0 +1,4 @@
+data/
+*.gguf
+.env
+__pycache__/

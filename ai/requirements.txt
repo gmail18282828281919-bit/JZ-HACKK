@@ -1,0 +1,12 @@
+# --- coeur de l'API (obligatoire) ---
+fastapi>=0.110
+uvicorn[standard]>=0.27
+pydantic>=2.6
+
+# --- backend llama.cpp : modele .gguf sur CPU (recommande) ---
+# llama-cpp-python>=0.2.70
+
+# --- backend transformers : telecharge le modele depuis HuggingFace ---
+# transformers>=4.40
+# torch>=2.2
+# accelerate>=0.29
