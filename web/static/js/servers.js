@@ -17,6 +17,27 @@ function logout() {
 function initials(n) { return n.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase(); }
 function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
+/* Traduit un code HTTP en message utile plutôt qu'un "HTTP 502" opaque. */
+function explain(status, fallback) {
+  if (status === 502 || status === 504)
+    return "Le serveur du dashboard ne répond pas (backend Python arrêté ou planté).";
+  if (status === 503)
+    return "Dashboard en maintenance, réessaie dans un instant.";
+  if (status === 429)
+    return "Trop de requêtes, patiente quelques secondes.";
+  if (status === 500)
+    return "Erreur interne du dashboard, regarde les logs du serveur.";
+  return fallback || `Erreur ${status}`;
+}
+
+function errorScreen(message, retry) {
+  document.getElementById('grid').innerHTML = `
+    <div class="loading" style="color:var(--red);text-align:center">
+      ${esc(message)}
+      <a href="${retry}" style="color:var(--accent);font-weight:800">Réessayer</a>
+    </div>`;
+}
+
 function hasAdmin(g) {
   if (!g) return false;
   if (g.owner) return true;
@@ -49,10 +70,9 @@ window.addEventListener('load', async () => {
         body: JSON.stringify({ code, state: params.get('state') })
       });
       const j = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+      if (!r.ok) throw new Error(explain(r.status, j.error));
     } catch (err) {
-      document.getElementById('grid').innerHTML =
-        `<div class="loading" style="color:var(--red)">Erreur de connexion : ${esc(err.message || err)}<br><a href="/" style="color:var(--accent)">Réessayer</a></div>`;
+      errorScreen(err.message || String(err), '/');
       return;
     }
   }
@@ -62,7 +82,7 @@ window.addEventListener('load', async () => {
     const data = await res.json().catch(() => ({}));
     if (!res.ok || data.error) {
       if (res.status === 401) { location.href = '/'; return; }
-      throw new Error(data.error || ('HTTP ' + res.status));
+      throw new Error(explain(res.status, data.error));
     }
 
     document.getElementById('uName').textContent = data.user.username;
@@ -72,8 +92,7 @@ window.addEventListener('load', async () => {
     }
     render(data.guilds, new Set((data.bot_guild_ids || []).map(String)));
   } catch (err) {
-    document.getElementById('grid').innerHTML =
-      `<div class="loading" style="color:var(--red)">Erreur de chargement : ${esc(err.message || err)}</div>`;
+    errorScreen(err.message || String(err), '/servers.html');
   }
 });
 
