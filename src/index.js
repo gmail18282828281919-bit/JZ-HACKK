@@ -1,5 +1,5 @@
 /**
- * Discord BlueCord Mod - Main Injector
+ * JZScord Mod - Main Injector
  * Initializes the mod and loads themes/plugins
  */
 
@@ -11,7 +11,7 @@ import { API } from './api/api.js';
 
 class DiscordMod {
   constructor() {
-    this.version = '2.7.4';
+    this.version = '3.0.0';
     this.themeManager = null;
     this.uiModifier = null;
     this.configManager = null;
@@ -52,11 +52,11 @@ class DiscordMod {
     const style = document.createElement('style');
     style.id = 'discord-mod-styles';
     style.textContent = `
-      /* BlueCord Mod Base Styles */
+      /* JZScord Mod Base Styles */
       .discord-mod-container {
-        --blueord-primary: #5865f2;
-        --bluecord-secondary: #2c2f33;
-        --bluecord-accent: #7289da;
+        --jzscord-primary: #2f6bff;
+        --jzscord-secondary: #06122b;
+        --jzscord-accent: #6ea8ff;
       }
 
       /* Better scrollbars */
@@ -69,12 +69,12 @@ class DiscordMod {
       }
 
       ::-webkit-scrollbar-thumb {
-        background: #5865f2;
+        background: #2f6bff;
         border-radius: 4px;
       }
 
       ::-webkit-scrollbar-thumb:hover {
-        background: #7289da;
+        background: #6ea8ff;
       }
 
       /* Smooth animations */
@@ -87,8 +87,8 @@ class DiscordMod {
   }
 
   logInfo() {
-    console.log('%c[DiscordMod]', 'color: #5865f2; font-weight: bold;', 'Ready!');
-    console.log('%cAPI available at:', 'color: #7289da;', 'window.DiscordMod');
+    console.log('%c[JZScord]', 'color: #2f6bff; font-weight: bold;', 'Ready!');
+    console.log('%cAPI available at:', 'color: #6ea8ff;', 'window.DiscordMod');
   }
 }
 

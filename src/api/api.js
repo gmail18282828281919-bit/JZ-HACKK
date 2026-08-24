@@ -133,7 +133,7 @@ export class API {
   help = () => {
     const help = `
 ╔════════════════════════════════════════════════════════════╗
-║          Discord BlueCord Mod - API Reference              ║
+║             JZScord Mod - API Reference                    ║
 ╠════════════════════════════════════════════════════════════╣
 ║
 ║  THEMES:

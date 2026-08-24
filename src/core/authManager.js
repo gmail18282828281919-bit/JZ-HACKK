@@ -1,7 +1,9 @@
 /**
  * Authentication Manager - Custom Discord login interface
- * Replaces Discord's default login with Bluecord-style authentication
+ * Replaces Discord's default login with JZScord-style authentication
  */
+
+import { JZS_LOGO } from '../assets/logoData.js';
 
 export class AuthManager {
   constructor() {
@@ -72,13 +74,10 @@ export class AuthManager {
           <!-- Header -->
           <div class="login-header">
             <div class="logo-circle">
-              <svg viewBox="0 0 127 127" fill="none">
-                <path d="M107.7 8.07A105.3 105.3 0 00107 8 102 102 0 0 0 7.6 107a102 102 0 0 0 148.3 0 102 102 0 0 0-48.2-98.93z" fill="#5865f2"/>
-                <path d="M51 97.4c-4.7 0-8.5-4-8.5-8.8s3.9-8.8 8.5-8.8c4.8 0 8.6 3.9 8.6 8.8.1 4.8-3.8 8.8-8.6 8.8zm31.3 0c-4.7 0-8.5-4-8.5-8.8s3.9-8.8 8.5-8.8c4.8 0 8.6 3.9 8.6 8.8 0 4.8-3.8 8.8-8.6 8.8zm-23-49.5c0-1.5 1.2-2.8 2.8-2.8h12.2c1.5 0 2.8 1.2 2.8 2.8v18.8c0 1.6-1.2 2.8-2.8 2.8H61c-1.5 0-2.8-1.2-2.8-2.8v-18.8z" fill="#fff"/>
-              </svg>
+              <img src="${JZS_LOGO}" alt="JZScord" class="logo-img" />
             </div>
-            <h1>Welcome To BlueCord</h1>
-            <p class="version">Version 2.7.4</p>
+            <h1>JZScord</h1>
+            <p class="version">Version 3.0.0</p>
           </div>
 
           <!-- Tabs -->
@@ -107,13 +106,13 @@ export class AuthManager {
             </button>
 
             <button class="btn btn-secondary" id="signup-btn">
-              S'inscrire
+              Créer un compte
             </button>
 
-            <div class="divider">ou</div>
+            <div class="divider">OU</div>
 
             <button class="btn btn-secondary" id="register-btn">
-              Create New Account
+              Connexion invité
             </button>
           </div>
 
@@ -200,94 +199,149 @@ export class AuthManager {
       }
 
       .bluecord-login-wrapper {
+        position: relative;
         width: 100%;
-        height: 100vh;
+        min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, #1a1b22 0%, #2c2f33 100%);
+        padding: 24px;
+        background: radial-gradient(circle at 20% 0%, #0b3a82 0%, rgba(11,58,130,0) 45%),
+                    radial-gradient(circle at 100% 100%, #123a6b 0%, rgba(18,58,107,0) 40%),
+                    linear-gradient(160deg, #0a1a3f 0%, #06122b 45%, #000000 100%);
         font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
-        color: #dbdee1;
+        color: #e6ecff;
+        overflow: hidden;
+      }
+
+      /* Subtle animated glow blobs */
+      .bluecord-login-wrapper::before,
+      .bluecord-login-wrapper::after {
+        content: '';
+        position: absolute;
+        width: 480px;
+        height: 480px;
+        border-radius: 50%;
+        filter: blur(120px);
+        opacity: 0.35;
+        pointer-events: none;
+      }
+      .bluecord-login-wrapper::before {
+        background: #1e5fff;
+        top: -160px;
+        left: -120px;
+      }
+      .bluecord-login-wrapper::after {
+        background: #00224f;
+        bottom: -180px;
+        right: -140px;
+        opacity: 0.6;
       }
 
       .bluecord-login-card {
-        background: #36393f;
-        border-radius: 8px;
+        position: relative;
+        z-index: 1;
+        background: linear-gradient(155deg, rgba(15,30,66,0.92) 0%, rgba(7,15,33,0.94) 60%, rgba(0,0,0,0.96) 100%);
+        border: 1px solid rgba(80,130,255,0.18);
+        border-radius: 20px;
         padding: 40px;
         width: 100%;
-        max-width: 420px;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        max-width: 440px;
+        box-shadow: 0 24px 60px rgba(0,0,0,0.55),
+                    0 0 0 1px rgba(255,255,255,0.02) inset,
+                    0 1px 0 rgba(255,255,255,0.06) inset;
+        backdrop-filter: blur(12px);
       }
 
       .login-header {
         text-align: center;
-        margin-bottom: 30px;
+        margin-bottom: 28px;
       }
 
       .logo-circle {
-        width: 100px;
-        height: 100px;
-        margin: 0 auto 20px;
-        border-radius: 50%;
-        background: #5865f2;
+        width: 108px;
+        height: 108px;
+        margin: 0 auto 18px;
+        border-radius: 26px;
+        background: linear-gradient(150deg, #0d2a5e 0%, #050c1c 100%);
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 4px 12px rgba(88, 101, 242, 0.4);
+        overflow: hidden;
+        border: 1px solid rgba(90,140,255,0.35);
+        box-shadow: 0 10px 30px rgba(20,70,180,0.45),
+                    0 0 0 6px rgba(30,95,255,0.06);
       }
 
-      .logo-circle svg {
-        width: 60px;
-        height: 60px;
+      .logo-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
       }
 
       .login-header h1 {
-        font-size: 24px;
-        font-weight: 700;
-        color: #00d166;
+        font-size: 30px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        background: linear-gradient(90deg, #ffffff 0%, #6ea8ff 60%, #2f6bff 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
         margin-bottom: 4px;
       }
 
       .login-header .version {
         font-size: 12px;
-        color: #72767d;
+        color: #6f86b8;
+        letter-spacing: 1px;
       }
 
       .login-tabs {
         display: flex;
-        gap: 8px;
-        margin-bottom: 20px;
-        border-bottom: 2px solid #2c2f33;
+        gap: 6px;
+        margin-bottom: 22px;
+        padding: 5px;
+        background: rgba(5,12,30,0.6);
+        border: 1px solid rgba(80,130,255,0.12);
+        border-radius: 12px;
       }
 
       .tab-btn {
         flex: 1;
-        padding: 12px;
+        padding: 10px;
         background: none;
         border: none;
-        color: #72767d;
-        font-size: 14px;
-        font-weight: 600;
+        color: #7d92c0;
+        font-size: 13px;
+        font-weight: 700;
         cursor: pointer;
-        border-bottom: 3px solid transparent;
-        transition: all 200ms;
+        border-radius: 8px;
+        transition: all 200ms ease;
       }
 
       .tab-btn:hover {
-        color: #b9bbbe;
+        color: #cdd9f5;
       }
 
       .tab-btn.active {
-        color: #5865f2;
-        border-bottom-color: #5865f2;
+        color: #ffffff;
+        background: linear-gradient(180deg, #2f6bff 0%, #1c49c9 100%);
+        box-shadow: 0 6px 16px rgba(31,90,240,0.45);
       }
 
       .tab-content {
         display: none;
+        animation: fadeIn 260ms ease;
       }
 
       .tab-content.active {
         display: block;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to   { opacity: 1; transform: translateY(0); }
       }
 
       .input-group {
@@ -296,98 +350,120 @@ export class AuthManager {
 
       .input-group label {
         display: block;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 700;
-        color: #b9bbbe;
+        color: #93a6d1;
         margin-bottom: 8px;
         text-transform: uppercase;
+        letter-spacing: 0.6px;
       }
 
       .input-group input,
       .input-group select {
         width: 100%;
-        padding: 10px 12px;
-        background: #2f3136;
-        border: 1px solid #202225;
-        border-radius: 4px;
-        color: #dbdee1;
+        padding: 13px 14px;
+        background: rgba(6,14,32,0.85);
+        border: 1px solid rgba(80,130,255,0.22);
+        border-radius: 12px;
+        color: #e6ecff;
         font-size: 14px;
-        transition: all 200ms;
+        transition: all 180ms ease;
       }
 
       .input-group input::placeholder {
-        color: #72767d;
+        color: #52618a;
       }
 
       .input-group input:focus,
       .input-group select:focus {
-        border-color: #5865f2;
+        border-color: #2f6bff;
         outline: none;
-        box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.1);
+        background: rgba(9,20,45,0.95);
+        box-shadow: 0 0 0 4px rgba(47,107,255,0.15);
       }
 
       .input-group small {
         display: block;
         font-size: 12px;
-        color: #72767d;
-        margin-top: 4px;
+        color: #5d6f9c;
+        margin-top: 5px;
       }
 
       .btn {
+        position: relative;
         width: 100%;
-        padding: 12px;
+        padding: 14px;
         border: none;
-        border-radius: 4px;
+        border-radius: 12px;
         font-size: 14px;
-        font-weight: 600;
+        font-weight: 700;
+        letter-spacing: 0.3px;
         cursor: pointer;
-        transition: all 200ms;
-        margin-bottom: 10px;
+        transition: transform 160ms ease, box-shadow 200ms ease, background 200ms ease;
+        margin-bottom: 12px;
+        overflow: hidden;
+      }
+
+      .btn:active {
+        transform: translateY(1px) scale(0.995);
       }
 
       .btn-primary {
-        background: #5865f2;
-        color: white;
+        background: linear-gradient(180deg, #3b74ff 0%, #1b46c4 100%);
+        color: #ffffff;
+        box-shadow: 0 10px 24px rgba(31,90,240,0.45);
       }
 
       .btn-primary:hover {
-        background: #7289da;
-        box-shadow: 0 4px 12px rgba(88, 101, 242, 0.4);
+        background: linear-gradient(180deg, #4d81ff 0%, #244fda 100%);
+        box-shadow: 0 14px 30px rgba(31,90,240,0.6);
         transform: translateY(-2px);
       }
 
-      .btn-primary:active {
-        transform: translateY(0);
-      }
-
       .btn-secondary {
-        background: #2f3136;
-        color: #dbdee1;
-        border: 1px solid #202225;
+        background: rgba(12,24,52,0.7);
+        color: #cdd9f5;
+        border: 1px solid rgba(90,140,255,0.3);
       }
 
       .btn-secondary:hover {
-        background: #40444b;
-        border-color: #5865f2;
+        background: rgba(20,40,86,0.9);
+        border-color: #3b74ff;
+        box-shadow: 0 8px 20px rgba(20,60,160,0.35);
+        transform: translateY(-2px);
       }
 
       .btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+        transform: none;
       }
 
       .divider {
+        display: flex;
+        align-items: center;
         text-align: center;
-        color: #72767d;
-        margin: 16px 0;
+        color: #56679a;
+        margin: 18px 0;
         font-size: 12px;
+        letter-spacing: 1px;
       }
+      .divider::before,
+      .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(90,140,255,0.3), transparent);
+      }
+      .divider::before { margin-right: 12px; }
+      .divider::after  { margin-left: 12px; }
 
       .settings-group,
       .backup-group {
-        padding: 16px;
-        background: #2f3136;
-        border-radius: 4px;
+        padding: 18px;
+        background: rgba(6,14,32,0.6);
+        border: 1px solid rgba(80,130,255,0.14);
+        border-radius: 14px;
         margin-bottom: 16px;
       }
 
@@ -395,7 +471,7 @@ export class AuthManager {
       .backup-group h3 {
         margin-bottom: 16px;
         font-size: 14px;
-        color: #b9bbbe;
+        color: #aebce0;
       }
 
       .backup-actions {
@@ -406,26 +482,26 @@ export class AuthManager {
       }
 
       .backup-info {
-        background: rgba(88, 101, 242, 0.1);
+        background: rgba(47,107,255,0.1);
         padding: 12px;
-        border-radius: 4px;
-        border-left: 3px solid #5865f2;
+        border-radius: 10px;
+        border-left: 3px solid #2f6bff;
       }
 
       .backup-info p {
         font-size: 12px;
-        color: #b9bbbe;
+        color: #aebce0;
         margin-bottom: 4px;
       }
 
       .login-footer {
         text-align: center;
-        margin-top: 20px;
+        margin-top: 22px;
         font-size: 12px;
       }
 
       .login-footer a {
-        color: #5865f2;
+        color: #6ea8ff;
         text-decoration: none;
       }
 
@@ -434,14 +510,14 @@ export class AuthManager {
       }
 
       .login-footer span {
-        color: #72767d;
+        color: #46567f;
         margin: 0 8px;
       }
 
       .status-message {
         margin-top: 16px;
         padding: 12px;
-        border-radius: 4px;
+        border-radius: 10px;
         font-size: 13px;
         display: none;
       }
@@ -451,41 +527,42 @@ export class AuthManager {
       }
 
       .status-message.success {
-        background: rgba(67, 181, 129, 0.1);
-        color: #43b581;
-        border-left: 3px solid #43b581;
+        background: rgba(46,204,113,0.12);
+        color: #38d67f;
+        border-left: 3px solid #38d67f;
       }
 
       .status-message.error {
-        background: rgba(240, 71, 71, 0.1);
-        color: #f04747;
-        border-left: 3px solid #f04747;
+        background: rgba(255,71,87,0.12);
+        color: #ff6b7a;
+        border-left: 3px solid #ff6b7a;
       }
 
       .status-message.warning {
-        background: rgba(250, 166, 26, 0.1);
-        color: #faa61a;
-        border-left: 3px solid #faa61a;
+        background: rgba(250,166,26,0.12);
+        color: #ffbe4d;
+        border-left: 3px solid #ffbe4d;
       }
 
       .status-message.info {
-        background: rgba(88, 101, 242, 0.1);
-        color: #5865f2;
-        border-left: 3px solid #5865f2;
+        background: rgba(47,107,255,0.12);
+        color: #6ea8ff;
+        border-left: 3px solid #2f6bff;
       }
 
       @media (max-width: 480px) {
         .bluecord-login-card {
-          padding: 20px;
+          padding: 26px 20px;
         }
 
         .logo-circle {
-          width: 80px;
-          height: 80px;
+          width: 88px;
+          height: 88px;
+          border-radius: 22px;
         }
 
         .login-header h1 {
-          font-size: 20px;
+          font-size: 25px;
         }
       }
     `;
@@ -645,7 +722,7 @@ export class AuthManager {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `bluecord-backup-${Date.now()}.json`;
+    a.download = `jzscord-backup-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
 
