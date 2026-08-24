@@ -67,14 +67,42 @@
   .field:focus{outline:none;border-color:var(--blue);background:rgba(9,20,45,.95);box-shadow:0 0 0 4px rgba(47,107,255,.15)}
   .hint{font-size:12px;color:var(--txt-faint);margin-top:6px;line-height:1.4}
   .btn{
-    width:100%;padding:14px;border:none;border-radius:12px;font-size:14px;font-weight:700;
-    letter-spacing:.3px;transition:transform .16s,box-shadow .2s,background .2s;margin-top:16px;
-    color:#fff;background:linear-gradient(180deg,var(--blue-2),#1b46c4);
-    box-shadow:0 10px 24px rgba(31,90,240,.45);
+    position:relative;width:100%;padding:15px;border:none;border-radius:14px;
+    font-size:15px;font-weight:800;letter-spacing:.4px;margin-top:14px;
+    transition:transform .14s ease,box-shadow .22s ease,filter .2s;color:#fff;overflow:hidden;
   }
-  .btn:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(31,90,240,.6)}
-  .btn:active{transform:translateY(1px)}
+  .btn:active{transform:translateY(2px) scale(.99)}
   .btn:disabled{opacity:.55;transform:none;cursor:not-allowed}
+  /* bouton principal: dégradé bleu->rose (couleurs du logo JZS) avec liseré lumineux */
+  .btn-glow{
+    background:linear-gradient(100deg,#1b46c4 0%,#2f6bff 45%,#ff2d78 130%);
+    box-shadow:0 12px 26px rgba(47,107,255,.4),0 4px 14px rgba(255,45,120,.28),
+               inset 0 1px 0 rgba(255,255,255,.25);
+  }
+  .btn-glow::after{
+    content:'';position:absolute;inset:0;border-radius:14px;padding:1px;
+    background:linear-gradient(120deg,rgba(255,255,255,.6),rgba(255,45,120,.5),rgba(47,107,255,.4));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;opacity:.7;pointer-events:none;
+  }
+  .btn-glow:hover{transform:translateY(-2px);filter:brightness(1.08);
+    box-shadow:0 18px 34px rgba(47,107,255,.5),0 6px 18px rgba(255,45,120,.35),inset 0 1px 0 rgba(255,255,255,.3)}
+  /* bouton fantôme */
+  .btn-ghost{
+    background:rgba(255,45,120,.08);border:1px solid rgba(255,45,120,.4);color:#ff8bb4;
+    box-shadow:none;font-weight:700;
+  }
+  .btn-ghost:hover{background:rgba(255,45,120,.16);color:#ffa9c8;transform:translateY(-2px)}
+
+  /* onglets */
+  .tabs{display:flex;gap:6px;margin-top:6px;margin-bottom:16px;padding:5px;
+    background:rgba(5,12,30,.6);border:1px solid var(--line);border-radius:12px}
+  .tab{flex:1;padding:10px;background:none;border:none;color:var(--txt-dim);
+    font-size:13px;font-weight:800;border-radius:8px;transition:.18s;letter-spacing:.5px}
+  .tab.active{color:#fff;background:linear-gradient(180deg,#2f6bff,#1c49c9);box-shadow:0 6px 16px rgba(31,90,240,.45)}
+  .pane{display:none;animation:fade .25s ease}
+  .pane.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   .warn{
     margin-top:18px;padding:11px 12px;border-radius:10px;font-size:12px;line-height:1.5;
     background:rgba(255,190,77,.1);border-left:3px solid #ffbe4d;color:#ffce7a;
@@ -165,11 +193,34 @@
     <h1>JZScord</h1>
     <div class="sub">CLIENT WEB · v3.0.0</div>
 
-    <label for="tok">Token Discord</label>
-    <input id="tok" class="field" type="password" placeholder="Colle ton token ici" autocomplete="off" spellcheck="false" />
-    <div class="hint">Ton token Discord (pas ton mot de passe). Il reste stocké uniquement sur ton téléphone.</div>
+    <!-- Onglets -->
+    <div class="tabs">
+      <button class="tab active" data-m="token">Token</button>
+      <button class="tab" data-m="email">Compte</button>
+    </div>
 
-    <button id="loginBtn" class="btn">Se connecter</button>
+    <!-- TOKEN -->
+    <div class="pane on" id="pane-token">
+      <label for="tok">Token Discord</label>
+      <input id="tok" class="field" type="password" placeholder="Colle ton token ici" autocomplete="off" spellcheck="false" />
+      <div class="hint">Ton token (pas ton mot de passe). Stocké uniquement sur ton téléphone.</div>
+      <button id="loginBtn" class="btn btn-glow">⚡ Se connecter</button>
+    </div>
+
+    <!-- EMAIL / MOT DE PASSE -->
+    <div class="pane" id="pane-email">
+      <label for="mail">E-mail ou téléphone</label>
+      <input id="mail" class="field" type="text" placeholder="ton@email.com" autocomplete="off" spellcheck="false" />
+      <label for="pass" style="margin-top:12px">Mot de passe</label>
+      <input id="pass" class="field" type="password" placeholder="••••••••" autocomplete="off" />
+      <div id="mfaWrap" style="display:none;margin-top:12px">
+        <label for="mfa">Code à 2 facteurs (6 chiffres)</label>
+        <input id="mfa" class="field" type="text" inputmode="numeric" placeholder="123456" />
+      </div>
+      <button id="emailBtn" class="btn btn-glow">🔓 Connexion au compte</button>
+      <button id="createBtn" class="btn btn-ghost">✨ Créer un compte</button>
+      <div class="hint">« Créer un compte » ouvre la page officielle Discord. La connexion e-mail peut être bloquée par le captcha de Discord — dans ce cas, utilise le Token.</div>
+    </div>
 
     <div class="warn">⚠️ Utilise de préférence un <b>compte secondaire</b> : un client non-officiel peut faire bannir ton compte par Discord.</div>
     <div id="loginMsg" class="msg"></div>
@@ -442,9 +493,76 @@ function logout(){
   $('#loginMsg').className='msg';
 }
 
+/* ---------- connexion e-mail / mot de passe ---------- */
+let mfaTicket = null;
+async function doEmailLogin(){
+  const login = $('#mail').value.trim();
+  const password = $('#pass').value;
+  const btn = $('#emailBtn');
+  if(!login || !password){ showLoginMsg('Remplis e-mail et mot de passe.', 'err'); return; }
+  btn.disabled = true; const old = btn.textContent; btn.innerHTML = '<span class="spin"></span>';
+  showLoginMsg('Connexion…', 'info');
+  try{
+    // Étape 2FA si un ticket est déjà en cours
+    if(mfaTicket){
+      const code = $('#mfa').value.trim();
+      const r = await fetch(API+'/auth/mfa/totp', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ ticket: mfaTicket, code })
+      });
+      const d = await r.json();
+      if(d.token){ token=d.token; me=await api('/users/@me'); localStorage.setItem(LS_KEY,token);
+        showLoginMsg('Connecté !', 'ok'); setTimeout(enterApp,500); return; }
+      showLoginMsg('Code 2FA invalide.', 'err'); return;
+    }
+
+    const res = await fetch(API+'/auth/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ login, password, undelete:false })
+    });
+    const data = await res.json().catch(()=>({}));
+
+    if(data.token){
+      token = data.token; me = await api('/users/@me');
+      localStorage.setItem(LS_KEY, token);
+      showLoginMsg('Connecté ! Bienvenue '+me.username, 'ok');
+      setTimeout(enterApp, 500); return;
+    }
+    if(data.captcha_key){
+      showLoginMsg('🛑 Discord demande un captcha (impossible ici). Connecte-toi plutôt avec le Token.', 'err');
+      switchMode('token'); return;
+    }
+    if(data.mfa && data.ticket){
+      mfaTicket = data.ticket;
+      $('#mfaWrap').style.display = 'block';
+      showLoginMsg('Entre ton code à 2 facteurs puis reclique.', 'info'); return;
+    }
+    if(data.errors || data.message){
+      showLoginMsg('Identifiants incorrects.', 'err'); return;
+    }
+    showLoginMsg('Réponse inattendue de Discord. Essaie le Token.', 'err');
+  }catch(e){
+    showLoginMsg('Bloqué par Discord ('+e.message+'). Utilise le Token.', 'err');
+  }finally{
+    btn.disabled = false; btn.textContent = old;
+  }
+}
+
+function switchMode(m){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.m===m));
+  $('#pane-token').classList.toggle('on', m==='token');
+  $('#pane-email').classList.toggle('on', m==='email');
+  $('#loginMsg').className='msg';
+}
+
 /* wire up */
 $('#loginBtn').onclick = doLogin;
 $('#tok').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+$('#emailBtn').onclick = doEmailLogin;
+$('#pass').addEventListener('keydown', e=>{ if(e.key==='Enter') doEmailLogin(); });
+$('#mfa')?.addEventListener('keydown', e=>{ if(e.key==='Enter') doEmailLogin(); });
+$('#createBtn').onclick = ()=> window.open('https://discord.com/register', '_blank');
+document.querySelectorAll('.tab').forEach(t=> t.onclick = ()=>switchMode(t.dataset.m));
 $('#logout').onclick = logout;
 
 /* auto-login if token saved */
