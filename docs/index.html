@@ -217,6 +217,11 @@
         <label for="mfa">Code à 2 facteurs (6 chiffres)</label>
         <input id="mfa" class="field" type="text" inputmode="numeric" placeholder="123456" />
       </div>
+      <div id="captchaWrap" style="display:none;margin-top:14px">
+        <label>Vérification anti-robot</label>
+        <div id="hcaptcha-box" style="display:flex;justify-content:center"></div>
+        <div class="hint">Résous le captcha ci-dessus, la connexion se termine toute seule après.</div>
+      </div>
       <button id="emailBtn" class="btn btn-glow">🔓 Connexion au compte</button>
       <button id="createBtn" class="btn btn-ghost">✨ Créer un compte</button>
       <div class="hint">« Créer un compte » ouvre la page officielle Discord. La connexion e-mail peut être bloquée par le captcha de Discord — dans ce cas, utilise le Token.</div>
@@ -493,8 +498,47 @@ function logout(){
   $('#loginMsg').className='msg';
 }
 
-/* ---------- connexion e-mail / mot de passe ---------- */
+/* ---------- connexion e-mail / mot de passe (avec vrai hCaptcha) ---------- */
 let mfaTicket = null;
+let hcaptchaLoaded = false;
+let hcaptchaWidgetId = null;
+
+function loadHcaptcha(){
+  return new Promise((resolve,reject)=>{
+    if(window.hcaptcha){ hcaptchaLoaded=true; return resolve(); }
+    const s=document.createElement('script');
+    s.src='https://js.hcaptcha.com/1/api.js?render=explicit&recaptchacompat=off';
+    s.async=true; s.defer=true;
+    s.onload=()=>{ hcaptchaLoaded=true; resolve(); };
+    s.onerror=()=>reject(new Error('captcha script'));
+    document.head.appendChild(s);
+  });
+}
+
+// Appelle /auth/login. Gère token / MFA / captcha.
+async function attemptLogin(payload){
+  const res = await fetch(API+'/auth/login', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  });
+  return res.json().catch(()=>({}));
+}
+
+async function finishWithData(data){
+  if(data.token){
+    token = data.token; me = await api('/users/@me');
+    localStorage.setItem(LS_KEY, token);
+    showLoginMsg('Connecté ! Bienvenue '+me.username, 'ok');
+    setTimeout(enterApp, 500); return true;
+  }
+  if(data.mfa && data.ticket){
+    mfaTicket = data.ticket;
+    $('#mfaWrap').style.display = 'block';
+    showLoginMsg('Entre ton code à 2 facteurs puis reclique sur Connexion.', 'info'); return true;
+  }
+  return false;
+}
+
 async function doEmailLogin(){
   const login = $('#mail').value.trim();
   const password = $('#pass').value;
@@ -503,43 +547,57 @@ async function doEmailLogin(){
   btn.disabled = true; const old = btn.textContent; btn.innerHTML = '<span class="spin"></span>';
   showLoginMsg('Connexion…', 'info');
   try{
-    // Étape 2FA si un ticket est déjà en cours
+    // 2FA en cours
     if(mfaTicket){
       const code = $('#mfa').value.trim();
       const r = await fetch(API+'/auth/mfa/totp', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ ticket: mfaTicket, code })
       });
-      const d = await r.json();
+      const d = await r.json().catch(()=>({}));
       if(d.token){ token=d.token; me=await api('/users/@me'); localStorage.setItem(LS_KEY,token);
         showLoginMsg('Connecté !', 'ok'); setTimeout(enterApp,500); return; }
       showLoginMsg('Code 2FA invalide.', 'err'); return;
     }
 
-    const res = await fetch(API+'/auth/login', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ login, password, undelete:false })
-    });
-    const data = await res.json().catch(()=>({}));
+    const data = await attemptLogin({ login, password, undelete:false });
+    if(await finishWithData(data)) return;
 
-    if(data.token){
-      token = data.token; me = await api('/users/@me');
-      localStorage.setItem(LS_KEY, token);
-      showLoginMsg('Connecté ! Bienvenue '+me.username, 'ok');
-      setTimeout(enterApp, 500); return;
+    // Captcha demandé par Discord -> on affiche le VRAI hCaptcha
+    if(data.captcha_key && data.captcha_sitekey){
+      showLoginMsg('Discord demande une vérification. Résous le captcha ci-dessous 👇', 'info');
+      $('#captchaWrap').style.display = 'block';
+      await loadHcaptcha();
+      const box = document.getElementById('hcaptcha-box');
+      box.innerHTML = '';
+      const opts = {
+        sitekey: data.captcha_sitekey,
+        theme: 'dark',
+        callback: async (captchaToken)=>{
+          showLoginMsg('Captcha OK, connexion…', 'info');
+          const payload = { login, password, undelete:false, captcha_key: captchaToken };
+          if(data.captcha_rqtoken) payload.captcha_rqtoken = data.captcha_rqtoken;
+          try{
+            const d2 = await attemptLogin(payload);
+            if(await finishWithData(d2)) return;
+            if(d2.captcha_key){ showLoginMsg('Discord a refusé (domaine du captcha). Utilise le Token — c’est la méthode fiable.', 'err'); }
+            else showLoginMsg('Identifiants incorrects.', 'err');
+          }catch(e){ showLoginMsg('Erreur après captcha : '+e.message, 'err'); }
+        },
+        'error-callback': ()=> showLoginMsg('Le captcha a échoué. Réessaie ou utilise le Token.', 'err'),
+        'expired-callback': ()=> showLoginMsg('Captcha expiré, refais-le.', 'err')
+      };
+      // hCaptcha "enterprise" de Discord : rqdata si présent
+      if(data.captcha_rqdata){ opts.rqdata = data.captcha_rqdata; opts.apiEndpoint = 'api.hcaptcha.com'; }
+      try{
+        hcaptchaWidgetId = window.hcaptcha.render('hcaptcha-box', opts);
+      }catch(e){
+        showLoginMsg('Impossible d’afficher le captcha ici. Utilise le Token.', 'err');
+      }
+      return;
     }
-    if(data.captcha_key){
-      showLoginMsg('🛑 Discord demande un captcha (impossible ici). Connecte-toi plutôt avec le Token.', 'err');
-      switchMode('token'); return;
-    }
-    if(data.mfa && data.ticket){
-      mfaTicket = data.ticket;
-      $('#mfaWrap').style.display = 'block';
-      showLoginMsg('Entre ton code à 2 facteurs puis reclique.', 'info'); return;
-    }
-    if(data.errors || data.message){
-      showLoginMsg('Identifiants incorrects.', 'err'); return;
-    }
+
+    if(data.errors || data.message){ showLoginMsg('Identifiants incorrects.', 'err'); return; }
     showLoginMsg('Réponse inattendue de Discord. Essaie le Token.', 'err');
   }catch(e){
     showLoginMsg('Bloqué par Discord ('+e.message+'). Utilise le Token.', 'err');
