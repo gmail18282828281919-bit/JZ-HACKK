@@ -32,3 +32,8 @@ npm-debug.log*
 temp/
 tmp/
 *.tmp
+# Build artifacts
+*-build/
+dist/JZ5-3.0.0-pro.apk
+nexus-build/
+*.apk.bak
