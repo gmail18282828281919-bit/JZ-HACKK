@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ModeraBot — Configuration</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0b0e18;--surface:#111522;--surface2:#161a2c;--border:#1c2240;--border-hi:#2a3565;--text:#dde3f5;--muted:#5a6387;--accent:#6ab3e8;--accent2:#3e7fd4;--green:#3ba55d;--orange:#faa61a;--red:#ed4245}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+.orb{position:fixed;border-radius:50%;filter:blur(110px);pointer-events:none;z-index:0;opacity:.5}
+.orb1{width:500px;height:500px;background:radial-gradient(circle,rgba(62,127,212,.18) 0%,transparent 70%);top:-150px;left:-100px}
+.orb2{width:380px;height:380px;background:radial-gradient(circle,rgba(106,179,232,.12) 0%,transparent 70%);bottom:-80px;right:-80px}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;height:56px;border-bottom:1px solid var(--border);background:rgba(17,21,34,.88);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:space-between;padding:0 28px;gap:14px}
+.nav-left{display:flex;align-items:center;gap:10px;min-width:0}
+.nav-left>img{width:28px;height:28px;border-radius:8px;object-fit:cover}
+.nav-left .name{font-size:15px;font-weight:800;color:#fff}
+.nav-left .tag{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);background:rgba(106,179,232,.12);padding:2px 9px;border-radius:20px;border:1px solid rgba(106,179,232,.25)}
+.back{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:9px;border:1px solid var(--border);transition:.2s}
+.back:hover{color:var(--text);border-color:var(--border-hi)}
+.user-pill{display:flex;align-items:center;gap:9px;padding:5px 14px 5px 7px;border:1px solid var(--border);border-radius:24px;background:var(--surface);cursor:pointer;position:relative;user-select:none}
+.user-pill:hover{border-color:var(--border-hi)}
+.user-pill img{width:28px;height:28px;border-radius:50%;object-fit:cover;background:var(--surface2)}
+.user-pill .uname{font-size:13px;font-weight:700;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dropdown{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:6px;min-width:190px;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:200}
+.user-pill.open .dropdown{display:block}
+.dd{display:flex;align-items:center;gap:9px;padding:9px 12px;font-size:13px;font-weight:600;color:var(--text);border-radius:8px;cursor:pointer;text-decoration:none}
+.dd:hover{background:rgba(255,255,255,.05)}
+.dd.danger{color:var(--red)}
+.dd svg{opacity:.7;flex-shrink:0}
+
+/* HEADER SERVEUR */
+.wrap{position:relative;z-index:10;flex:1;max-width:1180px;width:100%;margin:0 auto;padding:28px 24px 60px}
+.gld{display:flex;align-items:center;gap:16px;margin-bottom:26px;flex-wrap:wrap}
+.gld-icon{width:64px;height:64px;border-radius:18px;object-fit:cover;border:2px solid var(--border);background:var(--surface2)}
+.gld-ini{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff}
+.gld h1{font-size:22px;font-weight:800;color:#fff;line-height:1.2}
+.gld .gid{font-size:12px;font-weight:600;color:var(--muted);font-family:ui-monospace,Menlo,Consolas,monospace}
+.pill-ok{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:3px 10px;border-radius:20px;color:var(--green);background:rgba(59,165,93,.12);border:1px solid rgba(59,165,93,.28)}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:212px 1fr;gap:20px;align-items:start}
+.side{position:sticky;top:76px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:8px}
+.tab{display:flex;align-items:center;gap:10px;width:100%;padding:11px 13px;border:none;background:none;color:var(--muted);font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;border-radius:10px;cursor:pointer;text-align:left;transition:.15s}
+.tab:hover{background:rgba(255,255,255,.04);color:var(--text)}
+.tab.active{background:rgba(106,179,232,.12);color:var(--accent)}
+.tab svg{flex-shrink:0}
+
+.panel{display:none;flex-direction:column;gap:14px}
+.panel.active{display:flex}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 22px}
+.card h2{font-size:15px;font-weight:800;color:#fff;margin-bottom:3px}
+.card .sub{font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:16px;line-height:1.5}
+
+.row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 0;border-top:1px solid var(--border)}
+.row:first-of-type{border-top:none}
+.row-txt strong{display:block;font-size:13.5px;font-weight:700;color:var(--text)}
+.row-txt span{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-top:2px;line-height:1.45}
+.row-ctl{flex-shrink:0}
+
+.sw{position:relative;width:44px;height:25px;flex-shrink:0;cursor:pointer}
+.sw input{opacity:0;width:0;height:0;position:absolute}
+.sw i{position:absolute;inset:0;background:var(--surface2);border:1px solid var(--border-hi);border-radius:20px;transition:.2s}
+.sw i::after{content:'';position:absolute;top:3px;left:3px;width:17px;height:17px;border-radius:50%;background:var(--muted);transition:.2s}
+.sw input:checked + i{background:rgba(106,179,232,.22);border-color:var(--accent)}
+.sw input:checked + i::after{transform:translateX(19px);background:var(--accent)}
+
+input[type=text],input[type=number],select,textarea{font-family:'Nunito',sans-serif;font-size:13px;font-weight:600;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;outline:none;transition:border-color .2s;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+input[type=number]{width:88px}
+select{cursor:pointer;min-width:150px}
+textarea{min-height:92px;resize:vertical;line-height:1.55}
+.w-md{max-width:230px}
+.field{padding:13px 0;border-top:1px solid var(--border)}
+.field:first-of-type{border-top:none}
+.field label{display:block;font-size:13.5px;font-weight:700;margin-bottom:3px}
+.field .hint{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:9px;line-height:1.45}
+.vars{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.var{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;font-weight:600;color:var(--accent);background:rgba(106,179,232,.1);border:1px solid rgba(106,179,232,.22);border-radius:6px;padding:3px 7px;cursor:pointer}
+.var:hover{background:rgba(106,179,232,.2)}
+
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;min-height:4px}
+.chip{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;background:var(--surface2);border:1px solid var(--border-hi);border-radius:20px;padding:4px 6px 4px 11px}
+.chip b{font-weight:700}
+.chip button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:0 4px;font-family:inherit}
+.chip button:hover{color:var(--red)}
+.add-row{display:flex;gap:8px;margin-top:10px}
+.btn{padding:9px 17px;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;border:1px solid var(--border-hi);color:var(--text);background:var(--surface2);font-family:'Nunito',sans-serif;text-decoration:none;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:linear-gradient(135deg,var(--accent2),var(--accent));border-color:transparent;color:#fff}
+.btn.primary:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost-danger{color:var(--red);border-color:rgba(237,66,69,.35)}
+.btn.ghost-danger:hover{border-color:var(--red);background:rgba(237,66,69,.08)}
+
+/* BARRE SAUVEGARDE */
+.savebar{position:sticky;bottom:16px;z-index:60;margin-top:18px;display:flex;align-items:center;justify-content:space-between;gap:14px;background:rgba(22,26,44,.95);backdrop-filter:blur(14px);border:1px solid var(--border-hi);border-radius:14px;padding:12px 16px;box-shadow:0 10px 32px rgba(0,0,0,.45);opacity:0;transform:translateY(14px);pointer-events:none;transition:.25s}
+.savebar.show{opacity:1;transform:translateY(0);pointer-events:auto}
+.savebar span{font-size:13px;font-weight:700;color:var(--orange)}
+.savebar .acts{display:flex;gap:9px}
+
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);z-index:300;background:var(--surface);border:1px solid var(--border-hi);border-radius:12px;padding:11px 20px;font-size:13px;font-weight:700;box-shadow:0 10px 32px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:.25s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.ok{border-color:rgba(59,165,93,.5);color:var(--green)}
+.toast.err{border-color:rgba(237,66,69,.5);color:var(--red)}
+
+.center{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:80px 20px;text-align:center;color:var(--muted);font-size:14px;font-weight:600}
+.spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.center h3{font-size:17px;font-weight:800;color:var(--red)}
+.center .acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.note{font-size:12px;font-weight:600;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:11px 14px;line-height:1.55;margin-bottom:16px}
+.hidden{display:none !important}
+
+footer{position:relative;z-index:10;border-top:1px solid var(--border);padding:13px 28px;display:flex;justify-content:space-between;background:rgba(17,21,34,.8);font-size:12px;font-weight:600;color:var(--muted)}
+footer a{color:var(--muted);text-decoration:none}
+.dot{display:inline-block;width:7px;height:7px;background:var(--green);border-radius:50%;margin-right:5px}
+
+@media(max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .side{position:static;display:flex;overflow-x:auto;gap:4px;padding:6px}
+  .tab{white-space:nowrap}
+  nav{padding:0 14px}.wrap{padding:20px 12px 40px}
+  .back span{display:none}
+  .row{flex-direction:column;align-items:flex-start;gap:9px}
+  .row-ctl{width:100%}
+  .w-md{max-width:none}
+}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<nav>
+  <div class="nav-left">
+    <img src="logo.png" alt="" onerror="this.style.display='none'">
+    <span class="name">ModeraBot</span>
+    <span class="tag">Dashboard</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <a class="back" href="/servers.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      <span>Mes serveurs</span>
+    </a>
+    <div class="user-pill" id="userPill">
+      <img id="uAvatar" src="https://cdn.discordapp.com/embed/avatars/0.png" alt="">
+      <span class="uname" id="uName">…</span>
+      <div class="dropdown">
+        <a class="dd" href="/servers.html">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/></svg>
+          Mes serveurs
+        </a>
+        <div class="dd danger" id="btnLogout">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Déconnexion
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div id="boot" class="center"><div class="spinner"></div>Chargement de la configuration…</div>
+
+  <div id="app" class="hidden">
+    <div class="gld">
+      <div id="gIconBox"></div>
+      <div>
+        <h1 id="gName">—</h1>
+        <div class="gid" id="gId"></div>
+      </div>
+      <span class="pill-ok" id="gRole">Administrateur</span>
+    </div>
+
+    <div id="noteLocal" class="note hidden">
+      L'API du bot ne répond pas : tes réglages sont enregistrés <b>dans ce navigateur</b> et seront renvoyés au bot dès que l'API refonctionnera.
+    </div>
+
+    <div class="layout">
+      <div class="side" id="tabs">
+        <button class="tab active" data-p="general">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Général
+        </button>
+        <button class="tab" data-p="moderation">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Modération
+        </button>
+        <button class="tab" data-p="automod">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="3"/><line x1="12" y1="8" x2="12" y2="11"/></svg>
+          Auto-mod
+        </button>
+        <button class="tab" data-p="welcome">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+          Bienvenue
+        </button>
+        <button class="tab" data-p="logs">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+          Logs
+        </button>
+        <button class="tab" data-p="levels">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Niveaux
+        </button>
+      </div>
+
+      <div>
+        <!-- GENERAL -->
+        <div class="panel active" id="p-general">
+          <div class="card">
+            <h2>Paramètres généraux</h2>
+            <p class="sub">Le comportement de base de ModeraBot sur ce serveur.</p>
+            <div class="field">
+              <label for="prefix">Préfixe des commandes</label>
+              <div class="hint">Utilisé pour les commandes texte (les slash-commands marchent toujours).</div>
+              <input type="text" id="prefix" class="w-md" maxlength="5" placeholder="!">
+            </div>
+            <div class="field">
+              <label for="lang">Langue du bot</label>
+              <div class="hint">Langue des réponses et des messages automatiques.</div>
+              <select id="lang">
+                <option value="fr">Français</option>
+                <option value="en">English</option>
+                <option value="es">Español</option>
+              </select>
+            </div>
+            <div class="row">
+              <div class="row-txt"><strong>Supprimer la commande</strong><span>Efface le message de l'utilisateur après exécution d'une commande.</span></div>
+              <div class="row-ctl"><label class="sw"><input type="checkbox" id="delCmd"><i></i></label></div>
+            </div>
+            <div class="row">
+              <div class="row-txt"><strong>Répondre en message privé</strong><span>Les erreurs de commande sont envoyées en MP plutôt qu'en salon.</span></div>
+              <div class="row-ctl"><label class="sw"><input type="checkbox" id="dmErrors"><i></i></label></div>
+            </div>
+          </div>
+          <div class="card">
+            <h2>Rôles du staff</h2>
+            <p class="sub">Ces rôles peuvent utiliser les commandes de modération. Colle l'ID d'un rôle (clic droit sur le rôle → Copier l'identifiant, mode développeur activé).</p>
+            <div class="add-row">
+              <input type="text" id="staffIn" placeholder="ID du rôle — ex : 123456789012345678" inputmode="numeric">
+              <button class="btn" id="staffAdd">Ajouter</button>
+            </div>
+            <div class="chips" id="staffChips"></div>
+          </div>
+        </div>
+
+        <!-- MODERATION -->
+        <div class="panel" id="p-moderation">
+          <div class="card">
+            <h2>Sanctions automatiques</h2>
+            <p class="sub">Ce que fait le bot quand un membre accumule des avertissements.</p>
+            <div class="row">
+              <div class="row-txt"><strong>Avertissements avant sanction</strong><span>Nombre de warns qui déclenchent la sanction ci-dessous.</span></div>
+              <div class="row-ctl"><input type="number" id="warnLimit" min="1" max="20" value="3"></div>
+            </div>
+            <div class="row">
+              <div class="row-txt"><strong>Sanction appliquée</strong><span>Action déclenchée une fois la limite atteinte.</span></div>
+              <div class="row-ctl">
+                <select id="warnAction">
+                  <option value="none">Aucune</option>
+                  <option value="mute">Rendre muet</option>
+                  <option value="kick">Expulser</option>
+                  <option value="ban">Bannir</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="row-txt"><strong>Durée du mute (minutes)</strong><span>Durée par défaut d'un rendu muet automatique.</span></div>
+              <div class="row-ctl"><input type="number" id="muteDur" min="1" max="10080" value="60"></div>
+            </div>
+            <div class="row">
+              <div class="row-txt"><strong>Expiration des warns (jours)</strong><span>0 = les avertissements ne s'effacent jamais.</span></div>
+              <div class="row-ctl"><input type="number" id="warnExpire" min="0" max="365" value="30"></div>
+            </div>
+          </div>
+          <div class="card">
+            <h2>Protections</h2>
+            <p class="sub">Sécurité du serveur contre les raids et les comptes suspects.</p>
+            <div class="row">
+              <div class="row-txt"><strong>Anti-raid</strong><span>Bloque les arrivées massives de comptes en quelques secondes.</span></div>
+              <div class="row-ctl"><label class="sw"><input type="checkbox" id="antiRaid"><i></i></label></div>
+            </div>
+            <div class="row">
+              <div class="row-txt"><strong>Âge minimum du compte (jours)</strong><span>Les comptes plus récents sont refusés à l'entrée. 0 = désactivé.</span></div>
+              <div class="row-ctl"><input type="number" id="minAge" min="0" max="365" value="0"></div>
+            </div>
+            <div class="row">
+              <div class="row-txt"><strong>Protéger le staff</strong><span>Les membres avec un rôle staff sont exemptés de l'auto-modération.</span></div>
+              <div class="row-ctl"><label class="sw"><input type="checkbox" id="staffImmune" checked><i></i></label></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AUTOMOD -->
+        <div class="panel" id="p-automod">
+          <div class="card">
+            <h2>Filtres automatiques</h2>
+            <p class="sub">Messages supprimés automatiquement par le bot.</p>
+            <div class="row">
+              <div class="row-txt"><strong>Anti-spam</strong><span>Supprime les messages répétés ou envoyés trop vite.</span></div>
+              <div class="row-ctl"><label class="sw"><input type="checkbox" id="antiSpam"><i></i></label></div>
+            </div>
+            <div class="row">
+              <div class="row-txt"><strong>Messages max / 5 secondes</strong><span>Au-delà, le membre est averti automatiquement.</span></div>
+              <div class="row-ctl"><input type="number" id="spamRate" min="2" max="20" value="5"></div>
+            </div>
+            <div class="row">
+              <div class="row-txt"><strong>Anti-invitations</strong><span>Supprime les liens d'invitation Discord.</span></div>
+              <div class="row-ctl"><label class="sw"><input type="checkbox" id="antiInvite"><i></i></label></div>
+            </div>
+            <div class="row">
+              <div class="row-txt"><strong>Anti-liens</strong><span>Supprime tous les liens externes.</span></div>
+              <div class="row-ctl"><label class="sw"><input type="checkbox" id="antiLink"><i></i></label></div>
+            </div>
+            <div class="row">
+              <div class="row-txt"><strong>Anti-majuscules</strong><span>Supprime les messages écrits majoritairement en MAJUSCULES.</span></div>
+              <div class="row-ctl"><label class="sw"><input type="checkbox" id="antiCaps"><i></i></label></div>
+            </div>
+            <div class="row">
+              <div class="row-txt"><strong>Anti-mentions massives</strong><span>Nombre de mentions autorisées par message.</span></div>
+              <div class="row-ctl"><input type="number" id="maxMentions" min="1" max="30" value="5"></div>
+            </div>
+          </div>
+          <div class="card">
+            <h2>Mots interdits</h2>
+            <p class="sub">Tout message contenant l'un de ces mots est supprimé.</p>
+            <div class="add-row">
+              <input type="text" id="wordIn" placeholder="Ajouter un mot puis Entrée">
+              <button class="btn" id="wordAdd">Ajouter</button>
+            </div>
+            <div class="chips" id="wordChips"></div>
+          </div>
+          <div class="card">
+            <h2>Salons ignorés</h2>
+            <p class="sub">L'auto-modération ne s'applique pas dans ces salons (ID du salon).</p>
+            <div class="add-row">
+              <input type="text" id="ignIn" placeholder="ID du salon" inputmode="numeric">
+              <button class="btn" id="ignAdd">Ajouter</button>
+            </div>
+            <div class="chips" id="ignChips"></div>
+          </div>
+        </div>
+
+        <!-- WELCOME -->
+        <div class="panel" id="p-welcome">
+          <div class="card">
+            <h2>Message de bienvenue</h2>
+            <p class="sub">Envoyé quand un membre rejoint le serveur.</p>
+            <div class="row">
+              <div class="row-txt"><strong>Activer la bienvenue</strong><span>Poste un message d'accueil dans le salon choisi.</span></div>
+              <div class="row-ctl"><label class="sw"><input type="checkbox" id="wcEnabled"><i></i></label></div>
+            </div>
+            <div class="field">
+              <label for="wcChannel">Salon d'accueil</label>
+              <div class="hint">ID du salon (clic droit sur le salon → Copier l'identifiant).</div>
+              <input type="text" id="wcChannel" class="w-md" placeholder="123456789012345678" inputmode="numeric">
+            </div>
+            <div class="field">
+              <label for="wcMsg">Message</label>
+              <div class="hint">Clique sur une variable pour l'insérer.</div>
+              <textarea id="wcMsg" placeholder="Bienvenue {user} sur {server} ! Tu es le membre n°{count}."></textarea>
+              <div class="vars" data-target="wcMsg">
+                <span class="var">{user}</span><span class="var">{username}</span>
+                <span class="var">{server}</span><span class="var">{count}</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="autoRole">Rôle automatique</label>
+              <div class="hint">Donné à chaque nouveau membre. Laisse vide pour désactiver.</div>
+              <input type="text" id="autoRole" class="w-md" placeholder="ID du rôle" inputmode="numeric">
+            </div>
+          </div>
+          <div class="card">
+            <h2>Message d'au revoir</h2>
+            <p class="sub">Envoyé quand un membre quitte le serveur.</p>
+            <div class="row">
+              <div class="row-txt"><strong>Activer l'au revoir</strong><span></span></div>
+              <div class="row-ctl"><label class="sw"><input type="checkbox" id="byEnabled"><i></i></label></div>
+            </div>
+            <div class="field">
+              <label for="byChannel">Salon</label>
+              <div class="hint">ID du salon où poster le départ.</div>
+              <input type="text" id="byChannel" class="w-md" placeholder="123456789012345678" inputmode="numeric">
+            </div>
+            <div class="field">
+              <label for="byMsg">Message</label>
+              <div class="hint"></div>
+              <textarea id="byMsg" placeholder="{username} vient de quitter le serveur."></textarea>
+              <div class="vars" data-target="byMsg">
+                <span class="var">{user}</span><span class="var">{username}</span>
+                <span class="var">{server}</span><span class="var">{count}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LOGS -->
+        <div class="panel" id="p-logs">
+          <div class="card">
+            <h2>Journal des événements</h2>
+            <p class="sub">ModeraBot enregistre l'activité du serveur dans un salon dédié.</p>
+            <div class="row">
+              <div class="row-txt"><strong>Activer les logs</strong><span></span></div>
+              <div class="row-ctl"><label class="sw"><input type="checkbox" id="logEnabled"><i></i></label></div>
+            </div>
+            <div class="field">
+              <label for="logChannel">Salon des logs</label>
+              <div class="hint">ID du salon réservé au staff.</div>
+              <input type="text" id="logChannel" class="w-md" placeholder="123456789012345678" inputmode="numeric">
+            </div>
+          </div>
+          <div class="card">
+            <h2>Événements enregistrés</h2>
+            <p class="sub">Choisis ce qui apparaît dans le salon de logs.</p>
+            <div class="row"><div class="row-txt"><strong>Messages supprimés</strong><span></span></div><div class="row-ctl"><label class="sw"><input type="checkbox" id="logDel" checked><i></i></label></div></div>
+            <div class="row"><div class="row-txt"><strong>Messages modifiés</strong><span></span></div><div class="row-ctl"><label class="sw"><input type="checkbox" id="logEdit" checked><i></i></label></div></div>
+            <div class="row"><div class="row-txt"><strong>Arrivées et départs</strong><span></span></div><div class="row-ctl"><label class="sw"><input type="checkbox" id="logJoin" checked><i></i></label></div></div>
+            <div class="row"><div class="row-txt"><strong>Sanctions (warn / mute / kick / ban)</strong><span></span></div><div class="row-ctl"><label class="sw"><input type="checkbox" id="logSanction" checked><i></i></label></div></div>
+            <div class="row"><div class="row-txt"><strong>Changements de rôles</strong><span></span></div><div class="row-ctl"><label class="sw"><input type="checkbox" id="logRole"><i></i></label></div></div>
+            <div class="row"><div class="row-txt"><strong>Salons créés / supprimés</strong><span></span></div><div class="row-ctl"><label class="sw"><input type="checkbox" id="logChan"><i></i></label></div></div>
+          </div>
+        </div>
+
+        <!-- LEVELS -->
+        <div class="panel" id="p-levels">
+          <div class="card">
+            <h2>Système de niveaux</h2>
+            <p class="sub">Les membres gagnent de l'XP en discutant.</p>
+            <div class="row">
+              <div class="row-txt"><strong>Activer les niveaux</strong><span></span></div>
+              <div class="row-ctl"><label class="sw"><input type="checkbox" id="lvlEnabled"><i></i></label></div>
+            </div>
+            <div class="row">
+              <div class="row-txt"><strong>XP par message</strong><span>Points gagnés à chaque message.</span></div>
+              <div class="row-ctl"><input type="number" id="lvlXp" min="1" max="100" value="10"></div>
+            </div>
+            <div class="row">
+              <div class="row-txt"><strong>Anti-farm (secondes)</strong><span>Délai minimum entre deux gains d'XP.</span></div>
+              <div class="row-ctl"><input type="number" id="lvlCooldown" min="0" max="600" value="60"></div>
+            </div>
+            <div class="row">
+              <div class="row-txt"><strong>Annoncer les montées de niveau</strong><span>Poste un message quand un membre change de niveau.</span></div>
+              <div class="row-ctl"><label class="sw"><input type="checkbox" id="lvlAnnounce" checked><i></i></label></div>
+            </div>
+            <div class="field">
+              <label for="lvlChannel">Salon des annonces</label>
+              <div class="hint">Vide = le message est posté dans le salon où le membre a parlé.</div>
+              <input type="text" id="lvlChannel" class="w-md" placeholder="ID du salon (optionnel)" inputmode="numeric">
+            </div>
+          </div>
+          <div class="card">
+            <h2>Zone de danger</h2>
+            <p class="sub">Actions irréversibles sur la configuration de ce serveur.</p>
+            <div class="row">
+              <div class="row-txt"><strong>Réinitialiser la configuration</strong><span>Remet tous les réglages de ce serveur par défaut.</span></div>
+              <div class="row-ctl"><button class="btn ghost-danger" id="btnReset">Réinitialiser</button></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="savebar" id="savebar">
+          <span>Modifications non enregistrées</span>
+          <div class="acts">
+            <button class="btn" id="btnCancel">Annuler</button>
+            <button class="btn primary" id="btnSave">Enregistrer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer>
+  <span><span class="dot"></span>Bot en ligne</span>
+  <span>ModeraBot © 2026 · <a href="/servers.html">Mes serveurs</a></span>
+</footer>
+
+<script>
+const CLIENT_ID = '1447165780708823140';
+const SCOPES    = 'identify guilds';
+const REDIRECT  = location.origin + '/servers.html';
+const TOKEN_KEY = 'mb_discord_token';
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const guildId = new URLSearchParams(location.search).get('guild');
+
+/* ---------- valeurs par défaut ---------- */
+const DEFAULTS = {
+  prefix:'!', lang:'fr', delCmd:false, dmErrors:false, staffRoles:[],
+  warnLimit:3, warnAction:'mute', muteDur:60, warnExpire:30,
+  antiRaid:false, minAge:0, staffImmune:true,
+  antiSpam:false, spamRate:5, antiInvite:false, antiLink:false, antiCaps:false, maxMentions:5,
+  badWords:[], ignoredChannels:[],
+  wcEnabled:false, wcChannel:'', wcMsg:'Bienvenue {user} sur {server} ! Tu es le membre n°{count}.', autoRole:'',
+  byEnabled:false, byChannel:'', byMsg:'{username} vient de quitter le serveur.',
+  logEnabled:false, logChannel:'', logDel:true, logEdit:true, logJoin:true, logSanction:true, logRole:false, logChan:false,
+  lvlEnabled:false, lvlXp:10, lvlCooldown:60, lvlAnnounce:true, lvlChannel:''
+};
+const LIST_KEYS = { staffRoles:'staffChips', badWords:'wordChips', ignoredChannels:'ignChips' };
+
+let cfg = structuredClone(DEFAULTS);
+let saved = structuredClone(DEFAULTS);
+let apiAlive = false;
+
+/* ---------- auth Discord (même token que servers.html) ---------- */
+function loadToken(){
+  try{
+    const o = JSON.parse(sessionStorage.getItem(TOKEN_KEY) || 'null');
+    if(!o || !o.t || Date.now() > o.exp){ sessionStorage.removeItem(TOKEN_KEY); return null; }
+    return o.t;
+  }catch{ return null; }
+}
+function authorizeURL(){
+  return 'https://discord.com/oauth2/authorize?client_id=' + CLIENT_ID
+    + '&response_type=token&scope=' + encodeURIComponent(SCOPES)
+    + '&redirect_uri=' + encodeURIComponent(REDIRECT);
+}
+async function discord(path, token){
+  for(let i = 0; i < 4; i++){
+    let res;
+    try{ res = await fetch('https://discord.com/api/v10' + path, { headers:{ Authorization:'Bearer ' + token }, cache:'no-store' }); }
+    catch(e){ throw new Error('Discord injoignable (' + (e.message || e) + ')'); }
+    if(res.status === 429){
+      let w = 1200; try{ const j = await res.json(); if(j.retry_after) w = Math.ceil(j.retry_after*1000)+250; }catch{}
+      await sleep(Math.min(w, 6000)); continue;
+    }
+    if(res.status === 401){ const e = new Error('401'); e.code = 401; throw e; }
+    if(!res.ok){
+      if(res.status >= 500 && i < 3){ await sleep(700*(i+1)); continue; }
+      throw new Error('Discord : HTTP ' + res.status);
+    }
+    return res.json();
+  }
+  throw new Error('Discord : trop de requêtes');
+}
+function avatarURL(u){
+  if(u && u.avatar) return `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.${String(u.avatar).startsWith('a_')?'gif':'png'}?size=64`;
+  let i = 0;
+  try{ i = (u.discriminator && u.discriminator !== '0') ? Number(u.discriminator)%5 : Number((BigInt(u.id)>>BigInt(22))%BigInt(6)); }catch{}
+  return `https://cdn.discordapp.com/embed/avatars/${i}.png`;
+}
+function hasAdmin(g){
+  if(!g) return false;
+  if(g.owner === true) return true;
+  try{ const p = BigInt(g.permissions_new ?? g.permissions ?? '0');
+       return (p & BigInt(0x8)) !== BigInt(0) || (p & BigInt(0x20)) !== BigInt(0); }catch{ return false; }
+}
+function initials(n){
+  const p = String(n||'?').trim().split(/\s+/).filter(Boolean);
+  return p.length ? p.map(w=>w[0]).join('').slice(0,2).toUpperCase() : '?';
+}
+
+/* ---------- stockage config ---------- */
+const lsKey = () => 'mb_cfg_' + guildId;
+
+async function apiGet(){
+  try{
+    const res = await fetch(`/api/guild/${encodeURIComponent(guildId)}/config`, {
+      credentials:'same-origin', cache:'no-store', headers:{ Accept:'application/json' }
+    });
+    if(!res.ok) return null;
+    const t = await res.text();
+    const j = JSON.parse(t);
+    apiAlive = true;
+    return (j && typeof j === 'object') ? (j.config || j) : null;
+  }catch{ return null; }
+}
+async function apiPut(data){
+  try{
+    const res = await fetch(`/api/guild/${encodeURIComponent(guildId)}/config`, {
+      method:'POST', credentials:'same-origin',
+      headers:{ 'Content-Type':'application/json', Accept:'application/json' },
+      body: JSON.stringify(data)
+    });
+    return res.ok;
+  }catch{ return false; }
+}
+function localGet(){
+  try{ const o = JSON.parse(localStorage.getItem(lsKey()) || 'null'); return o && typeof o === 'object' ? o : null; }catch{ return null; }
+}
+function localSet(data){ try{ localStorage.setItem(lsKey(), JSON.stringify(data)); }catch{} }
+
+/* ---------- liaison formulaire <-> config ---------- */
+function fillForm(){
+  for(const k of Object.keys(DEFAULTS)){
+    if(LIST_KEYS[k]) continue;
+    const el = $(k);
+    if(!el) continue;
+    if(el.type === 'checkbox') el.checked = !!cfg[k];
+    else el.value = cfg[k] ?? '';
+  }
+  for(const k of Object.keys(LIST_KEYS)) renderChips(k);
+}
+function readForm(){
+  for(const k of Object.keys(DEFAULTS)){
+    if(LIST_KEYS[k]) continue;
+    const el = $(k);
+    if(!el) continue;
+    if(el.type === 'checkbox') cfg[k] = el.checked;
+    else if(el.type === 'number') cfg[k] = el.value === '' ? DEFAULTS[k] : Number(el.value);
+    else cfg[k] = el.value.trim();
+  }
+}
+function dirty(){ return JSON.stringify(cfg) !== JSON.stringify(saved); }
+function refreshBar(){ $('savebar').classList.toggle('show', dirty()); }
+
+function renderChips(key){
+  const box = $(LIST_KEYS[key]);
+  const list = cfg[key] || [];
+  box.innerHTML = list.map((v, i) =>
+    `<span class="chip"><b>${esc(v)}</b><button type="button" data-k="${key}" data-i="${i}" title="Retirer">×</button></span>`
+  ).join('');
+}
+function addTo(key, value){
+  const v = String(value || '').trim();
+  if(!v) return;
+  cfg[key] = cfg[key] || [];
+  if(cfg[key].some(x => String(x).toLowerCase() === v.toLowerCase())){ toast('Déjà dans la liste', 'err'); return; }
+  if(cfg[key].length >= 100){ toast('Liste pleine (100 max)', 'err'); return; }
+  cfg[key].push(v);
+  renderChips(key); refreshBar();
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('.chip button');
+  if(!b) return;
+  cfg[b.dataset.k].splice(Number(b.dataset.i), 1);
+  renderChips(b.dataset.k); refreshBar();
+});
+
+/* ---------- UI ---------- */
+function toast(msg, kind){
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (kind || 'ok');
+  clearTimeout(t._h);
+  t._h = setTimeout(() => t.className = 'toast', 2600);
+}
+
+$('tabs').addEventListener('click', e => {
+  const b = e.target.closest('.tab');
+  if(!b) return;
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === b));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'p-' + b.dataset.p));
+});
+
+const pill = $('userPill');
+pill.addEventListener('click', e => { if(!e.target.closest('a,#btnLogout')) pill.classList.toggle('open'); });
+pill.addEventListener('mouseenter', () => pill.classList.add('open'));
+pill.addEventListener('mouseleave', () => pill.classList.remove('open'));
+document.addEventListener('click', e => { if(!pill.contains(e.target)) pill.classList.remove('open'); });
+$('btnLogout').addEventListener('click', () => {
+  try{ sessionStorage.removeItem(TOKEN_KEY); }catch{}
+  fetch('/api/logout', { method:'POST', credentials:'same-origin' }).finally(() => location.href = '/index.html');
+});
+
+document.querySelectorAll('.vars').forEach(box => {
+  box.addEventListener('click', e => {
+    if(!e.target.classList.contains('var')) return;
+    const ta = $(box.dataset.target);
+    const s = ta.selectionStart ?? ta.value.length, t = ta.selectionEnd ?? s;
+    ta.value = ta.value.slice(0, s) + e.target.textContent + ta.value.slice(t);
+    ta.focus();
+    ta.selectionStart = ta.selectionEnd = s + e.target.textContent.length;
+    readForm(); refreshBar();
+  });
+});
+
+$('staffAdd').addEventListener('click', () => { addTo('staffRoles', $('staffIn').value); $('staffIn').value=''; });
+$('wordAdd').addEventListener('click',  () => { addTo('badWords',   $('wordIn').value);  $('wordIn').value=''; });
+$('ignAdd').addEventListener('click',   () => { addTo('ignoredChannels', $('ignIn').value); $('ignIn').value=''; });
+['staffIn','wordIn','ignIn'].forEach(id => $(id).addEventListener('keydown', e => {
+  if(e.key === 'Enter'){ e.preventDefault(); $(id.replace('In','Add')).click(); }
+}));
+
+document.addEventListener('input', e => {
+  if(e.target.closest('.add-row')) return;
+  if(e.target.matches('input,select,textarea')){ readForm(); refreshBar(); }
+});
+document.addEventListener('change', e => {
+  if(e.target.closest('.add-row')) return;
+  if(e.target.matches('input,select,textarea')){ readForm(); refreshBar(); }
+});
+
+$('btnCancel').addEventListener('click', () => {
+  cfg = structuredClone(saved);
+  fillForm(); refreshBar();
+  toast('Modifications annulées');
+});
+
+$('btnSave').addEventListener('click', async () => {
+  readForm();
+  const btn = $('btnSave');
+  btn.disabled = true; btn.textContent = 'Enregistrement…';
+
+  localSet(cfg);                       // toujours sauvegardé localement
+  const ok = await apiPut(cfg);        // puis envoyé au bot si l'API répond
+
+  saved = structuredClone(cfg);
+  refreshBar();
+  btn.disabled = false; btn.textContent = 'Enregistrer';
+  $('noteLocal').classList.toggle('hidden', ok);
+  toast(ok ? 'Configuration enregistrée ✓' : 'Enregistré localement (API du bot injoignable)', ok ? 'ok' : 'err');
+});
+
+$('btnReset').addEventListener('click', () => {
+  if(!confirm('Remettre TOUS les réglages de ce serveur par défaut ?')) return;
+  cfg = structuredClone(DEFAULTS);
+  fillForm(); refreshBar();
+  toast('Réglages remis par défaut — pense à enregistrer', 'err');
+});
+
+window.addEventListener('beforeunload', e => { if(dirty()){ e.preventDefault(); e.returnValue = ''; } });
+
+function fatal(title, detail, actions){
+  $('boot').innerHTML = `<h3>${esc(title)}</h3><p>${esc(detail)}</p><div class="acts">${actions}</div>`;
+}
+
+/* ---------- démarrage ---------- */
+window.addEventListener('load', async () => {
+  if(!guildId || !/^\d{5,25}$/.test(guildId)){
+    fatal('Serveur introuvable', "L'adresse ne contient pas d'identifiant de serveur valide.",
+      `<a class="btn primary" href="/servers.html">Choisir un serveur</a>`);
+    return;
+  }
+
+  const token = loadToken();
+  if(!token){ location.href = authorizeURL(); return; }
+
+  let user, guilds;
+  try{
+    user = await discord('/users/@me', token);
+    $('uName').textContent = user.global_name || user.username || 'Utilisateur';
+    $('uAvatar').src = avatarURL(user);
+    guilds = await discord('/users/@me/guilds', token);
+  }catch(err){
+    if(err.code === 401){ try{ sessionStorage.removeItem(TOKEN_KEY); }catch{} location.href = authorizeURL(); return; }
+    fatal('Connexion impossible', err.message || String(err),
+      `<button class="btn primary" onclick="location.reload()">Réessayer</button><a class="btn" href="/servers.html">Mes serveurs</a>`);
+    return;
+  }
+
+  const g = (guilds || []).find(x => String(x.id) === String(guildId));
+  if(!g){
+    fatal('Serveur inaccessible', "Tu n'es pas membre de ce serveur, ou Discord ne le renvoie pas.",
+      `<a class="btn primary" href="/servers.html">Mes serveurs</a>`);
+    return;
+  }
+  if(!hasAdmin(g)){
+    fatal('Accès refusé', `Il faut la permission Administrateur ou Gérer le serveur sur « ${g.name} » pour configurer ModeraBot.`,
+      `<a class="btn primary" href="/servers.html">Mes serveurs</a>`);
+    return;
+  }
+
+  // en-tête serveur
+  $('gName').textContent = g.name;
+  $('gId').textContent = 'ID ' + g.id;
+  $('gRole').textContent = g.owner ? 'Propriétaire' : 'Administrateur';
+  $('gIconBox').innerHTML = g.icon
+    ? `<img class="gld-icon" src="https://cdn.discordapp.com/icons/${g.id}/${g.icon}.${String(g.icon).startsWith('a_')?'gif':'png'}?size=128" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=\\'gld-ini\\'>${esc(initials(g.name))}</div>'">`
+    : `<div class="gld-ini">${esc(initials(g.name))}</div>`;
+
+  // config : API en priorité, sinon sauvegarde locale, sinon défauts
+  const remote = await apiGet();
+  const local  = localGet();
+  cfg = Object.assign(structuredClone(DEFAULTS), local || {}, remote || {});
+  for(const k of Object.keys(LIST_KEYS)) if(!Array.isArray(cfg[k])) cfg[k] = [];
+  saved = structuredClone(cfg);
+
+  fillForm();
+  $('noteLocal').classList.toggle('hidden', apiAlive);
+  $('boot').classList.add('hidden');
+  $('app').classList.remove('hidden');
+});
+</script>
+</body>
+</html>
