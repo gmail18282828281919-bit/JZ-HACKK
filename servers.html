@@ -205,6 +205,7 @@ async function apiJSON(url, opts = {}, tries = 3){
       });
     }catch(e){
       lastErr = new Error('Réseau injoignable (' + (e.message || e) + ')');
+      if((opts.method || 'GET').toUpperCase() !== 'GET') break;
       await sleep(400 * (i + 1));
       continue;
     }
@@ -228,7 +229,8 @@ async function apiJSON(url, opts = {}, tries = 3){
     }
 
     lastErr = new Error((data && (data.error || data.message)) || ('HTTP ' + res.status + (res.statusText ? ' ' + res.statusText : '')));
-    if(res.status >= 500 && i < tries - 1){ await sleep(600 * (i + 1)); continue; }
+    const method = (opts.method || 'GET').toUpperCase();
+    if(res.status >= 500 && method === 'GET' && i < tries - 1){ await sleep(600 * (i + 1)); continue; }
     break;
   }
   throw lastErr || new Error('Erreur inconnue');
@@ -270,16 +272,28 @@ function addRipple(el, e){
   setTimeout(() => r.remove(), 600);
 }
 
-function showError(title, detail, retry){
+function showError(title, detail, retry, hint){
   $('grid').innerHTML = `
     <div class="err-box">
       <h3>${esc(title)}</h3>
       <p>${esc(detail)}</p>
+      ${hint ? `<p>${hint}</p>` : ''}
       <div class="err-actions">
         ${retry ? `<button class="btn primary" onclick="location.reload()">Réessayer</button>` : ''}
-        <a class="btn" href="${LOGIN_PAGE}">Se reconnecter</a>
+        <a class="btn primary" href="${OAUTH_URL()}">Relancer la connexion Discord</a>
+        <a class="btn" href="${LOGIN_PAGE}">Accueil</a>
       </div>
     </div>`;
+}
+
+/* Relance une autorisation Discord propre (nouveau code OAuth à usage unique) */
+function OAUTH_URL(){
+  return 'https://discord.com/oauth2/authorize'
+    + '?client_id=' + CLIENT_ID
+    + '&response_type=code'
+    + '&scope=' + encodeURIComponent('identify guilds')
+    + '&prompt=none'
+    + '&redirect_uri=' + encodeURIComponent(location.origin + '/servers.html');
 }
 
 /* ---------- menu profil (clic + survol, marche sur mobile) ---------- */
@@ -315,18 +329,22 @@ window.addEventListener('load', async () => {
     return;
   }
 
+  let exchangeErr = null;
   if(code){
     history.replaceState({}, '', '/servers.html');
     try{
+      // tries = 1 : un code OAuth Discord est A USAGE UNIQUE.
+      // Le rejouer renvoie invalid_grant et fait planter le backend (502/500).
       await apiJSON('/api/oauth-exchange', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ code, state: params.get('state') || undefined })
-      });
+      }, 1);
     }catch(err){
       if(err.code === 401){ location.href = LOGIN_PAGE; return; }
-      showError('Échec de la connexion Discord', err.message || String(err), true);
-      return;
+      // On n'abandonne pas tout de suite : la session est peut-être déjà valide
+      // (cookie posé par un échange précédent). On teste /api/my-guilds d'abord.
+      exchangeErr = err;
     }
   }
 
@@ -344,7 +362,16 @@ window.addEventListener('load', async () => {
         return;
       }
     } else {
-      showError('Impossible de charger tes serveurs', err.message || String(err), true);
+      if(exchangeErr){
+        showError(
+          'Échec de la connexion Discord',
+          'POST /api/oauth-exchange → ' + (exchangeErr.message || String(exchangeErr)),
+          true,
+          "Le code d'autorisation a peut-être déjà été utilisé, ou l'API backend a planté. Relance la connexion pour obtenir un nouveau code."
+        );
+      } else {
+        showError('Impossible de charger tes serveurs', 'GET /api/my-guilds → ' + (err.message || String(err)), true);
+      }
       return;
     }
   }
