@@ -164,9 +164,21 @@ footer a{color:var(--muted);text-decoration:none}
 </footer>
 
 <script>
+/* =============================================================
+   ModeraBot — Mes Serveurs
+   Mode SANS BACKEND : OAuth implicite Discord (response_type=token).
+   Le navigateur parle directement à discord.com/api → aucun /api/
+   côté serveur n'est requis, donc plus aucune erreur HTTP 5xx.
+   Le backend reste utilisé s'il répond (pour savoir où le bot est
+   présent), mais son échec ne casse plus jamais la page.
+   ============================================================= */
+
 const CLIENT_ID  = '1447165780708823140';
-const DASH_PATH  = '/dash';               // <- redirection demandée
+const SCOPES     = 'identify guilds';
+const DASH_PATH  = '/dash';                 // redirection quand on clique un serveur
 const LOGIN_PAGE = '/index.html';
+const REDIRECT   = location.origin + '/servers.html';   // doit être déclaré dans le portail Discord
+const TOKEN_KEY  = 'mb_discord_token';
 
 const SVG = {
   bot:    `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="3"/><line x1="12" y1="8" x2="12" y2="11"/><line x1="8" y1="15" x2="8" y2="17"/><line x1="16" y1="15" x2="16" y2="17"/></svg>`,
@@ -178,62 +190,73 @@ const SVG = {
   cirOff: `<svg width="7" height="7" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>`,
 };
 
-/* ---------- utils ---------- */
+/* ---------------- utils ---------------- */
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function initials(n){
-  const parts = String(n || '?').trim().split(/\s+/).filter(Boolean);
-  if(!parts.length) return '?';
-  return parts.map(w => w[0]).join('').slice(0,2).toUpperCase();
-}
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-/* Requête JSON robuste : cookies inclus, pas de cache, réponse non-JSON gérée,
-   et retry auto sur les erreurs serveur passagères (502/503/504/505...).
-   C'est ça qui produisait le fameux « HTTP 505 » affiché brut. */
-async function apiJSON(url, opts = {}, tries = 3){
-  let lastErr;
-  for(let i = 0; i < tries; i++){
+function initials(n){
+  const parts = String(n || '?').trim().split(/\s+/).filter(Boolean);
+  return parts.length ? parts.map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?';
+}
+
+function authorizeURL(prompt){
+  return 'https://discord.com/oauth2/authorize'
+    + '?client_id=' + encodeURIComponent(CLIENT_ID)
+    + '&response_type=token'
+    + '&scope=' + encodeURIComponent(SCOPES)
+    + '&redirect_uri=' + encodeURIComponent(REDIRECT)
+    + (prompt ? '&prompt=' + prompt : '');
+}
+
+function saveToken(tok, expiresIn){
+  try{
+    sessionStorage.setItem(TOKEN_KEY, JSON.stringify({
+      t: tok,
+      exp: Date.now() + (Number(expiresIn || 604800) * 1000) - 60000
+    }));
+  }catch{}
+}
+function loadToken(){
+  try{
+    const raw = sessionStorage.getItem(TOKEN_KEY);
+    if(!raw) return null;
+    const o = JSON.parse(raw);
+    if(!o.t || Date.now() > o.exp){ sessionStorage.removeItem(TOKEN_KEY); return null; }
+    return o.t;
+  }catch{ return null; }
+}
+function clearToken(){ try{ sessionStorage.removeItem(TOKEN_KEY); }catch{} }
+
+/* Appel direct à l'API Discord (CORS autorisé sur ces routes) */
+async function discord(path, token){
+  for(let i = 0; i < 4; i++){
     let res;
     try{
-      res = await fetch(url, {
-        credentials: 'same-origin',
-        cache: 'no-store',
-        redirect: 'follow',
-        ...opts,
-        headers: { 'Accept': 'application/json', ...(opts.headers || {}) }
+      res = await fetch('https://discord.com/api/v10' + path, {
+        headers: { Authorization: 'Bearer ' + token },
+        cache: 'no-store'
       });
     }catch(e){
-      lastErr = new Error('Réseau injoignable (' + (e.message || e) + ')');
-      if((opts.method || 'GET').toUpperCase() !== 'GET') break;
-      await sleep(400 * (i + 1));
+      throw new Error('Discord injoignable — vérifie ta connexion / ton bloqueur de pub (' + (e.message || e) + ')');
+    }
+
+    if(res.status === 429){                       // rate limit : on patiente
+      let wait = 1200;
+      try{ const j = await res.json(); if(j.retry_after) wait = Math.ceil(j.retry_after * 1000) + 250; }catch{}
+      await sleep(Math.min(wait, 6000));
       continue;
     }
-
-    const raw  = await res.text();
-    let data = null;
-    try { data = raw ? JSON.parse(raw) : null; } catch { /* pas du JSON */ }
-
-    if(res.ok && data) return data;
-
-    if(res.ok && !data){
-      lastErr = new Error("Le serveur a renvoyé du HTML au lieu du JSON sur " + url + " (route API absente ?)");
-      break;
+    if(res.status === 401){ const e = new Error('token_invalide'); e.code = 401; throw e; }
+    if(!res.ok){
+      let msg = 'HTTP ' + res.status;
+      try{ const j = await res.json(); if(j.message) msg = j.message + ' (' + res.status + ')'; }catch{}
+      if(res.status >= 500 && i < 3){ await sleep(700 * (i + 1)); continue; }
+      throw new Error('Discord : ' + msg);
     }
-
-    if(res.status === 401 || res.status === 403){
-      const e = new Error('unauthorized'); e.code = 401; throw e;
-    }
-    if(res.status === 404){
-      const e = new Error('not_found'); e.code = 404; throw e;
-    }
-
-    lastErr = new Error((data && (data.error || data.message)) || ('HTTP ' + res.status + (res.statusText ? ' ' + res.statusText : '')));
-    const method = (opts.method || 'GET').toUpperCase();
-    if(res.status >= 500 && method === 'GET' && i < tries - 1){ await sleep(600 * (i + 1)); continue; }
-    break;
+    return res.json();
   }
-  throw lastErr || new Error('Erreur inconnue');
+  throw new Error('Discord : trop de requêtes, réessaie dans quelques secondes');
 }
 
 function avatarURL(u){
@@ -247,18 +270,16 @@ function avatarURL(u){
     idx = (u.discriminator && u.discriminator !== '0')
       ? Number(u.discriminator) % 5
       : Number((BigInt(u.id) >> BigInt(22)) % BigInt(6));
-  }catch{ idx = 0; }
+  }catch{}
   return `https://cdn.discordapp.com/embed/avatars/${idx}.png`;
 }
 
 function hasAdmin(g){
   if(!g) return false;
   if(g.owner === true) return true;
-  const raw = g.permissions_new ?? g.permissions ?? '0';
   try{
-    const p = BigInt(raw);
-    const ADMIN = BigInt(0x8), MANAGE_GUILD = BigInt(0x20);
-    return (p & ADMIN) !== BigInt(0) || (p & MANAGE_GUILD) !== BigInt(0);
+    const p = BigInt(g.permissions_new ?? g.permissions ?? '0');
+    return (p & BigInt(0x8)) !== BigInt(0) || (p & BigInt(0x20)) !== BigInt(0);
   }catch{ return false; }
 }
 
@@ -267,36 +288,30 @@ function addRipple(el, e){
   r.className = 'ripple';
   const rect = el.getBoundingClientRect();
   const s = Math.max(rect.width, rect.height);
-  r.style.cssText = `width:${s}px;height:${s}px;left:${(e.clientX ?? rect.left + rect.width/2) - rect.left - s/2}px;top:${(e.clientY ?? rect.top + rect.height/2) - rect.top - s/2}px`;
+  r.style.cssText = `width:${s}px;height:${s}px;left:${(e.clientX ?? rect.left + rect.width / 2) - rect.left - s / 2}px;top:${(e.clientY ?? rect.top + rect.height / 2) - rect.top - s / 2}px`;
   el.appendChild(r);
   setTimeout(() => r.remove(), 600);
 }
 
-function showError(title, detail, retry, hint){
+function showError(title, detail, hint){
   $('grid').innerHTML = `
     <div class="err-box">
       <h3>${esc(title)}</h3>
       <p>${esc(detail)}</p>
       ${hint ? `<p>${hint}</p>` : ''}
       <div class="err-actions">
-        ${retry ? `<button class="btn primary" onclick="location.reload()">Réessayer</button>` : ''}
-        <a class="btn primary" href="${OAUTH_URL()}">Relancer la connexion Discord</a>
+        <a class="btn primary" href="${authorizeURL('consent')}">Se connecter avec Discord</a>
+        <button class="btn" onclick="location.reload()">Réessayer</button>
         <a class="btn" href="${LOGIN_PAGE}">Accueil</a>
       </div>
     </div>`;
 }
 
-/* Relance une autorisation Discord propre (nouveau code OAuth à usage unique) */
-function OAUTH_URL(){
-  return 'https://discord.com/oauth2/authorize'
-    + '?client_id=' + CLIENT_ID
-    + '&response_type=code'
-    + '&scope=' + encodeURIComponent('identify guilds')
-    + '&prompt=none'
-    + '&redirect_uri=' + encodeURIComponent(location.origin + '/servers.html');
+function showLoading(txt){
+  $('grid').innerHTML = `<div class="loading"><div class="spinner"></div>${esc(txt)}</div>`;
 }
 
-/* ---------- menu profil (clic + survol, marche sur mobile) ---------- */
+/* ---------------- menu profil ---------------- */
 const pill = $('userPill');
 pill.addEventListener('click', e => {
   if(e.target.closest('a') || e.target.closest('#btnLogout')) return;
@@ -307,87 +322,104 @@ pill.addEventListener('mouseleave', () => pill.classList.remove('open'));
 document.addEventListener('click', e => { if(!pill.contains(e.target)) pill.classList.remove('open'); });
 
 $('btnLogout').addEventListener('click', async () => {
-  try{ await fetch('/api/logout', {method:'POST', credentials:'same-origin'}); }catch{}
+  clearToken();
+  try{ await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' }); }catch{}
   location.href = LOGIN_PAGE;
 });
 
 function setUser(u){
   if(!u) return;
-  const name = u.global_name || u.display_name || u.username || 'Utilisateur';
-  $('uName').textContent = name;
+  $('uName').textContent = u.global_name || u.display_name || u.username || 'Utilisateur';
   $('uAvatar').src = avatarURL(u);
   $('uTag').textContent = u.username ? '@' + u.username : ('ID ' + (u.id || ''));
 }
 
-/* ---------- boot ---------- */
-window.addEventListener('load', async () => {
-  const params = new URLSearchParams(location.search);
-  const code   = params.get('code');
+/* Optionnel : demande au backend la liste des serveurs où le bot est présent.
+   S'il ne répond pas (404, 502, HTML…), on continue sans — jamais d'erreur. */
+async function fetchBotGuilds(){
+  for(const url of ['/api/bot-guilds', '/api/my-guilds', '/api/guilds']){
+    try{
+      const res = await fetch(url, { credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' } });
+      if(!res.ok) continue;
+      const txt = await res.text();
+      let j; try{ j = JSON.parse(txt); }catch{ continue; }
+      const ids = Array.isArray(j) ? j
+        : (j.bot_guild_ids || j.botGuildIds || j.bot_guilds || null);
+      if(Array.isArray(ids) && ids.length){
+        return new Set(ids.map(x => String(x && x.id ? x.id : x)));
+      }
+    }catch{}
+  }
+  return null;   // inconnu
+}
 
-  if(params.get('error')){
-    showError('Connexion Discord refusée', params.get('error_description') || params.get('error'), false);
+/* ---------------- boot ---------------- */
+window.addEventListener('load', async () => {
+  const search = new URLSearchParams(location.search);
+  const hash   = new URLSearchParams(location.hash.replace(/^#/, ''));
+
+  // Erreur renvoyée par Discord (refus, mauvaise redirect_uri…)
+  const oerr = hash.get('error') || search.get('error');
+  if(oerr){
+    history.replaceState({}, '', '/servers.html');
+    const desc = hash.get('error_description') || search.get('error_description') || oerr;
+    showError(
+      'Connexion Discord refusée',
+      decodeURIComponent(String(desc).replace(/\+/g, ' ')),
+      oerr === 'invalid_request' || /redirect/i.test(String(desc))
+        ? `Dans le portail Discord → OAuth2 → Redirects, ajoute exactement : <code>${esc(REDIRECT)}</code>`
+        : ''
+    );
     return;
   }
 
-  let exchangeErr = null;
-  if(code){
+  // 1) Retour d'autorisation implicite : #access_token=…
+  let token = hash.get('access_token');
+  if(token){
+    saveToken(token, hash.get('expires_in'));
     history.replaceState({}, '', '/servers.html');
-    try{
-      // tries = 1 : un code OAuth Discord est A USAGE UNIQUE.
-      // Le rejouer renvoie invalid_grant et fait planter le backend (502/500).
-      await apiJSON('/api/oauth-exchange', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ code, state: params.get('state') || undefined })
-      }, 1);
-    }catch(err){
-      if(err.code === 401){ location.href = LOGIN_PAGE; return; }
-      // On n'abandonne pas tout de suite : la session est peut-être déjà valide
-      // (cookie posé par un échange précédent). On teste /api/my-guilds d'abord.
-      exchangeErr = err;
-    }
+  } else {
+    token = loadToken();
   }
 
-  let data;
+  // 2) Pas de token → on lance l'autorisation Discord (silencieuse si déjà autorisée)
+  if(!token){
+    showLoading('Connexion à Discord…');
+    location.href = authorizeURL('none');
+    return;
+  }
+
+  // 3) On charge le profil + les serveurs DIRECTEMENT depuis Discord
+  showLoading('Chargement de tes serveurs…');
+  let user, guilds;
   try{
-    data = await apiJSON('/api/my-guilds');
+    user = await discord('/users/@me', token);
+    setUser(user);
+    guilds = await discord('/users/@me/guilds', token);
   }catch(err){
-    if(err.code === 401){ location.href = LOGIN_PAGE; return; }
-    if(err.code === 404){
-      // fallback si l'API s'appelle autrement côté serveur
-      try { data = await apiJSON('/api/guilds'); }
-      catch(e2){
-        if(e2.code === 401){ location.href = LOGIN_PAGE; return; }
-        showError('Impossible de charger tes serveurs', e2.message || String(e2), true);
-        return;
-      }
-    } else {
-      if(exchangeErr){
-        showError(
-          'Échec de la connexion Discord',
-          'POST /api/oauth-exchange → ' + (exchangeErr.message || String(exchangeErr)),
-          true,
-          "Le code d'autorisation a peut-être déjà été utilisé, ou l'API backend a planté. Relance la connexion pour obtenir un nouveau code."
-        );
-      } else {
-        showError('Impossible de charger tes serveurs', 'GET /api/my-guilds → ' + (err.message || String(err)), true);
-      }
+    if(err.code === 401){
+      clearToken();
+      location.href = authorizeURL('consent');   // token expiré → on redemande
       return;
     }
+    showError(
+      'Impossible de charger tes serveurs',
+      err.message || String(err),
+      "Si l'erreur persiste, déconnecte-toi puis reconnecte-toi à Discord."
+    );
+    return;
   }
 
-  // le profil s'affiche même si /api/my-guilds ne renvoie pas "user"
-  if(data.user) setUser(data.user);
-  else {
-    try { setUser(await apiJSON('/api/me')); }
-    catch { $('uName').textContent = 'Mon compte'; }
+  if(!Array.isArray(guilds)){
+    showError('Réponse Discord inattendue', 'La liste des serveurs est illisible.', '');
+    return;
   }
 
-  const guilds = data.guilds || data.servers || (Array.isArray(data) ? data : []);
-  const botIds = new Set((data.bot_guild_ids || data.botGuildIds || []).map(String));
+  const botIds = await fetchBotGuilds();   // null si le backend est HS
   render(guilds, botIds);
 });
 
+/* ---------------- rendu ---------------- */
 function render(guilds, botIds){
   const grid = $('grid');
   grid.innerHTML = '';
@@ -397,11 +429,15 @@ function render(guilds, botIds){
     return;
   }
 
+  const unknownBot = botIds === null;   // on ignore où le bot est présent
+  const botIn = g => unknownBot ? null : botIds.has(String(g.id));
+
   let cBot = 0, cAdm = 0;
 
   const score = g => {
     const a = hasAdmin(g);
-    const b = botIds.has(String(g.id)) || g.has_bot === true;
+    const b = botIn(g);
+    if(unknownBot) return a ? 0 : 3;     // 2 groupes seulement : admin / autres
     if(b && a)  return 0;
     if(b && !a) return 1;
     if(!b && a) return 2;
@@ -413,30 +449,34 @@ function render(guilds, botIds){
 
   sorted.forEach((g, i) => {
     const isAdmin = hasAdmin(g);
-    const hasBot  = botIds.has(String(g.id)) || g.has_bot === true;
+    const hasBot  = botIn(g);
     const grp     = score(g);
-    if(hasBot)  cBot++;
+    if(hasBot) cBot++;
     if(isAdmin) cAdm++;
 
     if(grp !== lastGroup){
       lastGroup = grp;
-      const labels = [
-        [SVG.bot,  'Bot actif · Administrateur'],
-        [SVG.bot,  'Bot actif · Membre'],
-        [SVG.star, 'Administrateur · Bot absent'],
-        [SVG.user, 'Autres serveurs'],
-      ];
+      const labels = unknownBot
+        ? { 0: [SVG.star, 'Serveurs que tu administres'], 3: [SVG.user, 'Autres serveurs'] }
+        : {
+            0: [SVG.bot,  'Bot actif · Administrateur'],
+            1: [SVG.bot,  'Bot actif · Membre'],
+            2: [SVG.star, 'Administrateur · Bot absent'],
+            3: [SVG.user, 'Autres serveurs'],
+          };
       const sep = document.createElement('div');
       sep.className = 'section-sep';
       sep.innerHTML = labels[grp][0] + labels[grp][1];
       grid.appendChild(sep);
     }
 
-    const openable = hasBot && isAdmin;
+    // Sans backend on ne sait pas où est le bot : tout serveur administré est ouvrable,
+    // c'est /dash qui proposera l'ajout du bot si besoin.
+    const openable = isAdmin && (unknownBot || hasBot);
 
     let cls = 'srv';
     if(openable) cls += ' clickable';
-    else if(!hasBot && isAdmin) cls += ' invite-me';
+    else if(isAdmin && hasBot === false) cls += ' invite-me';
     else cls += ' dim';
 
     const el = document.createElement(openable ? 'a' : 'div');
@@ -448,28 +488,30 @@ function render(guilds, botIds){
       ? `<img class="srv-icon" src="https://cdn.discordapp.com/icons/${g.id}/${g.icon}.${String(g.icon).startsWith('a_') ? 'gif' : 'png'}?size=128" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=\\'srv-initials\\'>${esc(initials(g.name))}</div>'">`
       : `<div class="srv-initials">${esc(initials(g.name))}</div>`;
 
-    const lock = (hasBot && !isAdmin)
+    const lock = (!isAdmin && hasBot === true)
       ? `<div class="badge-lock" title="Tu n'es pas administrateur">${SVG.lock}</div>` : '';
 
-    const overlay = (!hasBot && isAdmin) ? `
+    const overlay = (isAdmin && hasBot === false) ? `
       <div class="srv-overlay">
         <div class="overlay-txt">Bot absent de ce serveur</div>
-        <a class="btn-add" href="https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&permissions=8&guild_id=${encodeURIComponent(g.id)}&scope=bot+applications.commands&response_type=code&redirect_uri=${encodeURIComponent(location.origin + '/servers.html')}" onclick="event.stopPropagation()">
+        <a class="btn-add" href="https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&permissions=8&guild_id=${encodeURIComponent(g.id)}&scope=bot+applications.commands" onclick="event.stopPropagation()">
           ${SVG.plus} Ajouter le bot
         </a>
       </div>` : '';
+
+    const badgeOn = unknownBot ? isAdmin : hasBot;
+    const badgeTxt = unknownBot ? (isAdmin ? 'Gérable' : 'Membre') : (hasBot ? 'Actif' : 'Inactif');
 
     el.innerHTML = `
       ${overlay}
       <div class="icon-wrap">${iconHTML}${lock}</div>
       <div class="srv-name" title="${esc(g.name)}">${esc(g.name)}</div>
-      <span class="srv-badge ${hasBot ? 'badge-on' : 'badge-off'}">${hasBot ? SVG.cirOn : SVG.cirOff}${hasBot ? 'Actif' : 'Inactif'}</span>
+      <span class="srv-badge ${badgeOn ? 'badge-on' : 'badge-off'}">${badgeOn ? SVG.cirOn : SVG.cirOff}${badgeTxt}</span>
     `;
 
     if(openable){
       el.addEventListener('click', e => {
         addRipple(el, e);
-        // redirection explicite vers /dash?guild=<id>
         e.preventDefault();
         setTimeout(() => { location.href = `${DASH_PATH}?guild=${encodeURIComponent(g.id)}`; }, 120);
       });
@@ -479,7 +521,7 @@ function render(guilds, botIds){
   });
 
   $('sTot').textContent = guilds.length;
-  $('sBot').textContent = cBot;
+  $('sBot').textContent = unknownBot ? '—' : cBot;
   $('sAdm').textContent = cAdm;
   $('stats').style.display = 'flex';
 }
