@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "NEXUS",
-    "slug": "nexus-chat",
+    "name": "JZ5",
+    "slug": "jz5-discord",
     "version": "3.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "android": {
-      "package": "com.nexus.chat",
+      "package": "com.jz5.discord",
       "versionCode": 3,
       "permissions": [
         "INTERNET",
@@ -14,7 +14,7 @@
       ]
     },
     "ios": {
-      "bundleIdentifier": "com.nexus.chat",
+      "bundleIdentifier": "com.jz5.discord",
       "supportsTabletMode": true
     },
     "plugins": [

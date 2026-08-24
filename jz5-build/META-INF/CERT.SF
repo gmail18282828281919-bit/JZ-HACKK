@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Created-By: JZ5 Build System
+X-Mainfest-Version: 1.0
+
+
+Name: res/values/strings.xml
+SHA1-Digest: e274e0e9eb48b4ca77ebb32b83204b7ef071cbab
+
+Name: res/values/styles.xml
+SHA1-Digest: 0ad509d7483f980eb5fd0e2e58f188e01cdf649b
+
+Name: res/values/colors.xml
+SHA1-Digest: 49c5c872ed60ee8b8895d9ceb4b38f0d43ad03da
+
+Name: AndroidManifest.xml
+SHA1-Digest: e9c5d61ec54db2a336887eb090c00a8560e042a6

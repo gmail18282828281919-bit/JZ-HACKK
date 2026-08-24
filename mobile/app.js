@@ -8,7 +8,7 @@ const STORAGE_KEY = '@bluecord_auth';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0e27',
+    backgroundColor: '#0f0015',
   },
   scrollView: {
     flex: 1,
@@ -21,25 +21,25 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#00d4ff',
+    backgroundColor: '#ff0080',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 30,
     marginBottom: 25,
-    shadowColor: '#00d4ff',
-    shadowOpacity: 0.6,
-    shadowRadius: 20,
-    elevation: 12,
+    shadowColor: '#ff0080',
+    shadowOpacity: 0.8,
+    shadowRadius: 25,
+    elevation: 15,
   },
   logoText: {
     fontSize: 50,
     fontWeight: 'bold',
-    color: '#0a0e27',
+    color: '#fff',
   },
   title: {
     fontSize: 32,
     fontWeight: '900',
-    color: '#00d4ff',
+    color: '#ff0080',
     marginBottom: 8,
     letterSpacing: 2,
   },
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: 24,
     borderBottomWidth: 2,
-    borderBottomColor: '#1a2049',
+    borderBottomColor: '#3a0050',
     width: '100%',
   },
   tab: {
@@ -64,15 +64,15 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: '#00d4ff',
+    borderBottomColor: '#ff0080',
   },
   tabText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#72767d',
+    color: '#888',
   },
   tabTextActive: {
-    color: '#00d4ff',
+    color: '#ff0080',
     fontSize: 14,
   },
   inputGroup: {
@@ -87,17 +87,17 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   input: {
-    backgroundColor: '#1a2049',
+    backgroundColor: '#1a0025',
     borderWidth: 2,
-    borderColor: '#2a3f7f',
+    borderColor: '#4a0080',
     borderRadius: 8,
     padding: 14,
-    color: '#dbdee1',
+    color: '#fff',
     fontSize: 14,
     marginBottom: 4,
   },
   inputFocus: {
-    borderColor: '#00d4ff',
+    borderColor: '#ff0080',
   },
   hint: {
     fontSize: 12,
@@ -114,28 +114,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   buttonPrimary: {
-    backgroundColor: '#00d4ff',
-    shadowColor: '#00d4ff',
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 6,
+    backgroundColor: '#ff0080',
+    shadowColor: '#ff0080',
+    shadowOpacity: 0.6,
+    shadowRadius: 15,
+    elevation: 8,
   },
   buttonSecondary: {
-    backgroundColor: '#1a2049',
+    backgroundColor: '#1a0025',
     borderWidth: 2,
-    borderColor: '#00d4ff',
-    shadowColor: '#00d4ff',
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    borderColor: '#ff0080',
+    shadowColor: '#ff0080',
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
   },
   buttonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#0a0e27',
+    color: '#fff',
   },
   buttonTextSecondary: {
-    color: '#00d4ff',
+    color: '#ff0080',
   },
   divider: {
     fontSize: 12,
@@ -143,13 +143,13 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   settingsGroup: {
-    backgroundColor: '#1a2049',
+    backgroundColor: '#1a0025',
     borderRadius: 12,
     padding: 18,
     marginBottom: 18,
     width: '100%',
     borderWidth: 1,
-    borderColor: '#2a3f7f',
+    borderColor: '#4a0080',
   },
   settingsTitle: {
     fontSize: 14,
@@ -167,31 +167,31 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#00d4ff',
+    borderColor: '#ff0080',
     marginRight: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: '#00d4ff',
+    backgroundColor: '#ff0080',
   },
   checkboxText: {
     color: '#dbdee1',
     fontSize: 14,
   },
   select: {
-    backgroundColor: '#1a2049',
+    backgroundColor: '#1a0025',
     borderWidth: 2,
-    borderColor: '#2a3f7f',
+    borderColor: '#4a0080',
     borderRadius: 8,
     padding: 12,
-    color: '#dbdee1',
+    color: '#fff',
     marginBottom: 12,
   },
   backupInfo: {
-    backgroundColor: 'rgba(0, 212, 255, 0.1)',
+    backgroundColor: 'rgba(255, 0, 128, 0.1)',
     borderLeftWidth: 4,
-    borderLeftColor: '#00d4ff',
+    borderLeftColor: '#ff0080',
     padding: 14,
     borderRadius: 8,
     marginTop: 14,
@@ -207,10 +207,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 20,
     borderTopWidth: 1,
-    borderTopColor: '#1a2049',
+    borderTopColor: '#3a0050',
   },
   footerLink: {
-    color: '#00d4ff',
+    color: '#ff0080',
     fontSize: 12,
     marginHorizontal: 8,
   },
@@ -232,8 +232,8 @@ const styles = StyleSheet.create({
     borderLeftColor: '#ff6b6b',
   },
   statusInfo: {
-    backgroundColor: 'rgba(0, 212, 255, 0.1)',
-    borderLeftColor: '#00d4ff',
+    backgroundColor: 'rgba(255, 0, 128, 0.1)',
+    borderLeftColor: '#ff0080',
   },
   statusText: {
     fontSize: 13,
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     color: '#ff6b6b',
   },
   statusTextInfo: {
-    color: '#00d4ff',
+    color: '#ff0080',
   },
 });
 
@@ -410,10 +410,10 @@ export default function App() {
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.wrapper}>
         {/* Header */}
         <View style={styles.logoContainer}>
-          <Text style={styles.logoText}>⚡</Text>
+          <Text style={styles.logoText}>🎮</Text>
         </View>
-        <Text style={styles.title}>NEXUS</Text>
-        <Text style={styles.version}>v3.0.0 - Premium</Text>
+        <Text style={styles.title}>JZ5</Text>
+        <Text style={styles.version}>v3.0.0 - Pro</Text>
 
         {/* Tabs */}
         <View style={styles.tabsContainer}>

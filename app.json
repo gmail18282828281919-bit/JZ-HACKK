@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "NEXUS",
-    "slug": "nexus-chat",
+    "name": "JZ5",
+    "slug": "jz5-discord",
     "version": "3.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -9,21 +9,21 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0a0e27"
+      "backgroundColor": "#0f0015"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
       "supportsTabletMode": true,
-      "bundleIdentifier": "com.nexus.chat"
+      "bundleIdentifier": "com.jz5.discord"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0a0e27"
+        "backgroundColor": "#0f0015"
       },
-      "package": "com.nexus.chat",
+      "package": "com.jz5.discord",
       "permissions": [
         "INTERNET",
         "ACCESS_NETWORK_STATE",
