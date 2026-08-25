@@ -118,7 +118,18 @@ def get_prefix(bot, message):
 
 _load_prefixes()
 
-bot = commands.Bot(command_prefix=get_prefix, intents=intents, help_command=None)
+# Aucun message du bot ne notifie un rôle ni @everyone.
+# Les rôles restent affichés en bleu (« @Membre »), mais personne n'est ping.
+# Les mentions de membres continuent de fonctionner (ticket, bienvenue, sanctions).
+MENTIONS_PAR_DEFAUT = discord.AllowedMentions(
+    everyone=False,      # pas de @everyone / @here
+    roles=False,         # pas de ping de rôle
+    users=True,          # les membres restent mentionnables
+    replied_user=False,  # répondre à quelqu'un ne le ping pas
+)
+
+bot = commands.Bot(command_prefix=get_prefix, intents=intents, help_command=None,
+                   allowed_mentions=MENTIONS_PAR_DEFAUT)
 
 # ══════════════════════════════════════════
 
@@ -10481,7 +10492,7 @@ CLIENT_ID = "1447165780708823140"
 
 CLIENT_SECRET = "S1LZeqsNe0QqhwC9VJ7S-8_zfB9ITwZB"
 
-REDIRECT_URI = "http://5.178.107.228:2025/bot/auth/callback"
+REDIRECT_URI = "https://dashboard.moderabot.xyz/bot/auth/callback"
 
 SECRET_KEY = "f92JkL0pA7xQ19Zb3T"
 
@@ -10492,6 +10503,17 @@ app.config["SESSION_COOKIE_SECURE"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 app.permanent_session_lifetime = timedelta(days=30)
+
+@app.route("/api/health")
+def api_health():
+    """Ping utilisé par le dashboard pour distinguer « API HS » de « mauvaise URL »."""
+    ready = False
+    try:
+        ready = bool(bot and bot.is_ready())
+    except Exception:
+        ready = False
+    return jsonify({"ok": True, "bot_ready": ready})
+
 
 DASHBOARD_REDIRECT_URI = "https://dashboard.moderabot.xyz/servers.html"
 
@@ -10556,6 +10578,31 @@ def api_logout():
     session.clear()
 
     return jsonify({"ok": True})
+
+
+@app.route("/api/bot-guilds")
+def api_bot_guilds():
+    """IDs des serveurs de l'utilisateur où le bot est présent.
+
+    Accepte le cookie de session OU le token Discord porté par la page
+    (`Authorization: Bearer ...`) : en cross-origin le cookie n'est pas envoyé.
+    """
+    perms = {}
+    auth = request.headers.get("Authorization", "")
+    if auth.startswith("Bearer "):
+        user, perms = _dash_user_from_token(auth[7:].strip())
+        if not user:
+            return jsonify({"error": "not_authenticated"}), 401
+    else:
+        access_token = session.get("discord_token")
+        if not access_token:
+            return jsonify({"error": "not_authenticated"}), 401
+        user, perms = _dash_user_from_token(access_token)
+        if not user:
+            return jsonify({"error": "not_authenticated"}), 401
+
+    bot_ids = {str(g.id) for g in bot.guilds}
+    return jsonify({"bot_guild_ids": sorted(bot_ids & set(perms.keys()))})
 
 def require_guild_admin(guild_id):
 
@@ -11505,7 +11552,9 @@ async def everping_cmd(ctx, *, message: str = None):
 
     await ctx.message.delete()
 
-    await ctx.send(f"@everyone\n{msg}")
+    # Seule commande autorisée à notifier : c'est son but, et elle est réservée aux admins.
+    await ctx.send(f"@everyone\n{msg}",
+                   allowed_mentions=discord.AllowedMentions(everyone=True, roles=False, users=True))
 
 @bot.command(name="massiverole", aliases=["massrole","roleall","masserole"])
 
