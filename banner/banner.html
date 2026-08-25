@@ -261,6 +261,38 @@ canvas.petals{position:absolute;inset:0;width:100%;height:100%;pointer-events:no
 .note li{margin-bottom:6px}
 .note li:last-child{margin-bottom:0}
 
+/* ---------- export PNG ---------- */
+.overlay{
+  position:fixed;
+  inset:0;
+  z-index:20;
+  display:none;
+  place-items:center;
+  padding:clamp(14px,4vw,48px);
+  background:color-mix(in srgb,var(--ground) 82%,#000);
+  backdrop-filter:blur(8px);
+}
+.overlay[open]{display:grid}
+.sheet{
+  width:min(920px,100%);
+  max-height:100%;
+  overflow:auto;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  box-shadow:var(--shadow);
+}
+.sheet img{width:100%;height:auto;border-radius:8px;display:block;background:#0A1C44}
+.sheet .row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.sheet p{margin:0;color:var(--muted);font-size:13.5px;flex:1 1 240px}
+.chip{text-decoration:none}
+.chip.solid{background:var(--cobalt);border-color:var(--cobalt);color:#fff}
+.chip.solid:hover{filter:brightness(1.08)}
+
 /* ---------- mode capture ---------- */
 body.capture{background:#03081A}
 body.capture .wrap{max-width:none;padding:0;gap:0;min-height:100vh;justify-content:center}
@@ -321,6 +353,7 @@ body.capture .exit-capture{display:block}
     </label>
     <span class="sep"></span>
     <button class="chip" type="button" id="captureBtn">Mode capture</button>
+    <button class="chip solid" type="button" id="pngBtn">Télécharger en PNG</button>
   </div>
 
   <div class="notes">
@@ -330,12 +363,9 @@ body.capture .exit-capture{display:block}
       <p>Les réglages et le texte sont retenus sur cet appareil, tu retrouves ta version en revenant.</p>
     </div>
     <div class="note">
-      <h2>En faire un GIF ou un MP4</h2>
-      <ol>
-        <li>Passe en <strong>Mode capture</strong> : la bannière occupe l’écran, seule.</li>
-        <li>Enregistre l’écran (Windows <code>Win+Alt+R</code>, Mac <code>Maj+Cmd+5</code>, téléphone : enregistreur d’écran).</li>
-        <li>Filme 10 s, puis recadre. Discord accepte le GIF animé en bannière ; YouTube veut une image fixe.</li>
-      </ol>
+      <h2>Récupérer la bannière</h2>
+      <p><strong>Télécharger en PNG</strong> exporte l’image seule, en <code>1983 × 793</code>, avec les pétales, le reflet et ta signature tels qu’ils sont à cet instant — sans le reste de la page.</p>
+      <p>Pour une version animée : <strong>Mode capture</strong> affiche la bannière plein écran, puis enregistre l’écran (Windows <code>Win+Alt+R</code>, Mac <code>Maj+Cmd+5</code>).</p>
     </div>
     <div class="note">
       <h2>Formats utiles</h2>
@@ -346,6 +376,17 @@ body.capture .exit-capture{display:block}
 </div>
 
 <button class="exit-capture" type="button" id="exitCapture">Quitter le mode capture ↩</button>
+
+<div class="overlay" id="pngOverlay" role="dialog" aria-modal="true" aria-label="Export PNG">
+  <div class="sheet">
+    <img id="pngPreview" alt="Aperçu de la bannière exportée">
+    <div class="row">
+      <p id="pngHint">Si le téléchargement ne démarre pas tout seul : clic droit (ou appui long sur téléphone) sur l’image ci-dessus → <strong>Enregistrer l’image</strong>.</p>
+      <a class="chip solid" id="pngLink" download="banniere.png" href="#">Enregistrer</a>
+      <button class="chip" type="button" id="pngClose">Fermer</button>
+    </div>
+  </div>
+</div>
 
 <script>
 (function(){
@@ -449,24 +490,24 @@ body.capture .exit-capture{display:block}
     ctx.setTransform(dpr,0,0,dpr,0,0);
   }
 
-  function drawPetal(p, t){
-    var x = (p.x + Math.sin(t*p.sway*2 + p.phase) * 0.018) * W;
-    var y = p.y * H;
-    var s = p.size;
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(p.rot + Math.sin(t*0.5 + p.phase)*0.6);
-    ctx.globalAlpha = p.alpha;
-    var g = ctx.createLinearGradient(-s, -s, s, s);
+  function drawPetal(c, p, t, w, h, k){
+    var x = (p.x + Math.sin(t*p.sway*2 + p.phase) * 0.018) * w;
+    var y = p.y * h;
+    var s = p.size * k;
+    c.save();
+    c.translate(x, y);
+    c.rotate(p.rot + Math.sin(t*0.5 + p.phase)*0.6);
+    c.globalAlpha = p.alpha;
+    var g = c.createLinearGradient(-s, -s, s, s);
     g.addColorStop(0, 'rgba(255,255,255,0.95)');
     g.addColorStop(1, 'rgba(168,206,255,0.75)');
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.moveTo(0, -s);
-    ctx.bezierCurveTo(s*0.85, -s*0.55, s*0.7, s*0.6, 0, s);
-    ctx.bezierCurveTo(-s*0.7, s*0.6, -s*0.85, -s*0.55, 0, -s);
-    ctx.fill();
-    ctx.restore();
+    c.fillStyle = g;
+    c.beginPath();
+    c.moveTo(0, -s);
+    c.bezierCurveTo(s*0.85, -s*0.55, s*0.7, s*0.6, 0, s);
+    c.bezierCurveTo(-s*0.7, s*0.6, -s*0.85, -s*0.55, 0, -s);
+    c.fill();
+    c.restore();
   }
 
   var last = 0, t = 0;
@@ -481,10 +522,145 @@ body.capture .exit-capture{display:block}
       p.x += Math.sin(t*0.3 + p.phase) * 0.0006;
       p.rot += p.spin * dt * 0.35;
       if(p.y > 1.12){ petals[i] = makePetal(true); }
-      drawPetal(p, t);
+      drawPetal(ctx, p, t, W, H, 1);
     }
     requestAnimationFrame(frame);
   }
+
+  /* ---- export PNG ---- */
+  var EXPORT_W = 1983, EXPORT_H = 793;
+  var plate = document.querySelector('.plate');
+  var overlay = document.getElementById('pngOverlay');
+  var preview = document.getElementById('pngPreview');
+  var link = document.getElementById('pngLink');
+  var lastURL = null;
+
+  function coverDraw(c, img, w, h, zoom, ox, oy){
+    var ar = (img.naturalWidth || w) / (img.naturalHeight || h);
+    var dw, dh;
+    if(ar > w/h){ dh = h*zoom; dw = dh*ar; }
+    else        { dw = w*zoom; dh = dw/ar; }
+    c.drawImage(img, (w-dw)*ox, (h-dh)*oy, dw, dh);
+  }
+
+  function buildExport(){
+    var ew = EXPORT_W, eh = EXPORT_H;
+    var k = ew / (W || ew);                       /* écran -> export */
+    var cv = document.createElement('canvas');
+    cv.width = ew; cv.height = eh;
+    var c = cv.getContext('2d');
+
+    c.fillStyle = '#0A1C44';
+    c.fillRect(0, 0, ew, eh);
+    coverDraw(c, plate, ew, eh, 1.04, 0.38, 0.55);
+
+    /* halo bleu + lueur haut-droite */
+    c.save();
+    c.globalCompositeOperation = 'screen';
+    var g1 = c.createRadialGradient(ew*0.30, eh*0.45, 0, ew*0.30, eh*0.45, ew*0.60);
+    g1.addColorStop(0, 'rgba(143,208,255,0.16)');
+    g1.addColorStop(1, 'rgba(143,208,255,0)');
+    c.fillStyle = g1; c.fillRect(0, 0, ew, eh);
+    var g2 = c.createRadialGradient(ew*0.88, eh*0.20, 0, ew*0.88, eh*0.20, ew*0.50);
+    g2.addColorStop(0, 'rgba(255,255,255,0.12)');
+    g2.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = g2; c.fillRect(0, 0, ew, eh);
+    c.restore();
+
+    /* pétales, à leur position actuelle */
+    if(!stage.classList.contains('no-petals')){
+      for(var i=0;i<petals.length;i++){ drawPetal(c, petals[i], t, ew, eh, k); }
+      c.globalAlpha = 1;
+    }
+
+    /* reflet lumineux, figé au tiers */
+    if(!stage.classList.contains('no-sweep')){
+      c.save();
+      c.globalCompositeOperation = 'screen';
+      c.translate(ew*0.46, eh*0.5);
+      c.rotate(14*Math.PI/180);
+      var bw = ew*0.36, bh = eh*2.4;
+      var g3 = c.createLinearGradient(-bw/2, 0, bw/2, 0);
+      g3.addColorStop(0,   'rgba(214,236,255,0)');
+      g3.addColorStop(0.45,'rgba(214,236,255,0.30)');
+      g3.addColorStop(0.72,'rgba(255,255,255,0.06)');
+      g3.addColorStop(1,   'rgba(214,236,255,0)');
+      c.fillStyle = g3;
+      c.fillRect(-bw/2, -bh/2, bw, bh);
+      c.restore();
+    }
+
+    /* vignette */
+    c.save();
+    var rx = ew*0.62, ry = eh*0.80;
+    c.translate(ew*0.5, eh*0.45);
+    c.scale(1, ry/rx);
+    var g4 = c.createRadialGradient(0, 0, rx*0.45, 0, 0, rx);
+    g4.addColorStop(0, 'rgba(4,14,38,0)');
+    g4.addColorStop(1, 'rgba(4,14,38,0.62)');
+    c.fillStyle = g4;
+    c.fillRect(-ew, -eh*2, ew*2, eh*4);
+    c.restore();
+
+    /* signature, aux mêmes proportions qu'à l'écran */
+    if(!stage.classList.contains('no-mark') && W){
+      var sr = stage.getBoundingClientRect();
+      var nr = nameEl.getBoundingClientRect();
+      var br = subEl.getBoundingClientRect();
+      var ns = parseFloat(getComputedStyle(nameEl).fontSize) * k;
+      var bs = parseFloat(getComputedStyle(subEl).fontSize) * k;
+      c.save();
+      c.textBaseline = 'alphabetic';
+      if('letterSpacing' in c){ c.letterSpacing = (ns*0.04) + 'px'; }
+      c.font = '800 ' + ns + 'px "Shippori Mincho", Georgia, serif';
+      c.fillStyle = '#F4F9FF';
+      var nx = (nr.left - sr.left) * k, ny = (nr.bottom - sr.top) * k - ns*0.20;
+      c.shadowColor = 'rgba(4,14,38,0.9)'; c.shadowBlur = 20*k;
+      c.fillText(nameEl.textContent, nx, ny);
+      c.shadowColor = 'rgba(127,196,255,0.8)'; c.shadowBlur = 30*k;
+      c.fillText(nameEl.textContent, nx, ny);
+      if('letterSpacing' in c){ c.letterSpacing = (bs*0.34) + 'px'; }
+      c.font = '600 ' + bs + 'px "JetBrains Mono", ui-monospace, monospace';
+      c.fillStyle = 'rgba(207,228,255,0.86)';
+      c.shadowColor = 'rgba(4,14,38,0.9)'; c.shadowBlur = 12*k;
+      c.fillText(subEl.textContent.toUpperCase(),
+                 (br.left - sr.left) * k, (br.bottom - sr.top) * k - bs*0.24);
+      c.restore();
+    }
+    return cv;
+  }
+
+  function slug(v){
+    return (v || 'banniere').toLowerCase().replace(/[^a-z0-9]+/g,'-')
+           .replace(/^-|-$/g,'').slice(0,24) || 'banniere';
+  }
+
+  function exportPNG(){
+    var cv = buildExport();
+    cv.toBlob(function(blob){
+      if(lastURL){ URL.revokeObjectURL(lastURL); }
+      lastURL = URL.createObjectURL(blob);
+      preview.src = lastURL;
+      link.href = lastURL;
+      link.download = 'banniere-' + slug(nameEl.textContent) + '.png';
+      overlay.setAttribute('open','');
+      try{ link.click(); }catch(e){}
+    }, 'image/png');
+  }
+
+  document.getElementById('pngBtn').addEventListener('click', function(){
+    if(document.fonts && document.fonts.ready){ document.fonts.ready.then(exportPNG); }
+    else{ exportPNG(); }
+  });
+  document.getElementById('pngClose').addEventListener('click', function(){
+    overlay.removeAttribute('open');
+  });
+  overlay.addEventListener('click', function(e){
+    if(e.target === overlay){ overlay.removeAttribute('open'); }
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){ overlay.removeAttribute('open'); }
+  });
 
   window.addEventListener('resize', resize);
   if(window.ResizeObserver){ new ResizeObserver(resize).observe(stage); }
@@ -493,7 +669,7 @@ body.capture .exit-capture{display:block}
   seed();
   if(reduce){
     ctx.clearRect(0,0,W,H);
-    for(var i=0;i<petals.length;i++){ drawPetal(petals[i], 0); }
+    for(var i=0;i<petals.length;i++){ drawPetal(ctx, petals[i], 0, W, H, 1); }
   }else{
     requestAnimationFrame(function(n){ last = n; frame(n); });
   }

@@ -10,12 +10,16 @@ dedans, aucun fichier à côté n'est nécessaire).
 - quatre couches à couper/remettre : pétales, zoom lent, reflet, signature ;
 - la signature (« JZ » / « omega ») se modifie en cliquant dessus ;
 - le curseur **Densité** règle le nombre de pétales ;
-- **Mode capture** affiche la bannière seule, plein écran, pour l'enregistrer.
+- **Mode capture** affiche la bannière seule, plein écran, pour l'enregistrer ;
+- **Télécharger en PNG** exporte la bannière seule en `1983 × 793`, avec les
+  pétales, le reflet et la signature tels qu'ils sont à l'instant du clic.
 
-## 2. Les GIF prêts à l'emploi
+## 2. Les fichiers prêts à l'emploi
 
 | Fichier | Taille | Usage |
 | --- | --- | --- |
+| `banner-1983x793.png` | 1983 × 793 | image fixe pleine résolution |
+| `banner-discord-680x240.png` | 1360 × 480 | bannière de profil Discord (×2) |
 | `banner-discord.gif` | 680 × 240 | bannière de profil Discord |
 | `banner-wide.gif` | 960 × 384 | en-tête large (2.5:1, le format d'origine) |
 
