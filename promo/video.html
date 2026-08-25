@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>ModeraBot — promo</title>
+<style>
+html{background:#080b16}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080b16;--side:#0c1121;--card:#111828;--card2:#172035;
+  --line:#1e2942;--line2:#2e3f68;--ink:#e6ecf9;--soft:#8794b3;--dim:#67728f;
+  --acc:#3b82f6;--acc2:#2563eb;--cy:#22d3ee;--grn:#22c55e;--org:#f59e0b;
+}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#000}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink)}
+#stage{position:relative;width:1080px;height:1920px;background:var(--bg);overflow:hidden}
+#stage::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(900px 700px at 10% -5%,rgba(59,130,246,.20),transparent 60%),
+             radial-gradient(700px 600px at 110% 15%,rgba(37,99,235,.14),transparent 62%)}
+
+/* ---------- caméra ---------- */
+#cam{position:absolute;inset:0;transform-origin:50% 50%;transition:transform 1.1s cubic-bezier(.65,0,.35,1)}
+
+/* ---------- écrans ---------- */
+.screen{position:absolute;inset:0;opacity:0;transition:opacity .5s ease, transform .6s cubic-bezier(.2,.8,.2,1);
+  transform:translateY(24px);display:flex;flex-direction:column;padding:120px 70px}
+.screen.on{opacity:1;transform:none}
+
+/* ---------- titre ---------- */
+#title{justify-content:center;align-items:center;text-align:center;gap:34px;padding:0 90px}
+#title .kick{font-size:34px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--acc);
+  opacity:0;transform:translateY(18px);transition:.7s .1s}
+#title h1{font-size:104px;font-weight:800;line-height:1.05;letter-spacing:-.03em;
+  opacity:0;transform:translateY(26px);transition:.8s .25s}
+#title h1 em{font-style:normal;background:linear-gradient(100deg,var(--acc),var(--cy));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+#title p{font-size:40px;font-weight:500;color:var(--soft);opacity:0;transform:translateY(20px);transition:.8s .45s}
+#title.go .kick,#title.go h1,#title.go p{opacity:1;transform:none}
+
+/* ---------- login ---------- */
+#login{justify-content:center;align-items:center;gap:46px}
+.logo{width:190px;height:190px;border-radius:52px;background:linear-gradient(135deg,var(--acc2),var(--acc));
+  display:flex;align-items:center;justify-content:center;font-size:96px;font-weight:800;color:#fff;
+  box-shadow:0 0 90px rgba(59,130,246,.55)}
+#login h2{font-size:72px;font-weight:800;letter-spacing:-.02em}
+#login .sub{font-size:36px;color:var(--soft);font-weight:500;text-align:center;line-height:1.4}
+.btn-big{margin-top:20px;display:flex;align-items:center;gap:22px;padding:34px 62px;border-radius:26px;
+  background:linear-gradient(135deg,#5865F2,#4752c4);font-size:40px;font-weight:700;color:#fff;
+  box-shadow:0 20px 60px rgba(88,101,242,.45);transition:transform .12s}
+.btn-big.press{transform:scale(.95)}
+
+/* ---------- barre app ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:52px}
+.top .who{display:flex;align-items:center;gap:20px}
+.top .av{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,#f472b6,#a855f7)}
+.top .nm{font-size:32px;font-weight:600;color:var(--soft)}
+.brand{display:flex;align-items:center;gap:18px}
+.brand .m{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--acc2),var(--acc));
+  display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;color:#fff}
+.brand b{font-size:38px;font-weight:700}
+h3.big{font-size:64px;font-weight:800;letter-spacing:-.02em;margin-bottom:14px}
+p.lead{font-size:34px;color:var(--soft);font-weight:500;margin-bottom:52px}
+
+/* ---------- serveurs ---------- */
+.srvs{display:flex;flex-direction:column;gap:30px}
+.srv{display:flex;align-items:center;gap:34px;padding:38px 42px;border-radius:34px;background:var(--card);
+  border:2px solid var(--line);opacity:0;transform:translateY(30px);transition:.55s cubic-bezier(.2,.8,.2,1)}
+.srv.in{opacity:1;transform:none}
+.srv.sel{border-color:var(--acc);box-shadow:0 0 0 4px rgba(59,130,246,.25),0 22px 60px rgba(59,130,246,.22);
+  transform:scale(1.03)}
+.srv .ic{width:108px;height:108px;border-radius:32px;display:flex;align-items:center;justify-content:center;
+  font-size:44px;font-weight:800;color:#fff;flex-shrink:0}
+.srv .tx b{display:block;font-size:42px;font-weight:700;margin-bottom:8px}
+.srv .tx span{font-size:28px;color:var(--dim);font-weight:500}
+.tag{margin-left:auto;font-size:24px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  padding:10px 22px;border-radius:30px;background:rgba(34,197,94,.14);color:var(--grn);border:2px solid rgba(34,197,94,.3)}
+
+/* ---------- dashboard ---------- */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-bottom:40px}
+.stat{background:var(--card);border:2px solid var(--line);border-radius:30px;padding:36px 38px;position:relative;overflow:hidden}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--acc),transparent)}
+.stat b{display:block;font-size:76px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.stat span{font-size:26px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.09em}
+.mods{background:var(--card);border:2px solid var(--line);border-radius:30px;padding:14px 38px}
+.mod{display:flex;align-items:center;justify-content:space-between;padding:28px 0;border-top:2px solid var(--line)}
+.mod:first-child{border-top:none}
+.mod b{font-size:34px;font-weight:600}
+.pill{font-size:22px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:9px 22px;border-radius:26px;
+  background:var(--card2);color:var(--dim)}
+.pill.on{background:linear-gradient(135deg,var(--acc),var(--cy));color:#fff}
+
+/* ---------- config tickets ---------- */
+.field{margin-bottom:34px}
+.field label{display:block;font-size:28px;font-weight:700;color:var(--soft);margin-bottom:14px}
+.inp{background:var(--card2);border:2px solid var(--line);border-radius:22px;padding:28px 32px;font-size:36px;
+  font-weight:600;color:var(--ink);min-height:96px;display:flex;align-items:center;gap:14px;transition:.2s}
+.inp.focus{border-color:var(--acc);box-shadow:0 0 0 6px rgba(59,130,246,.16)}
+.inp .ph{color:var(--dim)}
+.caret{display:inline-block;width:3px;height:42px;background:var(--acc);animation:bl .9s steps(2) infinite}
+@keyframes bl{50%{opacity:0}}
+.sel-wrap{position:relative}
+.menu{position:absolute;left:0;right:0;top:112px;background:var(--card);border:2px solid var(--line2);
+  border-radius:22px;padding:12px;z-index:30;opacity:0;transform:translateY(-10px) scale(.98);
+  transition:.22s cubic-bezier(.2,.8,.2,1);pointer-events:none;box-shadow:0 30px 70px rgba(0,0,0,.6)}
+.menu.on{opacity:1;transform:none}
+.opt{padding:24px 26px;border-radius:16px;font-size:32px;font-weight:600;transition:.15s}
+.opt.hi{background:rgba(59,130,246,.18);color:#fff}
+.row{display:flex;align-items:center;justify-content:space-between;padding:30px 0;border-top:2px solid var(--line)}
+.sw{width:104px;height:58px;border-radius:40px;background:var(--card2);border:2px solid var(--line2);position:relative;transition:.3s}
+.sw i{position:absolute;top:6px;left:6px;width:40px;height:40px;border-radius:50%;background:var(--dim);transition:.3s cubic-bezier(.5,1.6,.4,1)}
+.sw.on{background:linear-gradient(135deg,var(--acc2),var(--acc));border-color:transparent}
+.sw.on i{transform:translateX(46px);background:#fff}
+.save{margin-top:12px;display:flex;align-items:center;justify-content:center;gap:16px;padding:34px;border-radius:26px;
+  background:linear-gradient(135deg,var(--acc2),var(--acc));font-size:40px;font-weight:800;color:#fff;
+  box-shadow:0 20px 60px rgba(37,99,235,.45);transition:transform .12s}
+.save.press{transform:scale(.96)}
+.toast{position:absolute;left:50%;bottom:280px;transform:translate(-50%,30px);background:var(--card);
+  border:2px solid rgba(34,197,94,.55);color:var(--grn);font-size:34px;font-weight:700;padding:28px 46px;
+  border-radius:24px;opacity:0;transition:.4s cubic-bezier(.2,.8,.2,1);z-index:40;box-shadow:0 24px 70px rgba(0,0,0,.6)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- discord ---------- */
+#disc{background:#313338;padding:0}
+#disc .dtop{display:flex;align-items:center;gap:20px;padding:46px 60px;border-bottom:2px solid #26282c;background:#2b2d31}
+#disc .dtop .h{font-size:44px;font-weight:700;color:#f2f3f5}
+#disc .dtop .hash{font-size:44px;color:#80848e;font-weight:600}
+.dbody{flex:1;padding:56px 60px;display:flex;flex-direction:column;gap:40px}
+.embed{background:#2b2d31;border-left:10px solid var(--acc);border-radius:14px;padding:44px 48px;
+  opacity:0;transform:translateY(26px);transition:.6s cubic-bezier(.2,.8,.2,1)}
+.embed.in{opacity:1;transform:none}
+.embed h4{font-size:52px;font-weight:800;color:#fff;margin-bottom:20px}
+.embed p{font-size:34px;color:#c4c9ce;line-height:1.45;font-weight:500}
+.btns{display:flex;gap:22px;margin-top:40px;flex-wrap:wrap}
+.dbtn{padding:26px 40px;border-radius:14px;font-size:32px;font-weight:700;color:#fff;background:#5865F2;transition:transform .12s,filter .2s}
+.dbtn.g{background:#248046}.dbtn.r{background:#da373c}
+.dbtn.press{transform:scale(.94);filter:brightness(1.2)}
+.newch{display:flex;align-items:center;gap:20px;font-size:38px;font-weight:700;color:var(--grn);
+  opacity:0;transform:translateX(-20px);transition:.5s}
+.newch.in{opacity:1;transform:none}
+.tick{background:#2b2d31;border-radius:16px;padding:40px 44px;opacity:0;transform:translateY(20px);transition:.5s}
+.tick.in{opacity:1;transform:none}
+.tick b{display:block;font-size:40px;color:#fff;margin-bottom:14px}
+.tick p{font-size:32px;color:#c4c9ce;font-weight:500}
+
+/* ---------- fin ---------- */
+#cta{justify-content:center;align-items:center;gap:40px;text-align:center}
+#cta .logo{width:200px;height:200px;border-radius:56px;font-size:104px}
+#cta h2{font-size:96px;font-weight:800;letter-spacing:-.03em;line-height:1.05}
+#cta h2 em{font-style:normal;background:linear-gradient(100deg,var(--acc),var(--cy));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+#cta .url{font-size:44px;font-weight:700;color:var(--acc);letter-spacing:-.01em}
+#cta .feats{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+#cta .f{font-size:30px;font-weight:600;color:var(--soft);background:var(--card);border:2px solid var(--line);
+  padding:16px 30px;border-radius:30px}
+
+/* ---------- curseur ---------- */
+#cur{position:absolute;left:0;top:0;width:56px;height:56px;z-index:100;pointer-events:none;opacity:0;
+  transform:translate(540px,1500px);transition:transform 1s cubic-bezier(.5,0,.2,1),opacity .35s;filter:drop-shadow(0 6px 14px rgba(0,0,0,.65))}
+#cur svg{width:100%;height:100%}
+.ring{position:absolute;left:0;top:0;width:56px;height:56px;border-radius:50%;border:5px solid var(--cy);
+  transform:translate(-50%,-50%) scale(0);opacity:0;z-index:99;pointer-events:none}
+.ring.go{animation:rg .55s ease-out}
+@keyframes rg{0%{transform:translate(-50%,-50%) scale(.2);opacity:.95}100%{transform:translate(-50%,-50%) scale(3.4);opacity:0}}
+
+/* ---------- légende ---------- */
+#cap{position:absolute;left:60px;right:60px;bottom:96px;z-index:90;text-align:center;
+  font-size:42px;font-weight:800;letter-spacing:-.01em;opacity:0;transform:translateY(18px);transition:.4s}
+#cap.on{opacity:1;transform:none}
+#cap span{background:rgba(8,11,22,.86);padding:22px 38px;border-radius:26px;border:2px solid var(--line2);
+  display:inline-block;backdrop-filter:blur(10px)}
+</style>
+</head>
+<body>
+<div id="stage">
+ <div id="cam">
+
+  <!-- 1. TITRE -->
+  <div class="screen" id="title">
+    <div class="kick">ModeraBot</div>
+    <h1>Configure ton serveur <em>sans une seule commande</em></h1>
+    <p>Tout se fait sur le site. En 30 secondes.</p>
+  </div>
+
+  <!-- 2. CONNEXION -->
+  <div class="screen" id="login">
+    <div class="logo">M</div>
+    <h2>ModeraBot</h2>
+    <div class="sub">Connecte-toi, on s'occupe du reste.</div>
+    <div class="btn-big" id="loginBtn">
+      <svg width="46" height="46" viewBox="0 0 24 24" fill="#fff"><path d="M20.3 4.5A19 19 0 0 0 15.7 3l-.3.5c1.6.4 3 1 4.3 1.9a15.7 15.7 0 0 0-13.4 0A13.7 13.7 0 0 1 10.6 3.5L10.3 3A19 19 0 0 0 3.7 4.5C.9 8.7-.1 12.8.2 16.9a19 19 0 0 0 5.8 2.9l.9-1.5c-.8-.3-1.6-.7-2.3-1.2l.6-.4a13.6 13.6 0 0 0 11.6 0l.6.4c-.7.5-1.5.9-2.3 1.2l.9 1.5a19 19 0 0 0 5.8-2.9c.4-4.8-.7-8.9-3.5-12.4ZM8.3 14.4c-1.1 0-2-1-2-2.3s.9-2.3 2-2.3 2 1 2 2.3-.9 2.3-2 2.3Zm7.4 0c-1.1 0-2-1-2-2.3s.9-2.3 2-2.3 2 1 2 2.3-.9 2.3-2 2.3Z"/></svg>
+      Se connecter avec Discord
+    </div>
+  </div>
+
+  <!-- 3. SERVEURS -->
+  <div class="screen" id="servers">
+    <div class="top">
+      <div class="brand"><div class="m">M</div><b>ModeraBot</b></div>
+      <div class="who"><div class="av"></div><div class="nm">JZ</div></div>
+    </div>
+    <h3 class="big">Mes serveurs</h3>
+    <p class="lead">Choisis celui à configurer.</p>
+    <div class="srvs">
+      <div class="srv" id="s1"><div class="ic" style="background:linear-gradient(135deg,#2563eb,#22d3ee)">JH</div>
+        <div class="tx"><b>JZ HACK</b><span>54 membres</span></div><div class="tag">Admin</div></div>
+      <div class="srv" id="s2"><div class="ic" style="background:linear-gradient(135deg,#a855f7,#f472b6)">GC</div>
+        <div class="tx"><b>Gaming Club</b><span>1 204 membres</span></div><div class="tag">Admin</div></div>
+      <div class="srv" id="s3"><div class="ic" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">TR</div>
+        <div class="tx"><b>Team Rocket</b><span>318 membres</span></div><div class="tag">Admin</div></div>
+    </div>
+  </div>
+
+  <!-- 4. DASHBOARD -->
+  <div class="screen" id="dash">
+    <div class="top">
+      <div class="brand"><div class="m">M</div><b>JZ HACK</b></div>
+      <div class="who"><div class="av"></div><div class="nm">JZ</div></div>
+    </div>
+    <h3 class="big">Vue d'ensemble</h3>
+    <p class="lead">Tout ton serveur, en un écran.</p>
+    <div class="stats">
+      <div class="stat"><b id="n1">0</b><span>Membres</span></div>
+      <div class="stat"><b id="n2">0</b><span>En ligne</span></div>
+      <div class="stat"><b id="n3">0</b><span>Tickets</span></div>
+      <div class="stat"><b id="n4">0</b><span>Modules</span></div>
+    </div>
+    <div class="mods">
+      <div class="mod"><b>🎫 Tickets</b><span class="pill on" id="m1">Actif</span></div>
+      <div class="mod"><b>🛡️ Anti-raid</b><span class="pill" id="m2">Inactif</span></div>
+      <div class="mod"><b>📨 Logs</b><span class="pill on" id="m3">Actif</span></div>
+      <div class="mod"><b>👋 Bienvenue</b><span class="pill" id="m4">Inactif</span></div>
+    </div>
+  </div>
+
+  <!-- 5. TICKETS -->
+  <div class="screen" id="tickets">
+    <div class="top">
+      <div class="brand"><div class="m">M</div><b>Tickets</b></div>
+      <div class="who"><div class="av"></div><div class="nm">JZ</div></div>
+    </div>
+    <h3 class="big">Panneau tickets</h3>
+    <p class="lead">Salon, catégorie, rôles staff — tout au clic.</p>
+
+    <div class="field">
+      <label>Nom du type</label>
+      <div class="inp" id="f1"><span id="typed"></span><span class="caret" id="caret" style="display:none"></span><span class="ph" id="ph1">Support</span></div>
+    </div>
+
+    <div class="field sel-wrap">
+      <label>Catégorie où créer le ticket</label>
+      <div class="inp" id="f2"><span id="v2" class="ph">Choisir…</span></div>
+      <div class="menu" id="mn2">
+        <div class="opt" id="o2a">📁 TICKETS</div>
+        <div class="opt">📁 ARCHIVES</div>
+      </div>
+    </div>
+
+    <div class="field sel-wrap">
+      <label>Rôles staff</label>
+      <div class="inp" id="f3"><span id="v3" class="ph">Choisir…</span></div>
+      <div class="menu" id="mn3">
+        <div class="opt" id="o3a">@Staff</div>
+        <div class="opt">@Modérateur</div>
+      </div>
+    </div>
+
+    <div class="row"><b style="font-size:34px;font-weight:600">Réponse automatique IA</b><div class="sw" id="sw1"><i></i></div></div>
+    <div class="save" id="saveBtn">Enregistrer</div>
+    <div class="toast" id="toast">Configuration envoyée au bot ✓</div>
+  </div>
+
+  <!-- 6. DISCORD -->
+  <div class="screen" id="disc">
+    <div class="dtop"><span class="hash">#</span><span class="h">support</span></div>
+    <div class="dbody">
+      <div class="embed" id="emb">
+        <h4>🎫 Support ModeraBot</h4>
+        <p>Un problème ? Ouvre un ticket, le staff te répond.</p>
+        <div class="btns">
+          <div class="dbtn g" id="db1">🎫 Support</div>
+          <div class="dbtn" id="db2">🤝 Partenariat</div>
+          <div class="dbtn r">🚨 Signalement</div>
+        </div>
+      </div>
+      <div class="newch" id="nch">✅ Salon #ticket-jz créé</div>
+      <div class="tick" id="tk">
+        <b>🎫 Ticket — Support</b>
+        <p>Bienvenue @JZ ! Explique ton problème, le staff arrive.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. CTA -->
+  <div class="screen" id="cta">
+    <div class="logo">M</div>
+    <h2>ModeraBot<br><em>le dashboard qui fait tout</em></h2>
+    <div class="url">dashboard.moderabot.xyz</div>
+    <div class="feats">
+      <div class="f">Tickets</div><div class="f">AutoMod</div><div class="f">Anti-raid</div>
+      <div class="f">Logs</div><div class="f">Niveaux</div><div class="f">Giveaways</div>
+    </div>
+  </div>
+
+ </div>
+
+ <div class="ring" id="ring"></div>
+ <div id="cur"><svg viewBox="0 0 24 24" fill="#fff" stroke="#0b1020" stroke-width="1.4"><path d="M5 2l14 10-6 1.2 3.2 6.4-2.6 1.3L10.4 14 5 18z"/></svg></div>
+ <div id="cap"><span id="capT"></span></div>
+</div>
+
+<script>
+const $=i=>document.getElementById(i);
+const T=[];                       // timeline
+const at=(t,fn)=>T.push([t,fn]);
+const show=id=>{document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');};
+const cap=t=>{const c=$('cap');if(!t){c.classList.remove('on');return;}$('capT').textContent=t;c.classList.add('on');};
+const cam=(s,x,y)=>{$('cam').style.transform=`scale(${s}) translate(${x}px,${y}px)`;};
+
+function moveTo(el,dx=0,dy=0,ms=1000){
+  const r=el.getBoundingClientRect();
+  const x=r.left+r.width/2+dx, y=r.top+r.height/2+dy;
+  const c=$('cur'); c.style.transitionDuration=ms+'ms';
+  c.style.transform=`translate(${x-8}px,${y-6}px)`;
+  return {x,y};
+}
+function click(el,dx=0,dy=0){
+  const r=el.getBoundingClientRect();
+  const x=r.left+r.width/2+dx, y=r.top+r.height/2+dy;
+  const g=$('ring'); g.style.left=x+'px'; g.style.top=y+'px';
+  g.classList.remove('go'); void g.offsetWidth; g.classList.add('go');
+  const c=$('cur'); c.style.transitionDuration='90ms';
+  c.style.transform=`translate(${x-8}px,${y-6}px) scale(.82)`;
+  setTimeout(()=>{c.style.transform=`translate(${x-8}px,${y-6}px) scale(1)`;},110);
+}
+function type(target,text,perChar=70){
+  $('caret').style.display='inline-block'; $('ph1').style.display='none';
+  let i=0;
+  const step=()=>{ if(i<=text.length){ target.textContent=text.slice(0,i); i++; setTimeout(step,perChar);} };
+  step();
+}
+function count(el,to,ms=900){
+  const t0=performance.now();
+  const f=now=>{const p=Math.min(1,(now-t0)/ms);
+    el.textContent=Math.round(to*(1-Math.pow(1-p,3))).toLocaleString('fr-FR');
+    if(p<1)requestAnimationFrame(f);};
+  requestAnimationFrame(f);
+}
+
+/* ================= TIMELINE ================= */
+// 1. hook
+at(200,()=>{show('title');$('title').classList.add('go');});
+at(2300,()=>{$('title').classList.remove('go');});
+
+// 2. connexion
+at(2700,()=>{show('login');cap('1 · Tu te connectes avec Discord');$('cur').style.opacity='1';});
+at(3200,()=>moveTo($('loginBtn'),0,0,900));
+at(4150,()=>{click($('loginBtn'));$('loginBtn').classList.add('press');});
+at(4300,()=>$('loginBtn').classList.remove('press'));
+
+// 3. serveurs
+at(4700,()=>{show('servers');cap('2 · Tu choisis ton serveur');});
+at(4900,()=>$('s1').classList.add('in'));
+at(5040,()=>$('s2').classList.add('in'));
+at(5180,()=>$('s3').classList.add('in'));
+at(5600,()=>moveTo($('s1'),0,0,850));
+at(6500,()=>{click($('s1'));$('s1').classList.add('sel');});
+
+// 4. dashboard
+at(7100,()=>{show('dash');cap('3 · Ton serveur en un écran');
+  count($('n1'),54);count($('n2'),8);count($('n3'),3);count($('n4'),6);});
+at(8200,()=>{cam(1.10,0,-60);});
+at(9200,()=>{$('m2').classList.add('on');$('m2').textContent='Actif';});
+at(9500,()=>{$('m4').classList.add('on');$('m4').textContent='Actif';});
+at(10000,()=>cam(1,0,0));
+
+// 5. tickets
+at(10600,()=>{show('tickets');cap('4 · Tu configures les tickets');});
+at(11100,()=>moveTo($('f1'),-260,0,800));
+at(11900,()=>{click($('f1'),-260,0);$('f1').classList.add('focus');});
+at(12150,()=>type($('typed'),'Support',75));
+at(13100,()=>{$('f1').classList.remove('focus');$('caret').style.display='none';});
+
+at(13300,()=>moveTo($('f2'),0,0,700));
+at(14000,()=>{click($('f2'));$('f2').classList.add('focus');$('mn2').classList.add('on');});
+at(14600,()=>moveTo($('o2a'),0,0,450));
+at(15050,()=>{click($('o2a'));$('o2a').classList.add('hi');});
+at(15300,()=>{$('mn2').classList.remove('on');$('f2').classList.remove('focus');
+  const v=$('v2');v.textContent='📁 TICKETS';v.classList.remove('ph');});
+
+at(15600,()=>moveTo($('f3'),0,0,600));
+at(16200,()=>{click($('f3'));$('f3').classList.add('focus');$('mn3').classList.add('on');});
+at(16750,()=>moveTo($('o3a'),0,0,420));
+at(17170,()=>{click($('o3a'));$('o3a').classList.add('hi');});
+at(17420,()=>{$('mn3').classList.remove('on');$('f3').classList.remove('focus');
+  const v=$('v3');v.textContent='@Staff';v.classList.remove('ph');});
+
+at(17700,()=>moveTo($('sw1'),0,0,550));
+at(18250,()=>{click($('sw1'));$('sw1').classList.add('on');});
+
+at(18600,()=>moveTo($('saveBtn'),0,0,600));
+at(19200,()=>{click($('saveBtn'));$('saveBtn').classList.add('press');});
+at(19350,()=>{$('saveBtn').classList.remove('press');$('toast').classList.add('on');});
+
+// 6. discord
+at(20400,()=>{show('disc');cap('5 · Le panneau est en ligne');});
+at(20800,()=>$('emb').classList.add('in'));
+at(21500,()=>moveTo($('db1'),0,0,750));
+at(22250,()=>{click($('db1'));$('db1').classList.add('press');});
+at(22400,()=>$('db1').classList.remove('press'));
+at(22800,()=>{$('nch').classList.add('in');cap('6 · Le ticket se crée tout seul');});
+at(23300,()=>$('tk').classList.add('in'));
+
+// 7. cta
+at(24600,()=>{show('cta');cap('');$('cur').style.opacity='0';});
+
+const END=27000;
+T.sort((a,b)=>a[0]-b[0]).forEach(([t,fn])=>setTimeout(fn,t));
+setTimeout(()=>{document.body.dataset.done='1';},END);
+</script>
+</body>
+</html>
