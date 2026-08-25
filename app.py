@@ -5946,6 +5946,111 @@ class TicketEmbedModal(discord.ui.Modal, title="🖊️ Embed du ticket — Titr
 
                 ephemeral=True)
 
+# ══════════════════════════════════════════════════════════════════════════════
+# TICKETS PERSISTANTS — état survivant aux redémarrages
+#   panels  : message du panneau → on ré-attache sa vue au démarrage
+#   tickets : salon de ticket ouvert → on retrouve auteur / staff / logs
+# ══════════════════════════════════════════════════════════════════════════════
+TICKET_STATE_FILE = "ticket_state.json"
+
+
+def tk_state():
+    d = jload(TICKET_STATE_FILE)
+    d.setdefault("panels", {})
+    d.setdefault("tickets", {})
+    return d
+
+
+def tk_state_save(d):
+    jsave(TICKET_STATE_FILE, d)
+
+
+def tk_record_panel(message, guild_id, mode):
+    """Mémorise un panneau envoyé pour pouvoir réactiver ses boutons après un restart."""
+    try:
+        d = tk_state()
+        d["panels"][str(message.id)] = {
+            "guild": int(guild_id),
+            "channel": int(message.channel.id),
+            "mode": mode,
+        }
+        # on ne garde que les 200 derniers panneaux
+        if len(d["panels"]) > 200:
+            for k in list(d["panels"])[:-200]:
+                d["panels"].pop(k, None)
+        tk_state_save(d)
+    except Exception as err:
+        print(f"[tickets] enregistrement du panneau impossible : {err}")
+
+
+def tk_record_ticket(channel, author_id, roles, logs_channel):
+    """Mémorise un ticket ouvert (auteur, rôles staff, salon de logs)."""
+    try:
+        d = tk_state()
+        d["tickets"][str(channel.id)] = {
+            "author": int(author_id),
+            "roles": [int(r) for r in (roles or [])],
+            "logs": int(getattr(logs_channel, "id", 0) or 0),
+        }
+        tk_state_save(d)
+    except Exception as err:
+        print(f"[tickets] enregistrement du ticket impossible : {err}")
+
+
+def tk_forget_ticket(channel_id):
+    try:
+        d = tk_state()
+        if d["tickets"].pop(str(channel_id), None) is not None:
+            tk_state_save(d)
+    except Exception:
+        pass
+
+
+async def tk_restore_views():
+    """Réactive les panneaux et les boutons de fermeture après un redémarrage."""
+    # Boutons Claim / Fermer : une seule vue globale, l'état est relu au clic
+    try:
+        bot.add_view(TicketCloseView2(0, [], None))
+    except Exception as err:
+        print(f"[tickets] vue de fermeture non réactivée : {err}")
+
+    d = tk_state()
+    data_all = ts_load()
+    ok, mortes = 0, []
+
+    for mid, info in list(d["panels"].items()):
+        guild = bot.get_guild(int(info.get("guild", 0)))
+        if not guild:
+            continue
+        conf = data_all.get(str(guild.id))
+        if not conf or not conf.get("choix"):
+            mortes.append(mid)
+            continue
+        mode = info.get("mode") or conf.get("panel", {}).get("mode", "select")
+        try:
+            if mode == "bouton":
+                view = TicketButtonPanelView(guild, conf)
+            elif mode == "container_v2":
+                view = TicketContainerV2View(guild, conf)
+            else:
+                view = TicketSelectView2(guild, conf)
+            # lié au message : deux serveurs peuvent avoir les mêmes custom_id sans se marcher dessus
+            bot.add_view(view, message_id=int(mid))
+            ok += 1
+        except Exception as err:
+            print(f"[tickets] panneau {mid} non réactivé : {err}")
+            mortes.append(mid)
+
+    # nettoyage des salons de tickets qui n'existent plus
+    for cid in list(d["tickets"]):
+        if not bot.get_channel(int(cid)):
+            d["tickets"].pop(cid, None)
+    for mid in mortes:
+        d["panels"].pop(mid, None)
+    tk_state_save(d)
+    print(f"✅ Tickets : {ok} panneau(x) réactivé(s), {len(d['tickets'])} ticket(s) ouvert(s) suivi(s)")
+
+
 class TicketEmbedSelectView(discord.ui.View):
 
     """Select menu pour choisir le type de ticket, puis ouvrir TicketEmbedModal."""
@@ -6172,6 +6277,8 @@ class TicketButtonPanelView(discord.ui.View):
 
                           view=TicketCloseView2(interaction.user.id, choix["roles"], logs_ch))
 
+            tk_record_ticket(ch, interaction.user.id, choix["roles"], logs_ch)
+
             if logs_ch:
 
                 await logs_ch.send(f"🎫 Ticket ouvert : {ch.mention} par {interaction.user.mention} — type : **{choix['nom']}**")
@@ -6269,6 +6376,8 @@ class TicketContainerV2View(discord.ui.View):
             await ch.send(content=interaction.user.mention, embed=e,
 
                           view=TicketCloseView2(interaction.user.id, choix["roles"], logs_ch))
+
+            tk_record_ticket(ch, interaction.user.id, choix["roles"], logs_ch)
 
             if logs_ch:
 
@@ -6417,7 +6526,9 @@ class TicketView(discord.ui.View):
             )
             await interaction.response.send_message(
                 embed=discord.Embed(description="✅ Panel envoyé ! (Mode : 📦 Container V2)", color=C_GREEN), ephemeral=True)
-            await interaction.channel.send(embed=e_v2, view=panel_view)
+            _sent_panel = await interaction.channel.send(embed=e_v2, view=panel_view)
+
+            tk_record_panel(_sent_panel, interaction.guild.id, "container_v2")
             await interaction.message.edit(embed=build_ticket_status_embed(interaction.guild.id))
             return
 
@@ -6430,7 +6541,9 @@ class TicketView(discord.ui.View):
 
             embed=discord.Embed(description=f"✅ Panel envoyé ! (Mode : {'🔘 Boutons' if mode == 'bouton' else ('📦 Container V2' if mode == 'container_v2' else '📋 Menu déroulant')})", color=C_GREEN), ephemeral=True)
 
-        await interaction.channel.send(embed=e, view=panel_view)
+        _sent_panel = await interaction.channel.send(embed=e, view=panel_view)
+
+        tk_record_panel(_sent_panel, interaction.guild.id, mode)
 
         await interaction.message.edit(embed=build_ticket_status_embed(interaction.guild.id))
 
@@ -6880,11 +6993,25 @@ class TicketCloseView2(discord.ui.View):
 
         self.logs_channel = logs_channel if hasattr(logs_channel, "send") else None
 
+    def _ctx(self, interaction):
+        """Auteur / rôles staff / salon de logs du ticket.
+
+        Après un redémarrage la vue est recréée vide : on relit alors
+        ticket_state.json à partir du salon où le bouton a été cliqué.
+        """
+        if self.author_id:
+            return self.author_id, self.mod_roles, self.logs_channel
+        st = tk_state()["tickets"].get(str(interaction.channel.id), {})
+        logs = interaction.guild.get_channel(st.get("logs") or 0) if interaction.guild else None
+        return st.get("author", 0), st.get("roles", []), logs
+
     @discord.ui.button(label="Claim", emoji="🙋", style=discord.ButtonStyle.success, custom_id="tsc_claim")
 
     async def claim(self, interaction: discord.Interaction, button: discord.ui.Button):
 
-        is_mod = any(r.id in self.mod_roles for r in interaction.user.roles) or interaction.user.guild_permissions.administrator
+        author_id, mod_roles, _logs = self._ctx(interaction)
+
+        is_mod = any(r.id in mod_roles for r in interaction.user.roles) or interaction.user.guild_permissions.administrator
 
         if not is_mod:
 
@@ -6908,23 +7035,33 @@ class TicketCloseView2(discord.ui.View):
 
         _stamp_ticket_embed(e)
 
-        await interaction.channel.send(content=f"<@{self.author_id}>", embed=e)
+        await interaction.channel.send(content=f"<@{author_id}>", embed=e)
 
     @discord.ui.button(label="Fermer le ticket", emoji="🔒", style=discord.ButtonStyle.danger, custom_id="tsc_close")
 
     async def close(self, interaction: discord.Interaction, button: discord.ui.Button):
 
-        is_author = interaction.user.id == self.author_id
+        author_id, mod_roles, logs_channel = self._ctx(interaction)
 
-        is_mod = any(r.id in self.mod_roles for r in interaction.user.roles) or interaction.user.guild_permissions.administrator
+        is_author = interaction.user.id == author_id
+
+        is_mod = any(r.id in mod_roles for r in interaction.user.roles) or interaction.user.guild_permissions.administrator
 
         if not is_author and not is_mod:
 
             return await interaction.response.send_message("❌ Tu n'as pas la permission.", ephemeral=True)
 
-        if self.logs_channel:
+        if logs_channel:
 
-            await self.logs_channel.send(f"🔒 Ticket fermé : {interaction.channel.name}")
+            try:
+
+                await logs_channel.send(f"🔒 Ticket fermé : {interaction.channel.name}")
+
+            except Exception:
+
+                pass
+
+        tk_forget_ticket(interaction.channel.id)
 
         await interaction.channel.delete()
 
@@ -6987,6 +7124,8 @@ class TicketSelectMenu2(discord.ui.Select):
         _stamp_ticket_embed(e, f"Ticket {choix['nom']}")
 
         await ch.send(content=interaction.user.mention, embed=e, view=TicketCloseView2(interaction.user.id, choix["roles"], logs_ch))
+
+        tk_record_ticket(ch, interaction.user.id, choix["roles"], logs_ch)
 
         await interaction.response.send_message(f"✅ Ticket créé : {ch.mention}", ephemeral=True)
 
@@ -9370,6 +9509,8 @@ async def on_ready():
 
     bot.add_view(AntibotPanelView(0))
 
+    await tk_restore_views()
+
     await bot.tree.sync()
 
     print(f"✅ {bot.user} connecté | {len(bot.guilds)} serveurs")
@@ -9428,6 +9569,13 @@ async def on_member_join(member):
 
     # Captcha
     await _handle_captcha_join(member)
+
+
+@bot.event
+
+async def on_guild_channel_delete(channel):
+
+    tk_forget_ticket(channel.id)
 
 
 @bot.event
