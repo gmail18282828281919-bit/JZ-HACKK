@@ -39,6 +39,45 @@ def petal_stamp(size=96):
     return img
 
 
+def wind_setup(w, h):
+    """Grilles de coordonnees et masque de vent, calcules une seule fois.
+
+    Le masque vaut 0 sur le personnage (au premier plan, il ne doit pas se
+    deformer) et 1 sur les branches et le ciel, qui eux ondulent.
+    """
+    import numpy as np
+
+    ys, xs = np.mgrid[0:h, 0:w].astype(np.float32)
+    u = xs / w
+    v = ys / h
+    d = np.sqrt(((u - 0.30) / 0.40) ** 2 + ((v - 0.60) / 0.80) ** 2)
+    mask = np.clip((d - 0.55) / 0.55, 0.0, 1.0) ** 1.4
+    return xs, ys, u, v, mask
+
+
+def wind_warp(arr, xs, ys, u, v, mask, t, amp):
+    """Ondulation type coup de vent, periodique sur une boucle."""
+    import numpy as np
+
+    h, w = arr.shape[:2]
+    a = math.tau * t
+    dx = (np.sin(a + v * 6.0) + 0.5 * np.sin(2 * a + u * 9.0 + 1.3)) * amp
+    dy = np.sin(a + u * 7.0 + 1.7) * amp * 0.6
+    sx = np.clip(xs + dx * mask * w, 0, w - 1.001)
+    sy = np.clip(ys + dy * mask * h, 0, h - 1.001)
+
+    x0 = sx.astype(np.int32)
+    y0 = sy.astype(np.int32)
+    x1 = x0 + 1
+    y1 = y0 + 1
+    fx = (sx - x0)[..., None]
+    fy = (sy - y0)[..., None]
+
+    out = (arr[y0, x0] * (1 - fx) * (1 - fy) + arr[y0, x1] * fx * (1 - fy)
+           + arr[y1, x0] * (1 - fx) * fy + arr[y1, x1] * fx * fy)
+    return Image.fromarray(out.astype("uint8"), "RGB")
+
+
 def vignette(w, h, strength=0.55):
     mask = Image.new("L", (w, h), 0)
     d = ImageDraw.Draw(mask)
@@ -65,7 +104,7 @@ def sweep_band(w, h):
     return light
 
 
-def render(src, size, frames, count, seed, zoom=0.0):
+def render(src, size, frames, count, seed, zoom=0.0, wind=0.004):
     random.seed(seed)
     w, h = size
     base = Image.open(src).convert("RGB")
@@ -83,6 +122,11 @@ def render(src, size, frames, count, seed, zoom=0.0):
 
     zoom_max = 1.0 + max(zoom, 0.0)
     big = base.resize((int(w * zoom_max), int(h * zoom_max)), Image.LANCZOS)
+
+    if wind > 0:
+        import numpy as np
+        wind_arr = np.asarray(big.resize((w, h), Image.LANCZOS), dtype=np.float32)
+        wind_grid = wind_setup(w, h)
     stamp = petal_stamp()
     vig = vignette(w, h)
     band = sweep_band(w, h)
@@ -106,12 +150,16 @@ def render(src, size, frames, count, seed, zoom=0.0):
     for i in range(frames):
         t = i / frames                      # 0 -> 1 sur la boucle
 
-        # zoom sinusoidal : identique au debut et a la fin
-        z = 1.0 + (zoom_max - 1.0) * (0.5 - 0.5 * math.cos(math.tau * t))
-        cw, ch = int(w * z), int(h * z)
-        frame = big.resize((cw, ch), Image.LANCZOS)
-        frame = frame.crop(((cw - w) // 2, (ch - h) // 2,
-                            (cw - w) // 2 + w, (ch - h) // 2 + h))
+        if wind > 0:
+            # les branches et le ciel ondulent, le personnage reste net
+            frame = wind_warp(wind_arr, *wind_grid, t, wind)
+        else:
+            # zoom sinusoidal : identique au debut et a la fin
+            z = 1.0 + (zoom_max - 1.0) * (0.5 - 0.5 * math.cos(math.tau * t))
+            cw, ch = int(w * z), int(h * z)
+            frame = big.resize((cw, ch), Image.LANCZOS)
+            frame = frame.crop(((cw - w) // 2, (ch - h) // 2,
+                                (cw - w) // 2 + w, (ch - h) // 2 + h))
 
         # reflet lumineux : entre et sort du cadre sur une boucle
         pos = int(-band.width + travel * t)
@@ -188,6 +236,8 @@ def main():
     ap.add_argument("--petals", type=int, default=48, help="nombre de petales")
     ap.add_argument("--zoom", type=float, default=0.0,
                     help="amplitude du zoom lent, 0 = image fixe (defaut)")
+    ap.add_argument("--wind", type=float, default=0.004,
+                    help="force du vent qui fait onduler branches et ciel")
     ap.add_argument("--colors", type=int, default=200,
                     help="couleurs de la palette GIF, baisser allege le fichier")
     ap.add_argument("--seed", type=int, default=7)
@@ -196,7 +246,7 @@ def main():
     a = ap.parse_args()
 
     frames = render(a.source, PRESETS[a.preset], a.frames, a.petals,
-                    a.seed, a.zoom)
+                    a.seed, a.zoom, a.wind)
     if a.out.lower().endswith(".mp4"):
         save_mp4(a.out, frames, a.fps, a.seconds)
     else:

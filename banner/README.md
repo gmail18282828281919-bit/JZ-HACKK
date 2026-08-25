@@ -7,8 +7,8 @@ Deux façons d'animer l'illustration `source.png`.
 Ouvre le fichier dans un navigateur (double-clic suffit, l'image est intégrée
 dedans, aucun fichier à côté n'est nécessaire).
 
-- couches à couper/remettre : pétales, zoom lent (coupé par défaut), reflet,
-  signature (coupée par défaut) ;
+- couches à couper/remettre : pétales, vent, reflet, signature (coupée par
+  défaut) ;
 - la signature est masquée par défaut ; si tu l'actives, le texte se modifie
   en cliquant dessus ;
 - le curseur **Densité** règle le nombre de pétales ;
@@ -24,12 +24,16 @@ dedans, aucun fichier à côté n'est nécessaire).
 | `banner.mp4` | 1920 × 768 | version animée, 12 s en boucle — s'enregistre dans la galerie du téléphone |
 | `banner-1983x793.png` | 1983 × 793 | image fixe pleine résolution, sans texte |
 | `banner-discord-680x240.png` | 1360 × 480 | bannière de profil Discord (×2) |
-| `banner.gif` | 1200 × 480 | GIF animé pleine largeur, 4 Mo |
-| `banner-discord.gif` | 680 × 240 | bannière de profil Discord, 1,9 Mo |
+| `banner.gif` | 960 × 384 | GIF animé pleine largeur, 7 Mo |
+| `banner-discord.gif` | 680 × 240 | bannière de profil Discord, 3,7 Mo |
 | `banner-wide.gif` | 960 × 384 | en-tête large (2.5:1, le format d'origine) |
 
-Tout boucle sans saut : les pétales et le reflet reviennent exactement à leur
-point de départ à la dernière image. L'image de fond, elle, ne bouge pas.
+Tout boucle sans saut : le vent, les pétales et le reflet reviennent exactement
+à leur point de départ à la dernière image.
+
+Le vent est une ondulation appliquée à l'image, masquée sur le personnage : les
+branches, les fleurs et le ciel bougent, le visage reste net. `--wind 0` la
+coupe, `--wind 0.008` la double.
 
 Un pétale met exactement une boucle à traverser la hauteur : c'est donc la
 durée de la boucle (`--frames` ÷ `--fps`) qui règle la vitesse de chute.
