@@ -293,6 +293,24 @@ canvas.petals{position:absolute;inset:0;width:100%;height:100%;pointer-events:no
 .chip.solid{background:var(--cobalt);border-color:var(--cobalt);color:#fff}
 .chip.solid:hover{filter:brightness(1.08)}
 
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:26px;
+  transform:translate(-50%,12px);
+  z-index:30;
+  padding:11px 18px;
+  border-radius:999px;
+  background:var(--cobalt);
+  color:#fff;
+  font:600 13px/1 "Manrope",sans-serif;
+  box-shadow:var(--shadow);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .2s ease,transform .2s ease;
+}
+.toast[open]{opacity:1;transform:translate(-50%,0)}
+
 /* ---------- mode capture ---------- */
 body.capture{background:#03081A}
 body.capture .wrap{max-width:none;padding:0;gap:0;min-height:100vh;justify-content:center}
@@ -376,6 +394,8 @@ body.capture .exit-capture{display:block}
 </div>
 
 <button class="exit-capture" type="button" id="exitCapture">Quitter le mode capture ↩</button>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <div class="overlay" id="pngOverlay" role="dialog" aria-modal="true" aria-label="Export PNG">
   <div class="sheet">
@@ -633,22 +653,50 @@ body.capture .exit-capture{display:block}
     return cv;
   }
 
-  function slug(v){
-    return (v || 'banniere').toLowerCase().replace(/[^a-z0-9]+/g,'-')
-           .replace(/^-|-$/g,'').slice(0,24) || 'banniere';
+  /* enregistrement natif quand la page tourne dans le visualiseur Claude */
+  var saver = null;
+  if(window.claude && typeof window.claude.use === 'function'){
+    window.claude.use('downloads').then(function(ns){ saver = ns; },
+                                        function(){ saver = null; });
   }
+
+  function showPreview(blob, filename, note){
+    if(lastURL){ URL.revokeObjectURL(lastURL); }
+    lastURL = URL.createObjectURL(blob);
+    preview.src = lastURL;
+    link.href = lastURL;
+    link.download = filename;
+    document.getElementById('pngHint').innerHTML = note;
+    overlay.setAttribute('open','');
+  }
+
+  var HINT_FALLBACK = 'Si le téléchargement ne démarre pas tout seul : clic droit (ou appui long sur téléphone) sur l’image ci-dessus → <strong>Enregistrer l’image</strong>.';
+  var HINT_DECLINED = 'Enregistrement annulé. Tu peux réessayer avec <strong>Enregistrer</strong>, ou faire un appui long sur l’image → <strong>Enregistrer l’image</strong>.';
 
   function exportPNG(){
     var cv = buildExport();
     cv.toBlob(function(blob){
-      if(lastURL){ URL.revokeObjectURL(lastURL); }
-      lastURL = URL.createObjectURL(blob);
-      preview.src = lastURL;
-      link.href = lastURL;
-      link.download = 'banniere-' + slug(nameEl.textContent) + '.png';
-      overlay.setAttribute('open','');
+      var filename = 'banniere-sakura.png';
+      if(saver){
+        saver.save({filename: filename, data: blob}).then(function(){
+          flash('Bannière enregistrée');
+        }, function(err){
+          showPreview(blob, filename,
+            (err && err.code === 'declined') ? HINT_DECLINED : HINT_FALLBACK);
+        });
+        return;
+      }
+      showPreview(blob, filename, HINT_FALLBACK);
       try{ link.click(); }catch(e){}
     }, 'image/png');
+  }
+
+  var toast = document.getElementById('toast'), toastTimer;
+  function flash(msg){
+    toast.textContent = msg;
+    toast.setAttribute('open','');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toast.removeAttribute('open'); }, 2600);
   }
 
   document.getElementById('pngBtn').addEventListener('click', function(){
