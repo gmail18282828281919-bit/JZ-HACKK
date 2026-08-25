@@ -21,19 +21,30 @@ dedans, aucun fichier à côté n'est nécessaire).
 
 | Fichier | Taille | Usage |
 | --- | --- | --- |
-| `banner.mp4` | 1920 × 768 | version animée, 12 s en boucle — s'enregistre dans la galerie du téléphone |
+| `banner-4k.mp4` | 3840 × 1536 | version animée 4K, 30 i/s, 10 s |
+| `banner.mp4` | 1920 × 768 | même chose en 1080p, plus léger |
 | `banner-1983x793.png` | 1983 × 793 | image fixe pleine résolution, sans texte |
 | `banner-discord-680x240.png` | 1360 × 480 | bannière de profil Discord (×2) |
-| `banner.gif` | 960 × 384 | GIF animé pleine largeur, 7 Mo |
-| `banner-discord.gif` | 680 × 240 | bannière de profil Discord, 3,7 Mo |
+| `banner.gif` | 960 × 384 | GIF animé pleine largeur, 8 Mo |
+| `banner-discord.gif` | 680 × 240 | bannière de profil Discord, 4,9 Mo |
 | `banner-wide.gif` | 960 × 384 | en-tête large (2.5:1, le format d'origine) |
 
 Tout boucle sans saut : le vent, les pétales et le reflet reviennent exactement
 à leur point de départ à la dernière image.
 
-Le vent est une ondulation appliquée à l'image, masquée sur le personnage : les
-branches, les fleurs et le ciel bougent, le visage reste net. `--wind 0` la
-coupe, `--wind 0.008` la double.
+Trois zones bougent séparément, chacune avec un masque à bords doux :
+
+| Zone | Mouvement |
+| --- | --- |
+| décor (branches, fleurs, ciel) | ondulation de vent à deux fréquences |
+| tête | part à gauche, revient, avec un léger balancement |
+| bras | part à droite pendant que la tête part à gauche |
+
+Tout est en sinus d'un tour complet, donc la dernière image retombe exactement
+sur la première. `--wind 0` fige l'image, `--wind 0.01` double l'amplitude.
+
+L'image de départ fait 1983 px de large : le 4K est un agrandissement, il
+n'invente pas de détail, mais le mouvement et l'encodage, eux, sont bien en 4K.
 
 Un pétale met exactement une boucle à traverser la hauteur : c'est donc la
 durée de la boucle (`--frames` ÷ `--fps`) qui règle la vitesse de chute.
