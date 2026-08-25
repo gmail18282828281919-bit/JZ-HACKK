@@ -1,0 +1,67 @@
+{
+  "content": null,
+  "embeds": [
+    {
+      "title": "📜 Règlement du serveur",
+      "description": "En rejoignant ce serveur, tu acceptes ces règles. Elles s'appliquent à tout le monde, membres comme staff.",
+      "color": 3110850,
+      "fields": [
+        {
+          "name": "1 — Respect",
+          "value": "Pas d'insultes, de harcèlement, de racisme, d'homophobie ni de menaces."
+        },
+        {
+          "name": "2 — Pas de spam",
+          "value": "Pas de flood, de majuscules abusives ni de mentions inutiles. `@everyone` est réservé au staff."
+        },
+        {
+          "name": "3 — Pas de publicité",
+          "value": "Aucune promo de serveur, de chaîne ou de boutique, ni en salon ni en MP."
+        },
+        {
+          "name": "4 — Contenu interdit",
+          "value": "Pas de NSFW, de gore, ni de liens vers des fichiers piégés ou du contenu piraté."
+        },
+        {
+          "name": "5 — Vie privée",
+          "value": "Interdiction de partager les infos personnelles de quelqu'un sans son accord."
+        },
+        {
+          "name": "6 — Bon salon, bon sujet",
+          "value": "Chaque salon a son usage, lis sa description avant de poster."
+        },
+        {
+          "name": "7 — Pseudo et avatar corrects",
+          "value": "Rien de choquant, et pas d'usurpation d'identité d'un membre ou du staff."
+        },
+        {
+          "name": "8 — Pas de raid ni d'attaque",
+          "value": "Aucune organisation de raid ou d'attaque visant un autre serveur ou un joueur."
+        },
+        {
+          "name": "9 — Pas de vente ni d'arnaque",
+          "value": "Pas de vente de comptes, pas de faux giveaways, pas de demandes d'argent."
+        },
+        {
+          "name": "10 — Responsabilité",
+          "value": "Ce que tu télécharges ou exécutes reste sous ta responsabilité."
+        },
+        {
+          "name": "11 — Staff",
+          "value": "Les décisions du staff s'appliquent. Une sanction se conteste en ticket, jamais en public."
+        },
+        {
+          "name": "12 — Discord",
+          "value": "Les [CGU](https://discord.com/terms) et [règles](https://discord.com/guidelines) de Discord s'appliquent, 13 ans minimum."
+        },
+        {
+          "name": "⚖️ Sanctions",
+          "value": "Avertissement → mute 1 h → mute 24 h → kick → ban.\nDoxxing, raid, arnaque, contenu illégal : **ban immédiat**."
+        }
+      ],
+      "footer": {
+        "text": "Un problème ? Ouvre un ticket."
+      }
+    }
+  ]
+}
