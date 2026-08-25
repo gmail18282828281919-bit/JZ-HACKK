@@ -1079,14 +1079,31 @@ function toast(msg,kind){
 
 /* ---------------- enregistrement ---------------- */
 $('btnCancel').addEventListener('click',()=>{ cfg=structuredClone(saved); render(); touch(); toast('Modifications annulées'); });
+/* On n'envoie QUE les sections réellement modifiées.
+   Envoyer tout le bloc écrasait des réglages faits en Discord avec les valeurs
+   par défaut de la page — c'est ce qui avait effacé la config du welcome. */
+function sectionsModifiees(){
+  const payload={};
+  for(const k of Object.keys(cfg)){
+    if(JSON.stringify(cfg[k])!==JSON.stringify(saved[k])) payload[k]=cfg[k];
+  }
+  return payload;
+}
+
 $('btnSave').addEventListener('click',async()=>{
   const b=$('btnSave'); b.disabled=true; b.textContent='Enregistrement…';
+  const payload=sectionsModifiees();
+  const nb=Object.keys(payload).length;
+  if(!nb){
+    b.disabled=false; b.textContent='Enregistrer';
+    return toast('Aucune modification à enregistrer');
+  }
   localSet(cfg);
-  const ok=await apiSave(cfg);
+  const ok=await apiSave(payload);
   saved=structuredClone(cfg); touch();
   b.disabled=false; b.textContent='Enregistrer';
   $('noteLocal').classList.toggle('hidden',ok);
-  toast(ok?'Configuration envoyée au bot ✓':'Enregistré localement — API du bot injoignable',ok?'ok':'err');
+  toast(ok?`Enregistré ✓ (${nb} section${nb>1?'s':''})`:'Enregistré localement — API du bot injoignable',ok?'ok':'err');
 });
 $('btnReset').addEventListener('click',()=>{
   if(!confirm('Remettre TOUS les réglages de ce serveur par défaut ?')) return;

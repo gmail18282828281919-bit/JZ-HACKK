@@ -14942,6 +14942,22 @@ def api_guild_dashboard(guild_id):
 
     # ─────────────────────────── ÉCRITURE ───────────────────────────
     body = request.get_json(silent=True) or {}
+
+    # Filet de securite : on garde une copie de la configuration AVANT toute
+    # ecriture. Si un enregistrement efface quelque chose par erreur, la valeur
+    # precedente reste recuperable dans dashboard_backups/.
+    try:
+        os.makedirs("dashboard_backups", exist_ok=True)
+        _avant = _guild_config_payload(guild)
+        _snap = f"dashboard_backups/{gid}-{int(_time.time())}.json"
+        jsave(_snap, {"sections_envoyees": sorted(body.keys()), "config_avant": _avant})
+        _vieux = sorted(f for f in os.listdir("dashboard_backups") if f.startswith(gid + "-"))
+        for _f in _vieux[:-10]:                       # on ne garde que les 10 dernieres
+            try: os.remove(os.path.join("dashboard_backups", _f))
+            except OSError: pass
+    except Exception as _err:
+        print(f"[dashboard] sauvegarde de securite impossible : {_err}")
+
     saved = []
 
     # ---- Préfixe ----
