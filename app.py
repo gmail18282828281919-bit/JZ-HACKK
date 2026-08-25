@@ -14719,13 +14719,30 @@ _DASH_CACHE_TTL = 300    # 5 minutes
 def _dash_user_from_token(token):
     """Identifie le porteur du token auprès de Discord (avec cache court)."""
     now = _time.time()
+
+    # Garde-fou : un token Discord fait ~30 caractères, jamais 10 000.
+    # Sans ça, n'importe qui pourrait faire marteler l'API Discord par le bot.
+    if not token or not (10 <= len(token) <= 128):
+        return None, {}
+
     hit = _DASH_TOKEN_CACHE.get(token)
     if hit and hit[0] > now:
-        return hit[1], hit[2]
+        return hit[1], hit[2]          # hit[1] vaut None pour un token déjà refusé
+
+    # cache borné : on ne laisse pas un spam de faux tokens faire gonfler la mémoire
+    if len(_DASH_TOKEN_CACHE) > 500:
+        for k, v in list(_DASH_TOKEN_CACHE.items()):
+            if v[0] <= now:
+                _DASH_TOKEN_CACHE.pop(k, None)
+        if len(_DASH_TOKEN_CACHE) > 500:
+            _DASH_TOKEN_CACHE.clear()
+
     try:
         headers = {"Authorization": f"Bearer {token}"}
         ru = requests.get("https://discord.com/api/v10/users/@me", headers=headers, timeout=8)
         if ru.status_code != 200:
+            # cache négatif : un token invalide n'est pas revérifié avant 60 s
+            _DASH_TOKEN_CACHE[token] = (now + 60, None, {})
             return None, {}
         user = ru.json()
         rg = requests.get("https://discord.com/api/v10/users/@me/guilds", headers=headers, timeout=8)
