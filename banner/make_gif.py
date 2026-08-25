@@ -23,6 +23,7 @@ PRESETS = {
     "server": (960, 540),     # banniere de serveur Discord
     "wide": (960, 384),       # 2.5:1, le format de l'image d'origine
     "hd": (1920, 768),        # 2.5:1 pleine largeur, pour la video
+    "uhd": (3840, 1536),      # 2.5:1 en 4K
     "big": (1200, 480),       # 2.5:1, GIF pleine largeur
 }
 
@@ -39,32 +40,63 @@ def petal_stamp(size=96):
     return img
 
 
-def wind_setup(w, h):
-    """Grilles de coordonnees et masque de vent, calcules une seule fois.
+def _smoothstep(e0, e1, x):
+    import numpy as np
 
-    Le masque vaut 0 sur le personnage (au premier plan, il ne doit pas se
-    deformer) et 1 sur les branches et le ciel, qui eux ondulent.
+    t = np.clip((x - e0) / (e1 - e0), 0.0, 1.0)
+    return t * t * (3.0 - 2.0 * t)
+
+
+def _blob(u, v, cx, cy, rx, ry):
+    """Masque doux en forme d'ellipse : 1 au centre, 0 au dela."""
+    import numpy as np
+
+    d = np.sqrt(((u - cx) / rx) ** 2 + ((v - cy) / ry) ** 2)
+    return 1.0 - _smoothstep(0.60, 1.0, d)
+
+
+def motion_setup(w, h):
+    """Grilles et masques, calcules une seule fois.
+
+    Trois zones bougent independamment : le decor (branches, fleurs, ciel),
+    la tete, et le bras. Elles se recouvrent en douceur, sans couture.
     """
     import numpy as np
 
     ys, xs = np.mgrid[0:h, 0:w].astype(np.float32)
     u = xs / w
     v = ys / h
-    d = np.sqrt(((u - 0.30) / 0.40) ** 2 + ((v - 0.60) / 0.80) ** 2)
-    mask = np.clip((d - 0.55) / 0.55, 0.0, 1.0) ** 1.4
-    return xs, ys, u, v, mask
+
+    d_char = np.sqrt(((u - 0.30) / 0.40) ** 2 + ((v - 0.60) / 0.80) ** 2)
+    m_bg = np.clip((d_char - 0.55) / 0.55, 0.0, 1.0) ** 1.4
+    m_head = _blob(u, v, 0.29, 0.35, 0.20, 0.34)
+    m_arm = _blob(u, v, 0.52, 0.78, 0.16, 0.26)
+    return xs, ys, u, v, m_bg, m_head, m_arm
 
 
-def wind_warp(arr, xs, ys, u, v, mask, t, amp):
-    """Ondulation type coup de vent, periodique sur une boucle."""
+def motion_warp(arr, xs, ys, u, v, m_bg, m_head, m_arm, t, amp):
+    """Une image de la boucle. Tout est en sinus d'un tour complet, donc la
+    derniere image retombe exactement sur la premiere : pas de coupure."""
     import numpy as np
 
     h, w = arr.shape[:2]
     a = math.tau * t
-    dx = (np.sin(a + v * 6.0) + 0.5 * np.sin(2 * a + u * 9.0 + 1.3)) * amp
-    dy = np.sin(a + u * 7.0 + 1.7) * amp * 0.6
-    sx = np.clip(xs + dx * mask * w, 0, w - 1.001)
-    sy = np.clip(ys + dy * mask * h, 0, h - 1.001)
+    sa = math.sin(a)
+
+    # decor : ondulation de vent, deux frequences pour que ce soit organique
+    dx = (np.sin(a + v * 6.0) + 0.5 * np.sin(2 * a + u * 9.0 + 1.3)) * amp * m_bg
+    dy = np.sin(a + u * 7.0 + 1.7) * (amp * 0.6) * m_bg
+
+    # tete : part a gauche, revient, avec un leger balancement vertical
+    dx -= m_head * (amp * 1.5 * sa)
+    dy += m_head * (amp * 0.5 * math.sin(a + 1.57))
+
+    # bras : part a droite pendant que la tete part a gauche
+    dx += m_arm * (amp * 1.25 * sa)
+    dy += m_arm * (amp * 0.4 * sa)
+
+    sx = np.clip(xs + dx * w, 0, w - 1.001)
+    sy = np.clip(ys + dy * h, 0, h - 1.001)
 
     x0 = sx.astype(np.int32)
     y0 = sy.astype(np.int32)
@@ -126,7 +158,7 @@ def render(src, size, frames, count, seed, zoom=0.0, wind=0.004):
     if wind > 0:
         import numpy as np
         wind_arr = np.asarray(big.resize((w, h), Image.LANCZOS), dtype=np.float32)
-        wind_grid = wind_setup(w, h)
+        wind_grid = motion_setup(w, h)
     stamp = petal_stamp()
     vig = vignette(w, h)
     band = sweep_band(w, h)
@@ -151,8 +183,8 @@ def render(src, size, frames, count, seed, zoom=0.0, wind=0.004):
         t = i / frames                      # 0 -> 1 sur la boucle
 
         if wind > 0:
-            # les branches et le ciel ondulent, le personnage reste net
-            frame = wind_warp(wind_arr, *wind_grid, t, wind)
+            # decor, tete et bras bougent chacun de leur cote
+            frame = motion_warp(wind_arr, *wind_grid, t, wind)
         else:
             # zoom sinusoidal : identique au debut et a la fin
             z = 1.0 + (zoom_max - 1.0) * (0.5 - 0.5 * math.cos(math.tau * t))
@@ -236,8 +268,8 @@ def main():
     ap.add_argument("--petals", type=int, default=48, help="nombre de petales")
     ap.add_argument("--zoom", type=float, default=0.0,
                     help="amplitude du zoom lent, 0 = image fixe (defaut)")
-    ap.add_argument("--wind", type=float, default=0.004,
-                    help="force du vent qui fait onduler branches et ciel")
+    ap.add_argument("--wind", type=float, default=0.005,
+                    help="amplitude du mouvement (decor, tete, bras)")
     ap.add_argument("--colors", type=int, default=200,
                     help="couleurs de la palette GIF, baisser allege le fichier")
     ap.add_argument("--seed", type=int, default=7)
