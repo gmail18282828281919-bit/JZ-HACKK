@@ -128,6 +128,11 @@ MENTIONS_PAR_DEFAUT = discord.AllowedMentions(
     replied_user=False,  # répondre à quelqu'un ne le ping pas
 )
 
+# Dans un salon de logs, personne n'est notifie : ni role, ni @everyone, ni membre.
+# Les mentions restent affichees en bleu et cliquables, elles ne declenchent
+# simplement aucune notification.
+MENTIONS_LOGS = discord.AllowedMentions.none()
+
 bot = commands.Bot(command_prefix=get_prefix, intents=intents, help_command=None,
                    allowed_mentions=MENTIONS_PAR_DEFAUT)
 
@@ -6292,7 +6297,8 @@ class TicketButtonPanelView(discord.ui.View):
 
             if logs_ch:
 
-                await logs_ch.send(f"🎫 Ticket ouvert : {ch.mention} par {interaction.user.mention} — type : **{choix['nom']}**")
+                await logs_ch.send(f"🎫 Ticket ouvert : {ch.mention} par {interaction.user.mention} — type : **{choix['nom']}**",
+                                   allowed_mentions=MENTIONS_LOGS)
 
             await interaction.response.send_message(f"✅ Ticket créé : {ch.mention}", ephemeral=True)
 
@@ -6392,7 +6398,8 @@ class TicketContainerV2View(discord.ui.View):
 
             if logs_ch:
 
-                await logs_ch.send(f"🎫 Ticket ouvert : {ch.mention} par {interaction.user.mention} — type : **{choix['nom']}**")
+                await logs_ch.send(f"🎫 Ticket ouvert : {ch.mention} par {interaction.user.mention} — type : **{choix['nom']}**",
+                                   allowed_mentions=MENTIONS_LOGS)
 
             await interaction.response.send_message(f"✅ Ticket créé : {ch.mention}", ephemeral=True)
 
@@ -6748,7 +6755,7 @@ class PremiumActivateModal(discord.ui.Modal, title="⭐ Activer le premium"):
 
             e.add_field(name="🏁 Expire", value=f"<t:{expires_at}:R>", inline=False)
 
-            await log_ch.send(embed=e)
+            await log_ch.send(embed=e, allowed_mentions=MENTIONS_LOGS)
 
         await interaction.response.send_message(embed=discord.Embed(
 
@@ -6944,7 +6951,7 @@ async def premium_cmd(ctx, code: str = None):
 
         e_log.add_field(name="🏁 Expire", value=f"<t:{expires_at}:R>", inline=False)
 
-        await log_ch.send(embed=e_log)
+        await log_ch.send(embed=e_log, allowed_mentions=MENTIONS_LOGS)
 
     await ctx.send(embed=discord.Embed(
 
@@ -7066,7 +7073,8 @@ class TicketCloseView2(discord.ui.View):
 
             try:
 
-                await logs_channel.send(f"🔒 Ticket fermé : {interaction.channel.name}")
+                await logs_channel.send(f"🔒 Ticket fermé : {interaction.channel.name}",
+                                        allowed_mentions=MENTIONS_LOGS)
 
             except Exception:
 
@@ -8590,7 +8598,7 @@ async def send_log(guild, log_type: str, embed: discord.Embed):
 
         try:
 
-            await ch.send(embed=embed)
+            await ch.send(embed=embed, allowed_mentions=MENTIONS_LOGS)
 
         except discord.HTTPException:
 
