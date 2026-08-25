@@ -7,7 +7,8 @@ Deux façons d'animer l'illustration `source.png`.
 Ouvre le fichier dans un navigateur (double-clic suffit, l'image est intégrée
 dedans, aucun fichier à côté n'est nécessaire).
 
-- quatre couches à couper/remettre : pétales, zoom lent, reflet, signature ;
+- couches à couper/remettre : pétales, zoom lent (coupé par défaut), reflet,
+  signature (coupée par défaut) ;
 - la signature est masquée par défaut ; si tu l'actives, le texte se modifie
   en cliquant dessus ;
 - le curseur **Densité** règle le nombre de pétales ;
@@ -19,14 +20,18 @@ dedans, aucun fichier à côté n'est nécessaire).
 
 | Fichier | Taille | Usage |
 | --- | --- | --- |
-| `banner.mp4` | 1920 × 768 | version animée, 8 s en boucle — s'enregistre dans la galerie du téléphone |
+| `banner.mp4` | 1920 × 768 | version animée, 12 s en boucle — s'enregistre dans la galerie du téléphone |
 | `banner-1983x793.png` | 1983 × 793 | image fixe pleine résolution, sans texte |
 | `banner-discord-680x240.png` | 1360 × 480 | bannière de profil Discord (×2) |
 | `banner-discord.gif` | 680 × 240 | bannière de profil Discord |
 | `banner-wide.gif` | 960 × 384 | en-tête large (2.5:1, le format d'origine) |
 
-Les deux bouclent sans saut : pétales, zoom et reflet reviennent exactement à
-leur point de départ à la dernière image.
+Tout boucle sans saut : les pétales et le reflet reviennent exactement à leur
+point de départ à la dernière image. L'image de fond, elle, ne bouge pas.
+
+Un pétale met exactement une boucle à traverser la hauteur : c'est donc la
+durée de la boucle (`--frames` ÷ `--fps`) qui règle la vitesse de chute.
+Boucle longue = chute lente.
 
 ### Les régénérer
 

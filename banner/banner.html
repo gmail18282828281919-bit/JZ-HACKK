@@ -342,7 +342,7 @@ body.capture .exit-capture{display:block}
   <header>
     <p class="eyebrow">Bannière animée · 1983 × 793</p>
     <h1>Sakura nocturne</h1>
-    <p class="lede">Ton image en fond, avec les pétales qui tombent, un zoom lent et un reflet lumineux qui traverse. Chaque couche se coupe indépendamment, et le PNG exporté reprend exactement ce que tu vois — rien d’autre que la bannière.</p>
+    <p class="lede">Ton image en fond, avec les pétales qui tombent lentement et un reflet lumineux qui traverse. Le zoom est coupé par défaut — l’image ne bouge pas. Le PNG exporté reprend exactement ce que tu vois, rien d’autre que la bannière.</p>
   </header>
 
   <div class="stage" id="stage">
@@ -361,7 +361,7 @@ body.capture .exit-capture{display:block}
   <div class="panel">
     <div class="grp">
       <button class="chip" type="button" data-flag="no-petals" aria-pressed="true"><span class="dot"></span>Pétales</button>
-      <button class="chip" type="button" data-flag="no-zoom" aria-pressed="true"><span class="dot"></span>Zoom lent</button>
+      <button class="chip" type="button" data-flag="no-zoom" aria-pressed="false"><span class="dot"></span>Zoom lent</button>
       <button class="chip" type="button" data-flag="no-sweep" aria-pressed="true"><span class="dot"></span>Reflet</button>
       <button class="chip" type="button" data-flag="no-mark" aria-pressed="false"><span class="dot"></span>Signature</button>
     </div>
@@ -436,7 +436,7 @@ body.capture .exit-capture{display:block}
   nameEl.addEventListener('input', function(){ state.name = nameEl.textContent.slice(0,24); save(); });
   subEl.addEventListener('input', function(){ state.sub = subEl.textContent.slice(0,32); save(); });
 
-  var OFF_BY_DEFAULT = {'no-mark': true};   /* la signature est masquée au départ */
+  var OFF_BY_DEFAULT = {'no-mark': true, 'no-zoom': true};   /* signature et zoom masqués au départ */
   Array.prototype.forEach.call(document.querySelectorAll('.chip[data-flag]'), function(btn){
     var flag = btn.dataset.flag;
     var on = flag in state.flags
@@ -575,7 +575,8 @@ body.capture .exit-capture{display:block}
 
     c.fillStyle = '#0A1C44';
     c.fillRect(0, 0, ew, eh);
-    coverDraw(c, plate, ew, eh, 1.04, 0.38, 0.55);
+    if(stage.classList.contains('no-zoom')){ coverDraw(c, plate, ew, eh, 1.0, 0.5, 0.5); }
+    else{ coverDraw(c, plate, ew, eh, 1.04, 0.38, 0.55); }
 
     /* halo bleu + lueur haut-droite */
     c.save();

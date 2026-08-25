@@ -7,8 +7,10 @@
 L'extension de -o choisit le format : .gif ou .mp4 (H.264, lisible par les
 galeries de telephone).
 
-Les petales, le zoom et le reflet bouclent exactement : la derniere image
-enchaine sur la premiere sans saut.
+Les petales et le reflet bouclent exactement : la derniere image enchaine sur
+la premiere sans saut. Un petale traverse la hauteur en une boucle, donc
+c'est la duree de la boucle (--frames / --fps) qui regle la vitesse de chute :
+plus la boucle est longue, plus la chute est lente.
 """
 import argparse
 import math
@@ -62,7 +64,7 @@ def sweep_band(w, h):
     return light
 
 
-def render(src, size, frames, count, seed):
+def render(src, size, frames, count, seed, zoom=0.0):
     random.seed(seed)
     w, h = size
     base = Image.open(src).convert("RGB")
@@ -78,7 +80,7 @@ def render(src, size, frames, count, seed):
         top = int((bh - nh) * 0.42)   # garde le haut, ou vivent les fleurs
         base = base.crop((0, top, bw, top + nh))
 
-    zoom_max = 1.06
+    zoom_max = 1.0 + max(zoom, 0.0)
     big = base.resize((int(w * zoom_max), int(h * zoom_max)), Image.LANCZOS)
     stamp = petal_stamp()
     vig = vignette(w, h)
@@ -135,8 +137,8 @@ def render(src, size, frames, count, seed):
     return out_frames
 
 
-def save_gif(out, frames, fps):
-    pal = [f.quantize(colors=200, method=Image.MEDIANCUT) for f in frames]
+def save_gif(out, frames, fps, colors=200):
+    pal = [f.quantize(colors=colors, method=Image.MEDIANCUT) for f in frames]
     pal[0].save(out, save_all=True, append_images=pal[1:],
                 duration=int(1000 / fps), loop=0, optimize=True, disposal=2)
 
@@ -180,16 +182,21 @@ def main():
     ap.add_argument("--frames", type=int, default=40)
     ap.add_argument("--fps", type=int, default=16)
     ap.add_argument("--petals", type=int, default=48, help="nombre de petales")
+    ap.add_argument("--zoom", type=float, default=0.0,
+                    help="amplitude du zoom lent, 0 = image fixe (defaut)")
+    ap.add_argument("--colors", type=int, default=200,
+                    help="couleurs de la palette GIF, baisser allege le fichier")
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--seconds", type=float, default=8.0,
                     help="duree visee pour un MP4 (la boucle est repetee)")
     a = ap.parse_args()
 
-    frames = render(a.source, PRESETS[a.preset], a.frames, a.petals, a.seed)
+    frames = render(a.source, PRESETS[a.preset], a.frames, a.petals,
+                    a.seed, a.zoom)
     if a.out.lower().endswith(".mp4"):
         save_mp4(a.out, frames, a.fps, a.seconds)
     else:
-        save_gif(a.out, frames, a.fps)
+        save_gif(a.out, frames, a.fps, a.colors)
     import os
     print("%s  %s  %.1f Mo  %d images" % (
         a.out, "x".join(map(str, PRESETS[a.preset])),
