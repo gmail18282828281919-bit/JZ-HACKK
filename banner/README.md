@@ -19,6 +19,7 @@ dedans, aucun fichier à côté n'est nécessaire).
 
 | Fichier | Taille | Usage |
 | --- | --- | --- |
+| `banner.mp4` | 1920 × 768 | version animée, 8 s en boucle — s'enregistre dans la galerie du téléphone |
 | `banner-1983x793.png` | 1983 × 793 | image fixe pleine résolution, sans texte |
 | `banner-discord-680x240.png` | 1360 × 480 | bannière de profil Discord (×2) |
 | `banner-discord.gif` | 680 × 240 | bannière de profil Discord |
@@ -30,9 +31,13 @@ leur point de départ à la dernière image.
 ### Les régénérer
 
 ```sh
-pip install pillow
+pip install pillow imageio-ffmpeg
 python3 banner/make_gif.py banner/source.png -o banner/banner-discord.gif --preset discord
+python3 banner/make_gif.py banner/source.png -o banner/banner.mp4 --preset hd --fps 24
 ```
+
+L'extension de `-o` décide du format : `.gif` (Discord, forums) ou `.mp4`
+(H.264, ce que lisent les galeries de téléphone).
 
 Options : `--preset discord|server|wide`, `--frames`, `--fps`, `--petals`,
 `--seed`. Plus d'images = plus fluide mais fichier plus lourd — Discord refuse

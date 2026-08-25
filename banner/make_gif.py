@@ -2,6 +2,10 @@
 """Fabrique une banniere animee (GIF en boucle) a partir d'une image fixe.
 
     python3 banner/make_gif.py source.png -o banner/banner.gif --preset discord
+    python3 banner/make_gif.py source.png -o banner/banner.mp4 --preset hd
+
+L'extension de -o choisit le format : .gif ou .mp4 (H.264, lisible par les
+galeries de telephone).
 
 Les petales, le zoom et le reflet bouclent exactement : la derniere image
 enchaine sur la premiere sans saut.
@@ -16,6 +20,7 @@ PRESETS = {
     "discord": (680, 240),    # banniere de profil Discord
     "server": (960, 540),     # banniere de serveur Discord
     "wide": (960, 384),       # 2.5:1, le format de l'image d'origine
+    "hd": (1920, 768),        # 2.5:1 pleine largeur, pour la video
 }
 
 
@@ -57,7 +62,7 @@ def sweep_band(w, h):
     return light
 
 
-def build(src, out, size, frames, fps, count, seed):
+def render(src, size, frames, count, seed):
     random.seed(seed)
     w, h = size
     base = Image.open(src).convert("RGB")
@@ -125,12 +130,33 @@ def build(src, out, size, frames, fps, count, seed):
         frame = Image.alpha_composite(frame.convert("RGBA"), layer)
 
         frame = Image.alpha_composite(frame, vig.convert("RGBA")).convert("RGB")
-        out_frames.append(frame.quantize(colors=200, method=Image.MEDIANCUT))
+        out_frames.append(frame)
 
-    out_frames[0].save(out, save_all=True, append_images=out_frames[1:],
-                       duration=int(1000 / fps), loop=0, optimize=True,
-                       disposal=2)
-    return out
+    return out_frames
+
+
+def save_gif(out, frames, fps):
+    pal = [f.quantize(colors=200, method=Image.MEDIANCUT) for f in frames]
+    pal[0].save(out, save_all=True, append_images=pal[1:],
+                duration=int(1000 / fps), loop=0, optimize=True, disposal=2)
+
+
+def save_mp4(out, frames, fps, seconds):
+    """MP4 H.264 : le format que les galeries de telephone lisent le mieux."""
+    import imageio_ffmpeg
+
+    w, h = frames[0].size
+    w -= w % 2
+    h -= h % 2
+    loops = max(1, round(seconds * fps / len(frames)))
+    writer = imageio_ffmpeg.write_frames(
+        out, (w, h), fps=fps, quality=6, macro_block_size=1,
+        output_params=["-movflags", "+faststart"])
+    writer.send(None)
+    for _ in range(loops):
+        for f in frames:
+            writer.send(f.crop((0, 0, w, h)).tobytes())
+    writer.close()
 
 
 def _screen(a, b):
@@ -155,14 +181,19 @@ def main():
     ap.add_argument("--fps", type=int, default=16)
     ap.add_argument("--petals", type=int, default=48, help="nombre de petales")
     ap.add_argument("--seed", type=int, default=7)
+    ap.add_argument("--seconds", type=float, default=8.0,
+                    help="duree visee pour un MP4 (la boucle est repetee)")
     a = ap.parse_args()
 
-    path = build(a.source, a.out, PRESETS[a.preset], a.frames, a.fps,
-                 a.petals, a.seed)
+    frames = render(a.source, PRESETS[a.preset], a.frames, a.petals, a.seed)
+    if a.out.lower().endswith(".mp4"):
+        save_mp4(a.out, frames, a.fps, a.seconds)
+    else:
+        save_gif(a.out, frames, a.fps)
     import os
     print("%s  %s  %.1f Mo  %d images" % (
-        path, "x".join(map(str, PRESETS[a.preset])),
-        os.path.getsize(path) / 1e6, a.frames))
+        a.out, "x".join(map(str, PRESETS[a.preset])),
+        os.path.getsize(a.out) / 1e6, a.frames))
 
 
 if __name__ == "__main__":
