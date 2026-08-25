@@ -14706,9 +14706,90 @@ def _guild_config_payload(guild):
     }
 
 
+# ── Authentification du dashboard ─────────────────────────────────────────────
+# Deux voies acceptées :
+#   1. la session Flask classique (cookie posé par /api/oauth-exchange)
+#   2. le token Discord envoyé par la page en en-tête Authorization: Bearer …
+# La 2e évite de dépendre de /api/oauth-exchange : le dashboard fonctionne même
+# si l'échange de code côté serveur est cassé.
+_DASH_TOKEN_CACHE = {}   # token -> (expiration, user_dict, {guild_id: permissions})
+_DASH_CACHE_TTL = 300    # 5 minutes
+
+
+def _dash_user_from_token(token):
+    """Identifie le porteur du token auprès de Discord (avec cache court)."""
+    now = _time.time()
+    hit = _DASH_TOKEN_CACHE.get(token)
+    if hit and hit[0] > now:
+        return hit[1], hit[2]
+    try:
+        headers = {"Authorization": f"Bearer {token}"}
+        ru = requests.get("https://discord.com/api/v10/users/@me", headers=headers, timeout=8)
+        if ru.status_code != 200:
+            return None, {}
+        user = ru.json()
+        rg = requests.get("https://discord.com/api/v10/users/@me/guilds", headers=headers, timeout=8)
+        perms = {}
+        if rg.status_code == 200:
+            for g in rg.json():
+                perms[str(g.get("id"))] = str(g.get("permissions", "0")) if not g.get("owner") else "8"
+    except Exception as err:
+        print(f"[dashboard] vérification du token impossible : {err}")
+        return None, {}
+    # purge des entrées expirées pour ne pas faire grossir le cache indéfiniment
+    for k, v in list(_DASH_TOKEN_CACHE.items()):
+        if v[0] <= now:
+            _DASH_TOKEN_CACHE.pop(k, None)
+    _DASH_TOKEN_CACHE[token] = (now + _DASH_CACHE_TTL, user, perms)
+    return user, perms
+
+
+def _dash_auth(guild_id):
+    """Renvoie (guild, member) si l'utilisateur peut configurer ce serveur, sinon (None, None)."""
+    # 1) session Flask
+    guild, member = require_guild_admin(guild_id)
+    if guild:
+        return guild, member
+
+    # 2) token Discord porté par la page
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
+        return None, None
+    user, perms = _dash_user_from_token(auth[7:].strip())
+    if not user:
+        return None, None
+
+    try:
+        gid = int(guild_id)
+        uid = int(user["id"])
+    except (TypeError, ValueError, KeyError):
+        return None, None
+
+    guild = bot.get_guild(gid)
+    if not guild:
+        return None, None
+
+    member = guild.get_member(uid)
+    if member is not None:
+        # source de vérité : les permissions réelles vues par le bot
+        p = member.guild_permissions
+        if member.id == guild.owner_id or p.administrator or p.manage_guild:
+            return guild, member
+        return None, None
+
+    # membre non mis en cache : on se rabat sur les permissions renvoyées par OAuth
+    try:
+        bits = int(perms.get(str(gid), "0"))
+    except (TypeError, ValueError):
+        return None, None
+    if bits & 0x8 or bits & 0x20:
+        return guild, None
+    return None, None
+
+
 @app.route("/api/guild/<guild_id>/dashboard", methods=["GET", "POST"])
 def api_guild_dashboard(guild_id):
-    guild, member = require_guild_admin(guild_id)
+    guild, member = _dash_auth(guild_id)
     if not guild:
         return jsonify({"error": "forbidden"}), 403
 
@@ -14980,7 +15061,7 @@ def api_guild_dashboard(guild_id):
 @app.route("/api/guild/<guild_id>/stats")
 def api_guild_stats(guild_id):
     """Statistiques affichées sur la page Vue d'ensemble du dashboard."""
-    guild, member = require_guild_admin(guild_id)
+    guild, member = _dash_auth(guild_id)
     if not guild:
         return jsonify({"error": "forbidden"}), 403
 

@@ -796,9 +796,15 @@ function hasAdmin(g){
 }
 
 /* ---------------- API bot ---------------- */
+function authHeaders(){
+  // le token Discord permet à l'API du bot de nous authentifier
+  // même si la session Flask (/api/oauth-exchange) est cassée
+  const t=loadToken();
+  return t?{Authorization:'Bearer '+t}:{};
+}
 async function apiGet(path){
   try{
-    const r=await fetch(path,{credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});
+    const r=await fetch(path,{credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json',...authHeaders()}});
     if(!r.ok) return null;
     return JSON.parse(await r.text());
   }catch{ return null; }
@@ -807,7 +813,7 @@ async function apiSave(data){
   try{
     const r=await fetch(`/api/guild/${encodeURIComponent(guildId)}/dashboard`,{
       method:'POST',credentials:'same-origin',
-      headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(data)});
+      headers:{'Content-Type':'application/json',Accept:'application/json',...authHeaders()},body:JSON.stringify(data)});
     return r.ok;
   }catch{ return false; }
 }
