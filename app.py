@@ -14565,6 +14565,27 @@ WEB_PORT = int(
     or 5001
 )
 
+# D'ou vient le port : sur Pterodactyl SEUL le port alloue (SERVER_PORT) est
+
+# ouvert vers l'exterieur. Ecouter ailleurs => nginx renvoie 502.
+
+_PORT_SRC = ("DASHBOARD_PORT (variable d'env)" if os.environ.get("DASHBOARD_PORT")
+
+             else "config.json -> dashboard_port" if CONFIG.get("dashboard_port")
+
+             else "SERVER_PORT (allocation du panel)" if os.environ.get("SERVER_PORT")
+
+             else "valeur par defaut 5001")
+
+print(f"🔌 Port web retenu : {WEB_PORT}  (source : {_PORT_SRC})")
+
+if os.environ.get("SERVER_PORT") and str(WEB_PORT) != str(os.environ.get("SERVER_PORT")):
+
+    print(f"⚠️  Le panel a alloue le port {os.environ.get('SERVER_PORT')} mais le bot ecoute sur {WEB_PORT} :")
+
+    print(f"    ce port n'est probablement PAS joignable de l'exterieur (nginx renverra 502).")
+
+
 def _adresse_privee(ip):
     """Vrai pour une IP interne (Docker, LAN) : inutilisable depuis l'exterieur."""
     if not ip:
@@ -14588,7 +14609,7 @@ HOST_PRIVE = _adresse_privee(WEB_HOST)
 if HOST_PRIVE:
     WEB_HOST = "localhost"
 
-DASHBOARD_URL = f"http://{WEB_HOST}:30121/dashboard"
+DASHBOARD_URL = f"http://{WEB_HOST}:{WEB_PORT}/dashboard"
 
 try:
 
@@ -14602,9 +14623,9 @@ try:
 
     if HOST_PRIVE:
 
-        print(f"🖥️  Dashboard actif sur le port 30121")
+        print(f"🖥️  Dashboard actif sur le port {WEB_PORT}")
 
-        print(f"    → Ouvre http://<IP_PUBLIQUE_DU_PANEL>:30121/dashboard")
+        print(f"    → Ouvre http://<IP_PUBLIQUE_DU_PANEL>:{WEB_PORT}/dashboard")
 
         print(f"    (l'IP publique est celle affichee a cote de l'allocation dans Pterodactyl)")
 
@@ -15113,13 +15134,13 @@ def run_api():
 
         from waitress import serve
 
-        print(f"🌐 Serveur web (waitress) sur le port 30121")
+        print(f"🌐 Serveur web (waitress) sur le port {WEB_PORT}")
 
-        serve(app, host="0.0.0.0", port=30121, threads=8, _quiet=True)
+        serve(app, host="0.0.0.0", port=WEB_PORT, threads=8, _quiet=True)
 
     except ImportError:
 
-        app.run(host="0.0.0.0", port=30121, threaded=True)
+        app.run(host="0.0.0.0", port=WEB_PORT, threaded=True)
 
 
 Thread(target=run_api, daemon=True).start()
