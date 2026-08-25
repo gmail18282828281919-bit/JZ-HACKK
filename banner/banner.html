@@ -324,7 +324,7 @@ body.capture .exit-capture{display:block}
   <header>
     <p class="eyebrow">Bannière animée · 1983 × 793</p>
     <h1>Sakura nocturne</h1>
-    <p class="lede">Ton image en fond, avec quatre couches d’animation par-dessus : les pétales qui tombent, un zoom lent, un reflet lumineux qui traverse, et ta signature. Tout se coupe indépendamment ci-dessous.</p>
+    <p class="lede">Ton image en fond, avec les pétales qui tombent, un zoom lent et un reflet lumineux qui traverse. Chaque couche se coupe indépendamment, et le PNG exporté reprend exactement ce que tu vois — rien d’autre que la bannière.</p>
   </header>
 
   <div class="stage" id="stage">
@@ -345,7 +345,7 @@ body.capture .exit-capture{display:block}
       <button class="chip" type="button" data-flag="no-petals" aria-pressed="true"><span class="dot"></span>Pétales</button>
       <button class="chip" type="button" data-flag="no-zoom" aria-pressed="true"><span class="dot"></span>Zoom lent</button>
       <button class="chip" type="button" data-flag="no-sweep" aria-pressed="true"><span class="dot"></span>Reflet</button>
-      <button class="chip" type="button" data-flag="no-mark" aria-pressed="true"><span class="dot"></span>Signature</button>
+      <button class="chip" type="button" data-flag="no-mark" aria-pressed="false"><span class="dot"></span>Signature</button>
     </div>
     <label class="slider">Densité
       <input id="density" type="range" min="10" max="160" step="5" value="70">
@@ -359,8 +359,8 @@ body.capture .exit-capture{display:block}
   <div class="notes">
     <div class="note">
       <h2>Signature</h2>
-      <p>Clique sur <strong>JZ</strong> ou sur <strong>omega</strong> dans la bannière et tape ton propre texte — c’est modifiable directement.</p>
-      <p>Les réglages et le texte sont retenus sur cet appareil, tu retrouves ta version en revenant.</p>
+      <p>La bannière est nue par défaut. Si tu veux y poser un nom, active <strong>Signature</strong> : un texte apparaît en bas à gauche, cliquable pour taper le tien.</p>
+      <p>Tes réglages sont retenus sur cet appareil, tu retrouves ta version en revenant.</p>
     </div>
     <div class="note">
       <h2>Récupérer la bannière</h2>
@@ -416,9 +416,12 @@ body.capture .exit-capture{display:block}
   nameEl.addEventListener('input', function(){ state.name = nameEl.textContent.slice(0,24); save(); });
   subEl.addEventListener('input', function(){ state.sub = subEl.textContent.slice(0,32); save(); });
 
+  var OFF_BY_DEFAULT = {'no-mark': true};   /* la signature est masquée au départ */
   Array.prototype.forEach.call(document.querySelectorAll('.chip[data-flag]'), function(btn){
     var flag = btn.dataset.flag;
-    var on = state.flags[flag] !== true;   /* flag posé = couche coupée */
+    var on = flag in state.flags
+      ? state.flags[flag] !== true            /* flag posé = couche coupée */
+      : !OFF_BY_DEFAULT[flag];
     apply(btn, flag, on);
     btn.addEventListener('click', function(){
       on = !on;
