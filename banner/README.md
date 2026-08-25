@@ -36,7 +36,7 @@ Trois zones bougent séparément, chacune avec un masque à bords doux :
 
 | Zone | Mouvement |
 | --- | --- |
-| décor (branches, fleurs, ciel) | ondulation de vent à deux fréquences |
+| décor (branches, fleurs, ciel) | se balance d'un bloc, à l'opposé de la tête |
 | tête | part à gauche, revient, avec un léger balancement |
 | bras | part à droite pendant que la tête part à gauche |
 

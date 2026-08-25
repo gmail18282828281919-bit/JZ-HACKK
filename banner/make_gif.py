@@ -64,7 +64,8 @@ def motion_setup(w, h):
     """Grilles et masques, calcules une seule fois.
 
     Trois zones bougent independamment : le decor (branches, fleurs, ciel),
-    la tete, et le bras. Elles se recouvrent en douceur, sans couture.
+    la tete, et le bras. Chacune se deplace d'un bloc, seule sa bordure
+    encaisse la difference, donc rien ne se deforme.
     """
     import numpy as np
 
@@ -72,8 +73,8 @@ def motion_setup(w, h):
     u = xs / w
     v = ys / h
 
-    d_char = np.sqrt(((u - 0.30) / 0.40) ** 2 + ((v - 0.60) / 0.80) ** 2)
-    m_bg = np.clip((d_char - 0.55) / 0.55, 0.0, 1.0) ** 1.4
+    d_char = np.sqrt(((u - 0.30) / 0.42) ** 2 + ((v - 0.60) / 0.82) ** 2)
+    m_bg = _smoothstep(0.80, 1.15, d_char)
     m_head = _blob(u, v, 0.29, 0.36, 0.25, 0.42)
     m_arm = _blob(u, v, 0.55, 0.82, 0.18, 0.30)
     return xs, ys, u, v, m_bg, m_head, m_arm
@@ -98,9 +99,9 @@ def motion_warp(arr, xs, ys, u, v, m_bg, m_head, m_arm, t, amp):
     a = math.tau * t
     sa = math.sin(a)
 
-    # decor : ondulation de vent, deux frequences pour que ce soit organique
-    dx = (np.sin(a + v * 6.0) + 0.5 * np.sin(2 * a + u * 9.0 + 1.3)) * (amp * 1.6) * m_bg
-    dy = np.sin(a + u * 7.0 + 1.7) * (amp * 1.0) * m_bg
+    # decor : les branches se balancent d'un bloc, a l'oppose de la tete
+    dx = m_bg * (amp * 1.2 * sa)
+    dy = m_bg * (amp * 0.4 * math.sin(a + 1.0))
 
     # tete : part a gauche, revient, avec un leger balancement vertical
     dx -= m_head * (amp * 1.8 * sa)
@@ -278,7 +279,7 @@ def main():
     ap.add_argument("--zoom", type=float, default=0.0,
                     help="amplitude du zoom lent, 0 = image fixe (defaut)")
     ap.add_argument("--wind", type=float, default=0.010,
-                    help="amplitude du mouvement (decor, tete, bras)")
+                    help="amplitude du balancement (decor, tete, bras)")
     ap.add_argument("--colors", type=int, default=256,
                     help="couleurs de la palette GIF, baisser allege le fichier")
     ap.add_argument("--open-eyes", dest="open_eyes",
