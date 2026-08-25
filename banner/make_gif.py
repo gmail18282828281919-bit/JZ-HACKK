@@ -84,16 +84,16 @@ def motion_warp(arr, xs, ys, u, v, m_bg, m_head, m_arm, t, amp):
     sa = math.sin(a)
 
     # decor : ondulation de vent, deux frequences pour que ce soit organique
-    dx = (np.sin(a + v * 6.0) + 0.5 * np.sin(2 * a + u * 9.0 + 1.3)) * amp * m_bg
-    dy = np.sin(a + u * 7.0 + 1.7) * (amp * 0.6) * m_bg
+    dx = (np.sin(a + v * 6.0) + 0.5 * np.sin(2 * a + u * 9.0 + 1.3)) * (amp * 1.6) * m_bg
+    dy = np.sin(a + u * 7.0 + 1.7) * (amp * 1.0) * m_bg
 
     # tete : part a gauche, revient, avec un leger balancement vertical
-    dx -= m_head * (amp * 1.5 * sa)
-    dy += m_head * (amp * 0.5 * math.sin(a + 1.57))
+    dx -= m_head * (amp * 2.2 * sa)
+    dy += m_head * (amp * 0.8 * math.sin(a + 1.57))
 
     # bras : part a droite pendant que la tete part a gauche
-    dx += m_arm * (amp * 1.25 * sa)
-    dy += m_arm * (amp * 0.4 * sa)
+    dx += m_arm * (amp * 1.9 * sa)
+    dy += m_arm * (amp * 0.7 * sa)
 
     sx = np.clip(xs + dx * w, 0, w - 1.001)
     sy = np.clip(ys + dy * h, 0, h - 1.001)
@@ -268,7 +268,7 @@ def main():
     ap.add_argument("--petals", type=int, default=48, help="nombre de petales")
     ap.add_argument("--zoom", type=float, default=0.0,
                     help="amplitude du zoom lent, 0 = image fixe (defaut)")
-    ap.add_argument("--wind", type=float, default=0.005,
+    ap.add_argument("--wind", type=float, default=0.010,
                     help="amplitude du mouvement (decor, tete, bras)")
     ap.add_argument("--colors", type=int, default=200,
                     help="couleurs de la palette GIF, baisser allege le fichier")
