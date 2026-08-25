@@ -1,0 +1,18 @@
+# Secrets et données du bot
+config.json
+.env
+*.log
+
+# Fichiers de données générés par le bot
+ticket_select.json
+welcome.json
+depart.json
+logs.json
+levels.json
+prefixes.json
+captcha.json
+antilink.json
+antiraid.json
+
+__pycache__/
+*.pyc

@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ModeraBot — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080b16; --side:#0c1121; --card:#111828; --card2:#172035;
+  --border:#1e2942; --border-hi:#2e3f68;
+  --text:#e6ecf9; --muted:#8794b3; --dim:#67728f;
+  --accent:#3b82f6; --accent2:#2563eb; --pink:#22d3ee;
+  --green:#22c55e; --red:#ef4444; --orange:#f59e0b; --blue:#60a5fa;
+  --sidew:252px;
+}
+body{font-family:'Outfit',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(700px 420px at 12% -8%,rgba(59,130,246,.16),transparent 60%),
+             radial-gradient(620px 400px at 105% 8%,rgba(37,99,235,.12),transparent 62%)}
+
+/* ============ SIDEBAR ============ */
+.side{position:fixed;top:0;left:0;bottom:0;width:var(--sidew);z-index:60;background:var(--side);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;transition:transform .28s ease}
+.brand{display:flex;align-items:center;gap:10px;padding:17px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
+.brand .logo{width:30px;height:30px;border-radius:9px;object-fit:cover;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#fff;flex-shrink:0;
+  box-shadow:0 0 18px rgba(59,130,246,.45)}
+.brand b{font-size:16px;font-weight:700;letter-spacing:-.01em}
+
+.gsw{margin:12px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--card);
+  display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;transition:.18s;flex-shrink:0}
+.gsw:hover{border-color:var(--border-hi);background:var(--card2)}
+.gsw img,.gsw .gi{width:32px;height:32px;border-radius:9px;flex-shrink:0;object-fit:cover;background:var(--card2)}
+.gsw .gi{background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff}
+.gsw .gt{min-width:0;flex:1}
+.gsw .gt b{display:block;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gsw .gt span{display:block;font-size:11px;color:var(--muted);font-weight:500}
+.gsw svg{opacity:.5;flex-shrink:0}
+
+.navwrap{flex:1;overflow-y:auto;padding:4px 12px 18px;scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent}
+.navwrap::-webkit-scrollbar{width:5px}
+.navwrap::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:6px}
+.grp{display:flex;align-items:center;gap:7px;padding:15px 8px 7px;font-size:10.5px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.1em;color:var(--dim)}
+.grp::before{content:'';width:3px;height:11px;border-radius:2px;background:linear-gradient(var(--accent),var(--accent2))}
+.nav{display:flex;align-items:center;gap:11px;width:100%;padding:9px 11px;border:none;background:none;
+  color:var(--muted);font-family:inherit;font-size:13.5px;font-weight:500;border-radius:10px;cursor:pointer;
+  text-align:left;transition:.15s;position:relative}
+.nav:hover{background:rgba(59,130,246,.08);color:var(--text)}
+.nav.on{background:linear-gradient(90deg,rgba(59,130,246,.22),rgba(59,130,246,.05));color:#fff;font-weight:600}
+.nav.on::before{content:'';position:absolute;left:-12px;top:50%;transform:translateY(-50%);width:3px;height:20px;
+  border-radius:0 3px 3px 0;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+.nav svg{flex-shrink:0;opacity:.85}
+.nav .pro{margin-left:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--orange);background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.3);padding:1px 6px;border-radius:5px}
+
+/* ============ MAIN ============ */
+.main{margin-left:var(--sidew);position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
+.top{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:15px 26px;background:rgba(8,11,22,.82);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+.top h1{font-size:20px;font-weight:700;letter-spacing:-.02em}
+.top .sub{font-size:12.5px;font-weight:500;color:var(--muted);margin-top:1px}
+.top .acts{display:flex;align-items:center;gap:10px}
+.burger{display:none;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px;color:var(--text);cursor:pointer}
+
+.user{display:flex;align-items:center;gap:9px;padding:5px 12px 5px 5px;border:1px solid var(--border);
+  border-radius:22px;background:var(--card);cursor:pointer;position:relative;user-select:none}
+.user:hover{border-color:var(--border-hi)}
+.user img{width:27px;height:27px;border-radius:50%;object-fit:cover;background:var(--card2)}
+.user .un{font-size:13px;font-weight:600;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.menu{display:none;position:absolute;top:calc(100% + 9px);right:0;background:var(--card);border:1px solid var(--border);
+  border-radius:13px;padding:6px;min-width:190px;box-shadow:0 14px 40px rgba(0,0,0,.6);z-index:80}
+.user.open .menu{display:block}
+.mi{display:flex;align-items:center;gap:9px;padding:9px 12px;font-size:13px;font-weight:500;color:var(--text);
+  border-radius:9px;cursor:pointer;text-decoration:none}
+.mi:hover{background:rgba(59,130,246,.1)}
+.mi.danger{color:var(--red)}
+.mi.danger:hover{background:rgba(239,68,68,.1)}
+
+.content{flex:1;padding:24px 26px 90px;max-width:1120px;width:100%}
+
+/* ============ CARTES ============ */
+.banner{display:flex;align-items:center;gap:12px;padding:13px 17px;border-radius:13px;margin-bottom:18px;
+  background:linear-gradient(90deg,rgba(59,130,246,.14),rgba(59,130,246,.02));
+  border:1px solid rgba(59,130,246,.22);font-size:13px;font-weight:500;color:var(--text);line-height:1.5}
+.banner .ic{width:30px;height:30px;border-radius:9px;background:rgba(59,130,246,.2);display:flex;
+  align-items:center;justify-content:center;color:var(--accent);flex-shrink:0}
+.banner.warn{background:linear-gradient(90deg,rgba(245,158,11,.13),rgba(245,158,11,.02));border-color:rgba(245,158,11,.25)}
+.banner.warn .ic{background:rgba(245,158,11,.18);color:var(--orange)}
+
+.hero{position:relative;overflow:hidden;border-radius:18px;border:1px solid var(--border);
+  background:linear-gradient(120deg,#11223d,#0e1729 55%,#0b1322);padding:30px 32px;margin-bottom:18px}
+.hero::after{content:'';position:absolute;top:-70px;right:-40px;width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle,rgba(59,130,246,.35),transparent 68%);filter:blur(38px)}
+.hero .hi{position:relative;z-index:2;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.hero .hicon{width:74px;height:74px;border-radius:20px;object-fit:cover;border:1px solid var(--border-hi);background:var(--card2)}
+.hero .hini{width:74px;height:74px;border-radius:20px;background:linear-gradient(135deg,var(--accent2),var(--pink));
+  display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff}
+.hero h2{font-size:26px;font-weight:700;letter-spacing:-.02em;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hero p{font-size:13.5px;font-weight:500;color:var(--muted);margin-top:5px}
+.tagp{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:3px 10px;border-radius:20px;
+  color:#fff;background:linear-gradient(135deg,var(--accent),var(--pink))}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:13px;margin-bottom:18px}
+.stat{position:relative;overflow:hidden;background:var(--card);border:1px solid var(--border);border-radius:15px;
+  padding:18px 19px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;transition:.2s}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent)}
+.stat:hover{border-color:var(--border-hi);transform:translateY(-2px)}
+.stat b{display:block;font-size:27px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.stat span{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:5px}
+.sic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  background:rgba(59,130,246,.14);color:var(--accent)}
+.sic.g{background:rgba(34,197,94,.13);color:var(--green)}
+.sic.r{background:rgba(239,68,68,.13);color:var(--red)}
+.sic.b{background:rgba(96,165,250,.13);color:var(--blue)}
+
+.card{position:relative;overflow:hidden;background:var(--card);border:1px solid var(--border);border-radius:16px;margin-bottom:14px}
+.card::before{content:'';position:absolute;top:0;left:0;width:120px;height:2px;background:linear-gradient(90deg,var(--accent),transparent)}
+.card-h{padding:17px 21px 0}
+.card-h h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.card-h p{font-size:12.5px;font-weight:500;color:var(--muted);margin-top:3px;line-height:1.5}
+.card-b{padding:6px 21px 17px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.empty{padding:34px 20px;text-align:center;font-size:13px;font-weight:500;color:var(--dim)}
+
+/* graphe */
+.chart{display:flex;align-items:flex-end;gap:8px;height:130px;padding:16px 0 0}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%}
+.bar .fill{width:100%;max-width:34px;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,var(--accent),rgba(37,99,235,.35));
+  margin-top:auto;min-height:3px;transition:height .5s cubic-bezier(.2,.8,.2,1)}
+.bar small{font-size:10.5px;font-weight:500;color:var(--dim)}
+
+/* ============ FORMULAIRE ============ */
+.row{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 0;border-top:1px solid var(--border)}
+.row:first-child{border-top:none}
+.row-t strong{display:block;font-size:13.5px;font-weight:600}
+.row-t span{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-top:2px;line-height:1.45}
+.row-c{flex-shrink:0}
+.field{padding:14px 0;border-top:1px solid var(--border)}
+.field:first-child{border-top:none}
+.field label{display:block;font-size:13.5px;font-weight:600;margin-bottom:3px}
+.field .hint{font-size:12px;font-weight:500;color:var(--muted);margin-bottom:9px;line-height:1.45}
+
+.sw{display:inline-block;position:relative;width:44px;height:25px;flex-shrink:0;cursor:pointer;vertical-align:middle}
+.sw input{opacity:0;width:0;height:0;position:absolute}
+.sw i{position:absolute;inset:0;background:var(--card2);border:1px solid var(--border-hi);border-radius:20px;transition:.2s}
+.sw i::after{content:'';position:absolute;top:3px;left:3px;width:17px;height:17px;border-radius:50%;background:var(--dim);transition:.2s}
+.sw input:checked + i{background:linear-gradient(135deg,var(--accent2),var(--accent));border-color:transparent}
+.sw input:checked + i::after{transform:translateX(19px);background:#fff}
+
+input[type=text],input[type=number],select,textarea{font-family:inherit;font-size:13px;font-weight:500;color:var(--text);
+  background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;outline:none;width:100%;transition:.18s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.13)}
+input[type=number]{width:90px}
+select{cursor:pointer;min-width:155px}
+textarea{min-height:94px;resize:vertical;line-height:1.6}
+.w-md{max-width:240px}
+.vars{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.var{font-family:ui-monospace,Menlo,monospace;font-size:11px;font-weight:500;color:var(--accent);
+  background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);border-radius:6px;padding:3px 8px;cursor:pointer}
+.var:hover{background:rgba(59,130,246,.22)}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px;min-height:2px}
+.chip{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;background:var(--card2);
+  border:1px solid var(--border-hi);border-radius:20px;padding:4px 6px 4px 12px}
+.chip button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:0 4px;font-family:inherit}
+.chip button:hover{color:var(--red)}
+.add{display:flex;gap:8px;margin-top:11px}
+
+.btn{padding:9px 17px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border-hi);
+  color:var(--text);background:var(--card2);font-family:inherit;text-decoration:none;display:inline-flex;
+  align-items:center;gap:7px;white-space:nowrap;transition:.18s}
+.btn:hover{border-color:var(--accent);color:#fff}
+.btn.p{background:linear-gradient(135deg,var(--accent2),var(--accent));border-color:transparent;color:#fff;
+  box-shadow:0 4px 16px rgba(37,99,235,.35)}
+.btn.p:hover{filter:brightness(1.1)}
+.btn.p:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+.btn.dg{color:var(--red);border-color:rgba(239,68,68,.32)}
+.btn.dg:hover{background:rgba(239,68,68,.1);border-color:var(--red);color:var(--red)}
+.btn.sm{padding:7px 13px;font-size:12.5px}
+
+.savebar{position:fixed;left:calc(var(--sidew) + 26px);right:26px;bottom:20px;z-index:70;display:flex;align-items:center;
+  justify-content:space-between;gap:14px;background:rgba(23,32,53,.96);backdrop-filter:blur(16px);
+  border:1px solid var(--border-hi);border-radius:14px;padding:12px 16px;box-shadow:0 12px 40px rgba(0,0,0,.55);
+  opacity:0;transform:translateY(16px);pointer-events:none;transition:.25s}
+.savebar.show{opacity:1;transform:none;pointer-events:auto}
+.savebar span{font-size:13px;font-weight:600;color:var(--orange)}
+.savebar .a{display:flex;gap:9px}
+
+.toast{position:fixed;left:50%;bottom:88px;transform:translate(-50%,16px);z-index:200;background:var(--card);
+  border:1px solid var(--border-hi);border-radius:12px;padding:11px 20px;font-size:13px;font-weight:600;
+  box-shadow:0 12px 36px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:.25s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.ok{border-color:rgba(34,197,94,.5);color:var(--green)}
+.toast.err{border-color:rgba(239,68,68,.5);color:var(--red)}
+
+.page{display:none}
+.page.on{display:block}
+.hidden{display:none !important}
+.boot{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:15px;min-height:70vh;
+  text-align:center;color:var(--muted);font-size:14px;font-weight:500;padding:20px}
+.sp{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.boot h3{font-size:18px;font-weight:700;color:var(--red)}
+.boot .a{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+.ovl{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:55}
+.ovl.show{display:block}
+
+
+/* ==== composants dashboard complet ==== */
+.tk{position:relative;background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:15px 16px;margin-top:12px}
+.tk-h{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.tk-h .em{font-size:20px;line-height:1}
+.tk-h b{font-size:14px;font-weight:600;flex:1}
+.tk-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tk-grid .full{grid-column:1/-1}
+.tk-grid label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px}
+.mini{font-size:11.5px;font-weight:500;color:var(--dim);margin-top:5px;line-height:1.45}
+.rolebox{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pill-i{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--accent);
+  background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);border-radius:20px;padding:3px 10px}
+.subhead{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);
+  padding:16px 0 2px;border-top:1px solid var(--border);margin-top:8px}
+.subhead:first-child{border-top:none;margin-top:0;padding-top:4px}
+@media(max-width:700px){.tk-grid,.grid2{grid-template-columns:1fr}}
+
+@media(max-width:900px){
+  .side{transform:translateX(-100%);box-shadow:0 0 40px rgba(0,0,0,.6)}
+  .side.open{transform:none}
+  .main{margin-left:0}
+  .burger{display:flex}
+  .content{padding:18px 14px 90px}
+  .top{padding:12px 14px}
+  .savebar{left:14px;right:14px}
+  .two{grid-template-columns:1fr}
+  .row{flex-direction:column;align-items:flex-start;gap:10px}
+  .row-c{width:100%}
+  .w-md{max-width:none}
+  .hero{padding:22px}
+  .hero h2{font-size:21px}
+}
+</style>
+</head>
+<body>
+
+
+<!-- ============ SIDEBAR ============ -->
+<aside class="side" id="side">
+  <div class="brand">
+    <img class="logo" src="logo.png" alt="" onerror="this.outerHTML='<div class=&quot;logo&quot;>M</div>'">
+    <b>ModeraBot</b>
+  </div>
+
+  <a class="gsw" href="/servers.html">
+    <div id="gswIcon" class="gi">?</div>
+    <div class="gt"><b id="gswName">…</b><span>Changer de serveur</span></div>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 9 12 5 16 9"/><polyline points="16 15 12 19 8 15"/></svg>
+  </a>
+
+  <div class="navwrap" id="navwrap"></div>
+</aside>
+<div class="ovl" id="ovl"></div>
+
+<!-- ============ MAIN ============ -->
+<div class="main">
+  <div class="top">
+    <div style="display:flex;align-items:center;gap:12px;min-width:0">
+      <button class="burger" id="burger" aria-label="Menu">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div style="min-width:0">
+        <h1 id="pageTitle">Vue d'ensemble</h1>
+        <div class="sub" id="pageSub">—</div>
+      </div>
+    </div>
+    <div class="acts">
+      <button class="btn sm" id="btnRefresh">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Actualiser
+      </button>
+      <div class="user" id="userPill">
+        <img id="uAvatar" src="https://cdn.discordapp.com/embed/avatars/0.png" alt="">
+        <span class="un" id="uName">…</span>
+        <div class="menu">
+          <a class="mi" href="/servers.html">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/></svg>
+            Mes serveurs
+          </a>
+          <div class="mi danger" id="btnLogout">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Déconnexion
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div id="boot" class="boot"><div class="sp"></div>Chargement du dashboard…</div>
+
+    <div id="app" class="hidden">
+      <div id="noteLocal" class="banner warn hidden">
+        <div class="ic">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+        </div>
+        <div><b>L'API du bot ne répond pas.</b> Les salons et rôles ne peuvent pas être listés (saisie par ID), et tes réglages sont gardés dans ce navigateur en attendant.</div>
+      </div>
+
+      <!-- ===== VUE D'ENSEMBLE ===== -->
+      <div class="page on" id="pg-overview">
+        <div class="hero">
+          <div class="hi">
+            <div id="heroIcon"></div>
+            <div>
+              <h2><span id="heroName">—</span><span class="tagp" id="heroTag">Administrateur</span></h2>
+              <p id="heroSub">Tickets · AutoMod · Anti-raid · Logs · Niveaux · Giveaways</p>
+            </div>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat"><div><b id="stMembers">—</b><span>Membres</span></div>
+            <div class="sic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div></div>
+          <div class="stat"><div><b id="stOnline">—</b><span>En ligne</span></div>
+            <div class="sic g"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="12" cy="12" r="5"/></svg></div></div>
+          <div class="stat"><div><b id="stTickets">—</b><span>Types de tickets</span></div>
+            <div class="sic b"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 6v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-6z"/></svg></div></div>
+          <div class="stat"><div><b id="stModules">0</b><span>Modules actifs</span></div>
+            <div class="sic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <div class="card-h"><h3>Modules</h3><p>Ce que le bot applique en ce moment sur ce serveur.</p></div>
+            <div class="card-b"><div id="modList"></div></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><h3>Top membres</h3><p>Classement XP renvoyé par le bot.</p></div>
+            <div class="card-b" id="recentBox"><div class="empty">Aucune donnée</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== GÉNÉRAL ===== -->
+      <div class="page" id="pg-general">
+        <div class="card">
+          <div class="card-h"><h3>Préfixe des commandes</h3><p>Le préfixe utilisé pour les commandes texte du bot sur ce serveur.</p></div>
+          <div class="card-b">
+            <div class="field">
+              <label for="f-prefix">Préfixe</label>
+              <div class="hint">1 à 5 caractères. Exemple : <code>+</code> → <code>+ticket</code></div>
+              <input type="text" id="f-prefix" class="w-md" maxlength="5" data-k="prefix" placeholder="+">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TICKETS ===== -->
+      <div class="page" id="pg-tickets">
+        <div class="card">
+          <div class="card-h"><h3>Panneau des tickets</h3><p>L'embed que les membres voient pour ouvrir un ticket (commande <code>+ticket</code>).</p></div>
+          <div class="card-b">
+            <div class="tk-grid">
+              <div><label>Titre du panneau</label><input type="text" data-k="tickets.panel.titre" maxlength="100" placeholder="Support ModeraBot"></div>
+              <div><label>Mode d'affichage</label>
+                <select data-k="tickets.panel.mode">
+                  <option value="select">Menu déroulant</option>
+                  <option value="bouton">Boutons</option>
+                  <option value="container_v2">Container V2</option>
+                </select>
+              </div>
+              <div class="full"><label>Description</label>
+                <textarea data-k="tickets.panel.description" maxlength="500" placeholder="Clique ci-dessous pour ouvrir un ticket."></textarea>
+              </div>
+              <div><label>Salon des logs tickets</label><span data-select="channel" data-sk="tickets.panel.logs"></span></div>
+              <div><label>Couleur de l'embed</label><input type="text" data-k="tickets.panel.couleur" maxlength="10" placeholder="#5865F2"></div>
+              <div class="full"><label>Image / bannière (URL)</label><input type="text" data-k="tickets.panel.image" maxlength="300" placeholder="https://..."></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h">
+            <h3>Types de tickets</h3>
+            <p>Chaque type crée son propre salon, avec sa catégorie et ses rôles staff. 25 maximum (5 en mode boutons).</p>
+          </div>
+          <div class="card-b">
+            <div id="tkList"></div>
+            <div style="margin-top:14px"><button class="btn p" id="tkAdd">+ Ajouter un type</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== BIENVENUE ===== -->
+      <div class="page" id="pg-welcome">
+        <div class="card">
+          <div class="card-h"><h3>Message de bienvenue</h3><p>Envoyé quand un membre rejoint le serveur.</p></div>
+          <div class="card-b">
+            <div class="row"><div class="row-t"><strong>Activer la bienvenue</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="welcome.enabled"><i></i></label></div></div>
+            <div class="field"><label>Salon d'accueil</label><div class="hint">Où le message est publié.</div>
+              <span data-select="channel" data-sk="welcome.channel_id" class="w-md"></span></div>
+            <div class="field"><label>Format du message</label>
+              <select data-k="welcome.mode" class="w-md"><option value="texte">Texte simple</option><option value="embed">Embed</option></select></div>
+            <div class="field" data-when="welcome.mode=texte"><label>Message</label>
+              <div class="hint">Variables cliquables ci-dessous.</div>
+              <textarea data-k="welcome.message" placeholder="Bienvenue {user} sur {server} !"></textarea>
+              <div class="vars" data-target="welcome.message"></div></div>
+            <div data-when="welcome.mode=embed">
+              <div class="field"><label>Titre de l'embed</label><input type="text" data-k="welcome.embed.titre" maxlength="256" placeholder="Bienvenue {username} !"></div>
+              <div class="field"><label>Description de l'embed</label>
+                <textarea data-k="welcome.embed.desc" placeholder="{user} a rejoint {server} !"></textarea>
+                <div class="vars" data-target="welcome.embed.desc"></div></div>
+              <div class="tk-grid">
+                <div><label>Couleur</label><input type="text" data-k="welcome.embed.color" maxlength="10" placeholder="#5865F2"></div>
+                <div><label>Miniature</label><input type="text" data-k="welcome.embed.thumb" placeholder="avatar ou une URL"></div>
+                <div class="full"><label>Grande image (URL)</label><input type="text" data-k="welcome.embed.image" placeholder="https://..."></div>
+              </div>
+            </div>
+            <div class="row"><div class="row-t"><strong>Suppression automatique</strong><span>Efface le message après X secondes. 0 = jamais.</span></div>
+              <div class="row-c"><input type="number" data-k="welcome.auto_delete" min="0" max="3600"></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Message privé d'accueil</h3><p>Envoyé en MP au membre qui rejoint.</p></div>
+          <div class="card-b">
+            <div class="row"><div class="row-t"><strong>Activer le MP</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="welcome.mp_enabled"><i></i></label></div></div>
+            <div class="field"><label>Message privé</label>
+              <textarea data-k="welcome.mp_message" placeholder="Salut {username}, bienvenue sur {server} !"></textarea>
+              <div class="vars" data-target="welcome.mp_message"></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Message de départ</h3><p>Envoyé quand un membre quitte le serveur.</p></div>
+          <div class="card-b">
+            <div class="field"><label>Salon des départs</label><div class="hint">Vide = départs non annoncés.</div>
+              <span data-select="channel" data-sk="depart.channel_id" class="w-md"></span></div>
+            <div class="field"><label>Titre</label><input type="text" data-k="depart.title" maxlength="256" placeholder="{username} a quitté le serveur."></div>
+            <div class="field"><label>Description</label>
+              <textarea data-k="depart.description" placeholder="Nous étions {membercount} membres."></textarea>
+              <div class="vars" data-target="depart.description"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== LOGS ===== -->
+      <div class="page" id="pg-logs">
+        <div class="card">
+          <div class="card-h"><h3>Journaux d'événements</h3><p>Active chaque type de log et choisis son salon. Correspond à la commande <code>+logs</code>.</p></div>
+          <div class="card-b" id="logsBox"></div>
+        </div>
+      </div>
+
+      <!-- ===== ANTI-LIEN ===== -->
+      <div class="page" id="pg-antilink">
+        <div class="card">
+          <div class="card-h"><h3>Anti-lien</h3><p>Supprime les liens postés par les membres non autorisés (<code>+antilink</code>).</p></div>
+          <div class="card-b">
+            <div class="row"><div class="row-t"><strong>Activer l'anti-lien</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antilink.enabled"><i></i></label></div></div>
+            <div class="field"><label>Sanction</label>
+              <select data-k="antilink.action" class="w-md">
+                <option value="delete">Supprimer le message</option>
+                <option value="warn">Supprimer + avertir</option>
+                <option value="mute">Supprimer + rendre muet</option>
+                <option value="kick">Supprimer + expulser</option>
+                <option value="ban">Supprimer + bannir</option>
+              </select></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Domaines autorisés</h3><p>Les liens contenant ces domaines ne sont jamais supprimés.</p></div>
+          <div class="card-b">
+            <div class="add"><input type="text" id="wlIn" placeholder="exemple : youtube.com"><button class="btn" id="wlAdd">Ajouter</button></div>
+            <div class="chips" id="wlChips"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== ANTI-RAID ===== -->
+      <div class="page" id="pg-antiraid">
+        <div class="card">
+          <div class="card-h"><h3>Anti-raid</h3><p>Protection contre les vagues d'arrivées et le spam (<code>+antiraid</code>).</p></div>
+          <div class="card-b">
+            <div class="row"><div class="row-t"><strong>Activer l'anti-raid</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antiraid.enabled"><i></i></label></div></div>
+            <div class="field"><label>Salon des alertes</label><div class="hint">Le bot y signale les déclenchements.</div>
+              <span data-select="channel" data-sk="antiraid.modlog" class="w-md"></span></div>
+
+            <div class="subhead">Arrivées massives</div>
+            <div class="row"><div class="row-t"><strong>Détecter les vagues d'arrivées</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antiraid.join.enabled"><i></i></label></div></div>
+            <div class="row"><div class="row-t"><strong>Arrivées déclenchant l'alerte</strong><span>Nombre de membres…</span></div>
+              <div class="row-c"><input type="number" data-k="antiraid.join_threshold" min="2" max="100"></div></div>
+            <div class="row"><div class="row-t"><strong>…en combien de secondes</strong></div>
+              <div class="row-c"><input type="number" data-k="antiraid.join_interval" min="1" max="600"></div></div>
+            <div class="row"><div class="row-t"><strong>Sanction</strong></div>
+              <div class="row-c"><select data-k="antiraid.join_action"><option value="none">Alerter seulement</option><option value="kick">Expulser</option><option value="ban">Bannir</option><option value="lockdown">Verrouiller le serveur</option></select></div></div>
+
+            <div class="subhead">Spam de messages</div>
+            <div class="row"><div class="row-t"><strong>Détecter le spam</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antiraid.spam.enabled"><i></i></label></div></div>
+            <div class="row"><div class="row-t"><strong>Messages déclenchant l'alerte</strong></div>
+              <div class="row-c"><input type="number" data-k="antiraid.spam_threshold" min="2" max="50"></div></div>
+            <div class="row"><div class="row-t"><strong>…en combien de secondes</strong></div>
+              <div class="row-c"><input type="number" data-k="antiraid.spam_interval" min="1" max="120"></div></div>
+            <div class="row"><div class="row-t"><strong>Sanction</strong></div>
+              <div class="row-c"><select data-k="antiraid.spam_action"><option value="none">Alerter seulement</option><option value="mute">Rendre muet</option><option value="kick">Expulser</option><option value="ban">Bannir</option></select></div></div>
+
+            <div class="subhead">Mentions massives</div>
+            <div class="row"><div class="row-t"><strong>Détecter les mentions massives</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antiraid.mention.enabled"><i></i></label></div></div>
+            <div class="row"><div class="row-t"><strong>Mentions maximum par message</strong></div>
+              <div class="row-c"><input type="number" data-k="antiraid.mention_limit" min="1" max="50"></div></div>
+            <div class="row"><div class="row-t"><strong>Sanction</strong></div>
+              <div class="row-c"><select data-k="antiraid.mention_action"><option value="none">Alerter seulement</option><option value="mute">Rendre muet</option><option value="kick">Expulser</option><option value="ban">Bannir</option></select></div></div>
+
+            <div class="subhead">Majuscules et emojis</div>
+            <div class="row"><div class="row-t"><strong>Détecter les majuscules</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antiraid.caps.enabled"><i></i></label></div></div>
+            <div class="row"><div class="row-t"><strong>% de majuscules toléré</strong></div>
+              <div class="row-c"><input type="number" data-k="antiraid.caps_percent" min="10" max="100"></div></div>
+            <div class="row"><div class="row-t"><strong>Longueur minimale du message</strong><span>En dessous, les majuscules sont ignorées.</span></div>
+              <div class="row-c"><input type="number" data-k="antiraid.caps_min_length" min="1" max="500"></div></div>
+            <div class="row"><div class="row-t"><strong>Détecter le spam d'emojis</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antiraid.emoji_spam.enabled"><i></i></label></div></div>
+            <div class="row"><div class="row-t"><strong>Emojis maximum par message</strong></div>
+              <div class="row-c"><input type="number" data-k="antiraid.max_emojis" min="1" max="100"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== VÉRIFICATION ===== -->
+      <div class="page" id="pg-captcha">
+        <div class="card">
+          <div class="card-h"><h3>Vérification par captcha</h3><p>Les nouveaux membres doivent saisir un code pour accéder au serveur (<code>+captcha</code>).</p></div>
+          <div class="card-b">
+            <div class="row"><div class="row-t"><strong>Activer la vérification</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="captcha.enabled"><i></i></label></div></div>
+            <div class="field"><label>Salon de vérification</label>
+              <span data-select="channel" data-sk="captcha.channel_id" class="w-md"></span></div>
+            <div class="field"><label>Rôle donné après vérification</label>
+              <span data-select="role" data-sk="captcha.verified_role" class="w-md"></span></div>
+            <div class="field"><label>Rôle des membres non vérifiés</label>
+              <div class="hint">Attribué à l'arrivée, retiré une fois le code validé.</div>
+              <span data-select="role" data-sk="captcha.unverified_role" class="w-md"></span></div>
+            <div class="row"><div class="row-t"><strong>Longueur du code</strong></div>
+              <div class="row-c"><input type="number" data-k="captcha.code_length" min="4" max="10"></div></div>
+            <div class="row"><div class="row-t"><strong>Tentatives autorisées</strong></div>
+              <div class="row-c"><input type="number" data-k="captcha.max_tries" min="1" max="10"></div></div>
+            <div class="row"><div class="row-t"><strong>Expulser après échec</strong><span>Le membre est expulsé s'il rate toutes ses tentatives.</span></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="captcha.kick_on_fail"><i></i></label></div></div>
+            <div class="field"><label>Message de vérification</label>
+              <textarea data-k="captcha.welcome_message" placeholder="Bienvenue {user} ! Saisis le code pour accéder au serveur."></textarea>
+              <div class="vars" data-target="captcha.welcome_message"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== NIVEAUX ===== -->
+      <div class="page" id="pg-levels">
+        <div class="card">
+          <div class="card-h"><h3>Niveaux &amp; XP</h3><p>Les membres gagnent de l'XP en discutant (<code>+level</code>, <code>+top</code>).</p></div>
+          <div class="card-b">
+            <div class="field"><label>Salon où l'XP est gagnée</label>
+              <div class="hint">Vide = tous les salons rapportent de l'XP.</div>
+              <span data-select="channel" data-sk="levels.xp_channel" class="w-md"></span></div>
+            <div class="field"><label>Salon des annonces de niveau</label>
+              <div class="hint">Vide = annonce dans le salon où le membre a parlé.</div>
+              <span data-select="channel" data-sk="levels.notif_channel" class="w-md"></span></div>
+            <div class="row"><div class="row-t"><strong>XP minimum par message</strong></div>
+              <div class="row-c"><input type="number" data-k="levels.xp_min" min="0" max="100"></div></div>
+            <div class="row"><div class="row-t"><strong>XP maximum par message</strong><span>Le gain est tiré au hasard entre le min et le max.</span></div>
+              <div class="row-c"><input type="number" data-k="levels.xp_max" min="0" max="100"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== GIVEAWAY ===== -->
+      <div class="page" id="pg-giveaway">
+        <div class="card">
+          <div class="card-h"><h3>Giveaways</h3><p>Valeurs par défaut des concours créés avec <code>+giveaway</code>.</p></div>
+          <div class="card-b">
+            <div class="field"><label>Salon des giveaways</label>
+              <span data-select="channel" data-sk="giveaway.salon_id" class="w-md"></span></div>
+            <div class="tk-grid">
+              <div><label>Emoji</label><input type="text" data-k="giveaway.emoji" maxlength="8" placeholder="🎉"></div>
+              <div><label>Texte du bouton</label><input type="text" data-k="giveaway.btn_text" maxlength="40" placeholder="Participer"></div>
+              <div><label>Couleur du bouton</label>
+                <select data-k="giveaway.btn_color"><option value="bleu">Bleu</option><option value="vert">Vert</option><option value="rouge">Rouge</option><option value="gris">Gris</option></select></div>
+              <div><label>Nombre de gagnants</label><input type="number" data-k="giveaway.gagnants" min="1" max="50"></div>
+              <div><label>Durée par défaut</label><input type="text" data-k="giveaway.duree" maxlength="20" placeholder="1h, 30m, 2d…"></div>
+            </div>
+            <div class="row"><div class="row-t"><strong>Présence vocale obligatoire</strong><span>Il faut être en vocal pour participer.</span></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="giveaway.vocal_required"><i></i></label></div></div>
+            <div class="field"><label>Rôles requis pour participer</label>
+              <div class="rolebox" data-roles="giveaway.required_roles"></div></div>
+            <div class="field"><label>Rôles interdits</label>
+              <div class="rolebox" data-roles="giveaway.blacklist_roles"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== DIVERS ===== -->
+      <div class="page" id="pg-divers">
+        <div class="card">
+          <div class="card-h"><h3>Anti-bot</h3><p>Bloque l'ajout de bots non autorisés (<code>+antibot</code>).</p></div>
+          <div class="card-b">
+            <div class="row"><div class="row-t"><strong>Activer l'anti-bot</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antibot.enabled"><i></i></label></div></div>
+            <div class="field"><label>Salon des alertes</label>
+              <span data-select="channel" data-sk="antibot.channel_id" class="w-md"></span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Starboard</h3><p>Les messages les plus étoilés sont republiés (<code>+starboard</code>).</p></div>
+          <div class="card-b">
+            <div class="field"><label>Salon du starboard</label><div class="hint">Vide = starboard désactivé.</div>
+              <span data-select="channel" data-sk="starboard.channel_id" class="w-md"></span></div>
+            <div class="tk-grid">
+              <div><label>Étoiles nécessaires</label><input type="number" data-k="starboard.seuil" min="1" max="50"></div>
+              <div><label>Emoji</label><input type="text" data-k="starboard.emoji" maxlength="8" placeholder="⭐"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Rôles automatiques</h3><p>Donnés à chaque nouveau membre (<code>+defaultrole</code>).</p></div>
+          <div class="card-b"><div class="rolebox" data-roles="defaultroles"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Photo de profil à l'arrivée</h3><p>Publie l'avatar des nouveaux membres (<code>+showpic</code>).</p></div>
+          <div class="card-b">
+            <div class="row"><div class="row-t"><strong>Activer</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="showpic.enabled"><i></i></label></div></div>
+            <div class="field"><label>Salon</label>
+              <span data-select="channel" data-sk="showpic.channel_id" class="w-md"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== IMPORT / EXPORT ===== -->
+      <div class="page" id="pg-export">
+        <div class="card">
+          <div class="card-h"><h3>Import / Export</h3><p>Sauvegarde la configuration de ce serveur, ou applique celle d'un autre.</p></div>
+          <div class="card-b">
+            <div class="row"><div class="row-t"><strong>Exporter</strong><span>Copie toute la configuration au format JSON.</span></div>
+              <div class="row-c"><button class="btn" id="btnExport">Copier le JSON</button></div></div>
+            <div class="field"><label>Importer</label><div class="hint">Colle un JSON exporté, puis applique.</div>
+              <textarea id="importBox" placeholder='{"prefix":"+", ...}'></textarea>
+              <div style="margin-top:10px"><button class="btn" id="btnImport">Appliquer</button></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Zone de danger</h3><p>Action irréversible.</p></div>
+          <div class="card-b">
+            <div class="row"><div class="row-t"><strong>Réinitialiser la configuration</strong><span>Remet tous les réglages de ce serveur par défaut.</span></div>
+              <div class="row-c"><button class="btn dg" id="btnReset">Réinitialiser</button></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="savebar" id="savebar">
+        <span>Modifications non enregistrées</span>
+        <div class="a">
+          <button class="btn" id="btnCancel">Annuler</button>
+          <button class="btn p" id="btnSave">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =============================================================
+   ModeraBot — Dashboard serveur
+   Auth : token Discord implicite (posé par servers.html)
+   Données : /api/guild/<id>/dashboard  (GET config + salons + rôles, POST config)
+   Si l'API du bot est HS : la page reste utilisable, saisie par ID,
+   et les réglages sont conservés localement en attendant.
+   ============================================================= */
+/* Origine de l'API du bot.
+   Le dashboard est hébergé sur dashboard.moderabot.xyz alors que l'API tourne
+   sur le serveur du bot : sans cette base, les appels /api/... partent vers
+   l'hébergeur statique (404) et la page affiche « L'API du bot ne répond pas ».
+   Laisse vide si l'API est servie par la MÊME origine que cette page.
+   L'URL doit être en https:// — une page https ne peut pas appeler du http. */
+const API_BASE=(window.MB_API_BASE||'https://api.moderabot.xyz').replace(/\/+$/,'');
+const API_CREDS=API_BASE?'omit':'same-origin';   /* auth par token Bearer, pas par cookie */
+const apiURL=p=>API_BASE+p;
+const CLIENT_ID='1447165780708823140', SCOPES='identify guilds';
+const REDIRECT=location.origin+'/servers.html', TOKEN_KEY='mb_discord_token';
+const guildId=new URLSearchParams(location.search).get('guild');
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const initials=n=>{const p=String(n||'?').trim().split(/\s+/).filter(Boolean);return p.length?p.map(w=>w[0]).join('').slice(0,2).toUpperCase():'?';};
+
+const NAV=[
+  ['Tableau de bord',[
+    ['overview','Vue d\'ensemble',"L'état de ton serveur",'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'],
+    ['general','Général','Préfixe des commandes','<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'],
+  ]],
+  ['Support',[
+    ['tickets','Tickets','Panneau et types de tickets','<path d="M3 9V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 6v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-6z"/><line x1="12" y1="7" x2="12" y2="17"/>'],
+  ]],
+  ['Sécurité',[
+    ['antilink','Anti-lien','Filtrage des liens','<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'],
+    ['antiraid','Anti-raid','Protection contre les raids','<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'],
+    ['captcha','Vérification','Captcha à l\'arrivée','<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'],
+    ['logs','Logs','Journaux d\'événements','<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/>'],
+  ]],
+  ['Communauté',[
+    ['welcome','Bienvenue & Départ','Arrivées et départs','<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>'],
+    ['levels','Niveaux & XP','Système d\'expérience','<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>'],
+    ['giveaway','Giveaways','Concours','<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>'],
+    ['divers','Divers','Anti-bot, starboard, rôles auto','<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>'],
+  ]],
+  ['Avancé',[
+    ['export','Import / Export','Sauvegarde de la configuration','<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>'],
+  ]],
+];
+const PAGES={}; NAV.forEach(([,items])=>items.forEach(([k,t,s])=>PAGES[k]=[t,s]));
+
+const VARS=['{user}','{username}','{server}','{membercount}','{id}','{tag}','{created}'];
+
+const DEFAULTS={
+  prefix:'+',
+  tickets:{panel:{titre:'',description:'',image:'',logs:null,couleur:'#5865F2',mode:'select'},choix:[]},
+  welcome:{enabled:false,channel_id:null,mode:'texte',message:'',auto_delete:0,mp_enabled:false,mp_message:'',
+           embed:{titre:'',desc:'',color:'#5865F2',thumb:'',image:''}},
+  depart:{channel_id:null,title:'',description:''},
+  logs:{},
+  antilink:{enabled:false,action:'delete',whitelist:[]},
+  antiraid:{enabled:false,modlog:null,join:false,join_threshold:5,join_interval:10,join_action:'none',
+            spam:false,spam_threshold:5,spam_interval:5,spam_action:'none',
+            mention:false,mention_limit:5,mention_action:'none',
+            caps:false,caps_percent:70,caps_min_length:10,emoji_spam:false,max_emojis:10},
+  captcha:{enabled:false,channel_id:null,verified_role:null,unverified_role:null,code_length:6,max_tries:3,
+           kick_on_fail:false,style:'code',welcome_message:''},
+  levels:{xp_channel:null,notif_channel:null,xp_min:5,xp_max:15},
+  giveaway:{salon_id:null,emoji:'🎉',btn_text:'Participer',btn_color:'bleu',duree:'',gagnants:1,
+            required_roles:[],blacklist_roles:[],vocal_required:false},
+  antibot:{enabled:false,channel_id:null},
+  starboard:{channel_id:null,seuil:3,emoji:'⭐'},
+  showpic:{enabled:false,channel_id:null},
+  defaultroles:[],
+};
+const MODULES=[
+  ['tickets','Tickets',c=>(c.tickets.choix||[]).length>0],
+  ['antilink','Anti-lien',c=>!!c.antilink.enabled],
+  ['antiraid','Anti-raid',c=>!!c.antiraid.enabled],
+  ['captcha','Vérification',c=>!!c.captcha.enabled],
+  ['logs','Logs',c=>Object.values(c.logs||{}).some(v=>v&&v.enabled)],
+  ['welcome','Bienvenue',c=>!!c.welcome.enabled],
+  ['depart','Départs',c=>!!c.depart.channel_id],
+  ['levels','Niveaux',c=>!!(c.levels.xp_min||c.levels.notif_channel)],
+  ['antibot','Anti-bot',c=>!!c.antibot.enabled],
+  ['starboard','Starboard',c=>!!c.starboard.channel_id],
+  ['showpic','Photo à l\'arrivée',c=>!!c.showpic.enabled],
+];
+
+let cfg=structuredClone(DEFAULTS), saved=structuredClone(DEFAULTS);
+let META={channels:[],roles:[],categories:[],log_types:[]};
+let apiAlive=false, guild=null;
+
+/* ---------------- chemins ---------------- */
+function getPath(o,p){ return p.split('.').reduce((a,k)=>(a==null?undefined:a[k]),o); }
+function setPath(o,p,v){
+  const ks=p.split('.'); const last=ks.pop();
+  let t=o; for(const k of ks){ if(typeof t[k]!=='object'||t[k]===null) t[k]={}; t=t[k]; }
+  t[last]=v;
+}
+
+/* ---------------- Discord ---------------- */
+function loadToken(){
+  try{ const o=JSON.parse(sessionStorage.getItem(TOKEN_KEY)||'null');
+       if(!o||!o.t||Date.now()>o.exp){ sessionStorage.removeItem(TOKEN_KEY); return null; } return o.t; }catch{ return null; }
+}
+const authorizeURL=()=>'https://discord.com/oauth2/authorize?client_id='+CLIENT_ID+'&response_type=token&scope='+encodeURIComponent(SCOPES)+'&redirect_uri='+encodeURIComponent(REDIRECT);
+async function discord(path,token){
+  for(let i=0;i<4;i++){
+    let res;
+    try{ res=await fetch('https://discord.com/api/v10'+path,{headers:{Authorization:'Bearer '+token},cache:'no-store'}); }
+    catch(e){ throw new Error('Discord injoignable ('+(e.message||e)+')'); }
+    if(res.status===429){ let w=1200; try{const j=await res.json(); if(j.retry_after) w=Math.ceil(j.retry_after*1000)+250;}catch{} await sleep(Math.min(w,6000)); continue; }
+    if(res.status===401){ const e=new Error('401'); e.code=401; throw e; }
+    if(!res.ok){ if(res.status>=500&&i<3){ await sleep(700*(i+1)); continue; } throw new Error('Discord : HTTP '+res.status); }
+    return res.json();
+  }
+  throw new Error('Discord : trop de requêtes');
+}
+function avatarURL(u){
+  if(u&&u.avatar) return `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.${String(u.avatar).startsWith('a_')?'gif':'png'}?size=64`;
+  let i=0; try{ i=(u.discriminator&&u.discriminator!=='0')?Number(u.discriminator)%5:Number((BigInt(u.id)>>BigInt(22))%BigInt(6)); }catch{}
+  return `https://cdn.discordapp.com/embed/avatars/${i}.png`;
+}
+function hasAdmin(g){
+  if(!g) return false;
+  if(g.owner===true) return true;
+  try{ const p=BigInt(g.permissions_new??g.permissions??'0');
+       return (p&BigInt(0x8))!==BigInt(0)||(p&BigInt(0x20))!==BigInt(0); }catch{ return false; }
+}
+
+/* ---------------- API bot ---------------- */
+function authHeaders(){
+  // le token Discord permet à l'API du bot de nous authentifier
+  // même si la session Flask (/api/oauth-exchange) est cassée
+  const t=loadToken();
+  return t?{Authorization:'Bearer '+t}:{};
+}
+async function apiGet(path){
+  try{
+    const r=await fetch(apiURL(path),{credentials:API_CREDS,cache:'no-store',headers:{Accept:'application/json',...authHeaders()}});
+    if(!r.ok) return null;
+    return JSON.parse(await r.text());
+  }catch{ return null; }
+}
+async function apiSave(data){
+  try{
+    const r=await fetch(apiURL(`/api/guild/${encodeURIComponent(guildId)}/dashboard`),{
+      method:'POST',credentials:API_CREDS,
+      headers:{'Content-Type':'application/json',Accept:'application/json',...authHeaders()},body:JSON.stringify(data)});
+    return r.ok;
+  }catch{ return false; }
+}
+const lsKey=()=>'mb_cfg_'+guildId;
+const localGet=()=>{ try{ const o=JSON.parse(localStorage.getItem(lsKey())||'null'); return o&&typeof o==='object'?o:null; }catch{ return null; } };
+const localSet=d=>{ try{ localStorage.setItem(lsKey(),JSON.stringify(d)); }catch{} };
+
+/* ---------------- sélecteurs salons / rôles ---------------- */
+function optionsFor(kind,current){
+  const list = kind==='role'?META.roles : kind==='category'?META.categories : META.channels;
+  const cur = current==null?'':String(current);
+  const prefix = kind==='role'?'@':kind==='category'?'📁 ':'#';
+  let html=`<option value="">— Aucun —</option>`;
+  let found=false;
+  for(const it of list){
+    const sel = String(it.id)===cur ? ' selected':'';
+    if(sel) found=true;
+    html+=`<option value="${esc(it.id)}"${sel}>${esc(prefix+it.name)}</option>`;
+  }
+  if(cur&&!found) html+=`<option value="${esc(cur)}" selected>ID ${esc(cur)} (introuvable)</option>`;
+  return html;
+}
+function buildSelects(){
+  document.querySelectorAll('[data-select]').forEach(host=>{
+    const kind=host.dataset.select, key=host.dataset.sk, val=getPath(cfg,key);
+    const list = kind==='role'?META.roles : kind==='category'?META.categories : META.channels;
+    if(list.length){
+      host.innerHTML=`<select data-k="${esc(key)}">${optionsFor(kind,val)}</select>`;
+    }else{
+      // API du bot indisponible → saisie manuelle de l'ID
+      host.innerHTML=`<input type="text" inputmode="numeric" data-k="${esc(key)}" placeholder="ID ${kind==='role'?'du rôle':kind==='category'?'de la catégorie':'du salon'}" value="${esc(val??'')}">`;
+    }
+  });
+}
+/* listes de rôles multiples (chips + ajout) */
+function buildRoleBoxes(){
+  document.querySelectorAll('[data-roles]').forEach(box=>{
+    const key=box.dataset.roles;
+    const cur=(getPath(cfg,key)||[]).map(String);
+    const name=id=>{ const r=META.roles.find(r=>String(r.id)===String(id)); return r?'@'+r.name:'ID '+id; };
+    const chips=cur.map((id,i)=>`<span class="chip"><b>${esc(name(id))}</b><button type="button" data-rrm="${esc(key)}" data-i="${i}">×</button></span>`).join('');
+    const adder = META.roles.length
+      ? `<select data-radd="${esc(key)}"><option value="">+ Ajouter un rôle…</option>${META.roles.filter(r=>!cur.includes(String(r.id))).map(r=>`<option value="${esc(r.id)}">@${esc(r.name)}</option>`).join('')}</select>`
+      : `<div class="add"><input type="text" inputmode="numeric" data-rinput="${esc(key)}" placeholder="ID du rôle"><button class="btn" data-radd2="${esc(key)}">Ajouter</button></div>`;
+    box.innerHTML=`<div class="chips" style="margin:0 0 10px">${chips||'<span class="mini">Aucun rôle sélectionné.</span>'}</div>${adder}`;
+  });
+}
+document.addEventListener('click',e=>{
+  const rm=e.target.closest('[data-rrm]');
+  if(rm){ const k=rm.dataset.rrm; const l=getPath(cfg,k)||[]; l.splice(Number(rm.dataset.i),1); setPath(cfg,k,l); buildRoleBoxes(); touch(); return; }
+  const add2=e.target.closest('[data-radd2]');
+  if(add2){ const k=add2.dataset.radd2; const inp=document.querySelector(`[data-rinput="${k}"]`);
+    const v=(inp.value||'').trim(); if(!v) return;
+    const l=getPath(cfg,k)||[]; if(!l.map(String).includes(v)) l.push(v);
+    setPath(cfg,k,l); inp.value=''; buildRoleBoxes(); touch(); }
+});
+document.addEventListener('change',e=>{
+  const sel=e.target.closest('[data-radd]');
+  if(!sel||!sel.value) return;
+  const k=sel.dataset.radd, l=getPath(cfg,k)||[];
+  if(!l.map(String).includes(sel.value)) l.push(sel.value);
+  setPath(cfg,k,l); buildRoleBoxes(); touch();
+});
+
+/* ---------------- logs ---------------- */
+function buildLogs(){
+  const types=META.log_types.length?META.log_types:[
+    {key:'msg',label:'Logs messages',emoji:'📨'},{key:'voc',label:'Logs vocaux',emoji:'🔊'},
+    {key:'role',label:'Logs rôles',emoji:'🎭'},{key:'mod',label:'Logs modération',emoji:'🛡️'},
+    {key:'channel',label:'Logs salons',emoji:'📺'},{key:'ticket',label:'Logs tickets',emoji:'🎫'},
+    {key:'boost',label:'Logs boosts',emoji:'🚀'},{key:'flux',label:'Arrivées / départs',emoji:'📡'}];
+  $('logsBox').innerHTML=types.map(t=>`
+    <div class="row">
+      <div class="row-t"><strong>${esc(t.emoji)} ${esc(t.label)}</strong></div>
+      <div class="row-c" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span data-select="channel" data-sk="logs.${esc(t.key)}.channel"></span>
+        <label class="sw"><input type="checkbox" data-k="logs.${esc(t.key)}.enabled"><i></i></label>
+      </div>
+    </div>`).join('');
+}
+
+/* ---------------- tickets ---------------- */
+const BTN_COLORS=[['bleu','Bleu'],['vert','Vert'],['rouge','Rouge'],['gris','Gris']];
+function buildTickets(){
+  const list=cfg.tickets.choix||[];
+  $('tkList').innerHTML = list.length ? list.map((c,i)=>`
+    <div class="tk">
+      <div class="tk-h">
+        <span class="em">${esc(c.emoji||'🎫')}</span>
+        <b>${esc(c.nom||'Sans nom')}</b>
+        <span class="pill-i">Type ${i+1}</span>
+        <button class="btn sm dg" data-tkrm="${i}">Supprimer</button>
+      </div>
+      <div class="tk-grid">
+        <div><label>Nom du type</label><input type="text" maxlength="25" data-k="tickets.choix.${i}.nom" placeholder="Support"></div>
+        <div><label>Emoji</label><input type="text" maxlength="5" data-k="tickets.choix.${i}.emoji" placeholder="🎫"></div>
+        <div class="full"><label>Description courte</label>
+          <input type="text" maxlength="97" data-k="tickets.choix.${i}.description" placeholder="Aide générale">
+          <div class="mini">Affichée sous le nom dans le menu déroulant.</div></div>
+        <div><label>Catégorie où créer le ticket</label><span data-select="category" data-sk="tickets.choix.${i}.categorie"></span></div>
+        <div><label>Nom du salon créé</label>
+          <input type="text" maxlength="50" data-k="tickets.choix.${i}.salon_name" placeholder="ticket-{username}">
+          <div class="mini">Variables : {username} {userid} {server}</div></div>
+        <div class="full"><label>Rôles staff qui voient le ticket</label>
+          <div class="rolebox" data-roles="tickets.choix.${i}.roles"></div></div>
+        <div class="full"><label>Titre de l'embed dans le ticket</label>
+          <input type="text" maxlength="100" data-k="tickets.choix.${i}.titre" placeholder="🎫 Ticket Support"></div>
+        <div class="full"><label>Message d'ouverture</label>
+          <textarea maxlength="500" data-k="tickets.choix.${i}.message" placeholder="Bienvenue {user} ! Explique ton problème."></textarea>
+          <div class="vars" data-target="tickets.choix.${i}.message"></div></div>
+        <div><label>Couleur du bouton</label>
+          <select data-k="tickets.choix.${i}.btn_color">${BTN_COLORS.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>
+          <div class="mini">Utilisée en mode Boutons / Container V2.</div></div>
+        <div><label>Réponse automatique IA</label>
+          <div style="padding-top:6px"><label class="sw"><input type="checkbox" data-k="tickets.choix.${i}.ia_enabled"><i></i></label></div></div>
+      </div>
+    </div>`).join('')
+    : `<div class="empty">Aucun type de ticket. Ajoute-en un pour que le panneau fonctionne.</div>`;
+}
+$('tkAdd').addEventListener('click',()=>{
+  cfg.tickets.choix=cfg.tickets.choix||[];
+  if(cfg.tickets.choix.length>=25) return toast('25 types maximum','err');
+  cfg.tickets.choix.push({nom:'Support',description:'Aide générale',emoji:'🎫',categorie:null,roles:[],
+    titre:'Ticket — Support',message:'Bienvenue {user} ! Explique ton problème.',btn_color:'bleu',
+    salon_name:'ticket-{username}',ia_enabled:false});
+  render(); touch();
+  toast('Type ajouté — pense à enregistrer');
+});
+document.addEventListener('click',e=>{
+  const rm=e.target.closest('[data-tkrm]');
+  if(!rm) return;
+  const i=Number(rm.dataset.tkrm);
+  if(!confirm(`Supprimer le type « ${cfg.tickets.choix[i]?.nom||''} » ?`)) return;
+  cfg.tickets.choix.splice(i,1); render(); touch();
+});
+
+/* ---------------- anti-lien whitelist ---------------- */
+function buildWhitelist(){
+  const l=cfg.antilink.whitelist||[];
+  $('wlChips').innerHTML=l.map((v,i)=>`<span class="chip"><b>${esc(v)}</b><button type="button" data-wlrm="${i}">×</button></span>`).join('')
+    || '<span class="mini">Aucun domaine autorisé.</span>';
+}
+$('wlAdd').addEventListener('click',()=>{
+  const v=($('wlIn').value||'').trim(); if(!v) return;
+  cfg.antilink.whitelist=cfg.antilink.whitelist||[];
+  if(cfg.antilink.whitelist.includes(v)) return toast('Déjà dans la liste','err');
+  cfg.antilink.whitelist.push(v); $('wlIn').value=''; buildWhitelist(); touch();
+});
+$('wlIn').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); $('wlAdd').click(); } });
+document.addEventListener('click',e=>{
+  const rm=e.target.closest('[data-wlrm]'); if(!rm) return;
+  cfg.antilink.whitelist.splice(Number(rm.dataset.wlrm),1); buildWhitelist(); touch();
+});
+
+/* ---------------- rendu générique ---------------- */
+function render(){
+  buildTickets(); buildLogs();
+  buildSelects(); buildRoleBoxes(); buildWhitelist(); buildVars();
+  // remplit tous les champs liés
+  document.querySelectorAll('[data-k]').forEach(el=>{
+    const v=getPath(cfg,el.dataset.k);
+    if(el.type==='checkbox') el.checked=!!v;
+    else if(el.tagName==='SELECT') el.value=(v==null?'':String(v));
+    else el.value=(v==null?'':v);
+  });
+  applyConditions(); renderModules();
+}
+function applyConditions(){
+  document.querySelectorAll('[data-when]').forEach(el=>{
+    const [k,val]=el.dataset.when.split('=');
+    el.classList.toggle('hidden', String(getPath(cfg,k)??'')!==val);
+  });
+}
+function buildVars(){
+  document.querySelectorAll('.vars').forEach(box=>{
+    if(box.dataset.built) return;
+    box.dataset.built='1';
+    box.innerHTML=VARS.map(v=>`<span class="var">${v}</span>`).join('');
+  });
+}
+document.addEventListener('click',e=>{
+  if(!e.target.classList.contains('var')) return;
+  const box=e.target.closest('.vars'); const key=box.dataset.target;
+  const ta=document.querySelector(`[data-k="${key}"]`); if(!ta) return;
+  const s=ta.selectionStart??ta.value.length, t=ta.selectionEnd??s;
+  ta.value=ta.value.slice(0,s)+e.target.textContent+ta.value.slice(t);
+  ta.focus(); ta.selectionStart=ta.selectionEnd=s+e.target.textContent.length;
+  setPath(cfg,key,ta.value); touch();
+});
+
+function readEl(el){
+  if(el.type==='checkbox') return el.checked;
+  if(el.type==='number'){ return el.value===''?0:Number(el.value); }
+  const v=el.value;
+  return v===''?null:v;
+}
+['input','change'].forEach(ev=>document.addEventListener(ev,e=>{
+  const el=e.target;
+  if(!el.matches('[data-k]')) return;
+  let v=readEl(el);
+  if(el.tagName!=='SELECT'&&el.type!=='checkbox'&&el.type!=='number'&&v===null) v='';
+  setPath(cfg,el.dataset.k,v);
+  // l'en-tête d'un type de ticket suit le nom / l'emoji sans re-rendre toute la page
+  const m=el.dataset.k.match(/^tickets\.choix\.(\d+)\.(nom|emoji)$/);
+  if(m){
+    const card=document.querySelectorAll('#tkList .tk')[Number(m[1])];
+    if(card){
+      if(m[2]==='nom') card.querySelector('.tk-h b').textContent=(v||'Sans nom');
+      else card.querySelector('.tk-h .em').textContent=(v||'🎫');
+    }
+  }
+  applyConditions(); touch();
+}));
+
+const dirty=()=>JSON.stringify(cfg)!==JSON.stringify(saved);
+function touch(){ $('savebar').classList.toggle('show',dirty()); renderModules(); }
+function renderModules(){
+  const rows=MODULES.map(([k,label,fn])=>{ let on=false; try{ on=!!fn(cfg); }catch{} return [label,on]; });
+  $('stModules').textContent=rows.filter(r=>r[1]).length;
+  $('stTickets').textContent=(cfg.tickets.choix||[]).length;
+  $('modList').innerHTML=rows.map(([l,on])=>`
+    <div class="row"><div class="row-t"><strong>${esc(l)}</strong></div>
+      <div class="row-c"><span class="tagp" style="${on?'':'background:var(--card2);color:var(--dim)'}">${on?'Actif':'Inactif'}</span></div></div>`).join('');
+}
+
+/* ---------------- navigation ---------------- */
+function buildNav(){
+  $('navwrap').innerHTML=NAV.map(([grp,items])=>
+    `<div class="grp">${esc(grp)}</div>`+items.map(([k,label,,icon])=>
+      `<button class="nav" data-p="${k}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icon}</svg>${esc(label)}</button>`
+    ).join('')).join('');
+  document.querySelectorAll('.nav').forEach(n=>n.addEventListener('click',()=>go(n.dataset.p)));
+}
+function go(p){
+  document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('on',n.dataset.p===p));
+  document.querySelectorAll('.page').forEach(x=>x.classList.toggle('on',x.id==='pg-'+p));
+  const [t,s]=PAGES[p]||['Dashboard',''];
+  $('pageTitle').textContent=t; $('pageSub').textContent=s;
+  closeSide(); window.scrollTo({top:0,behavior:'smooth'});
+  try{ history.replaceState({},'','?guild='+encodeURIComponent(guildId)+'#'+p); }catch{}
+}
+const openSide=()=>{ $('side').classList.add('open'); $('ovl').classList.add('show'); };
+const closeSide=()=>{ $('side').classList.remove('open'); $('ovl').classList.remove('show'); };
+$('burger').addEventListener('click',openSide);
+$('ovl').addEventListener('click',closeSide);
+
+const pill=$('userPill');
+pill.addEventListener('click',e=>{ if(!e.target.closest('a,#btnLogout')) pill.classList.toggle('open'); });
+document.addEventListener('click',e=>{ if(!pill.contains(e.target)) pill.classList.remove('open'); });
+$('btnLogout').addEventListener('click',()=>{
+  try{ sessionStorage.removeItem(TOKEN_KEY); }catch{}
+  fetch(apiURL('/api/logout'),{method:'POST',credentials:API_CREDS,headers:authHeaders()}).catch(()=>{}).finally(()=>location.href='/index.html');
+});
+$('btnRefresh').addEventListener('click',()=>{
+  if(dirty()&&!confirm('Tu as des modifications non enregistrées. Recharger quand même ?')) return;
+  saved=structuredClone(cfg); location.reload();
+});
+
+function toast(msg,kind){
+  const t=$('toast'); t.textContent=msg; t.className='toast show '+(kind||'ok');
+  clearTimeout(t._h); t._h=setTimeout(()=>t.className='toast',2800);
+}
+
+/* ---------------- enregistrement ---------------- */
+$('btnCancel').addEventListener('click',()=>{ cfg=structuredClone(saved); render(); touch(); toast('Modifications annulées'); });
+$('btnSave').addEventListener('click',async()=>{
+  const b=$('btnSave'); b.disabled=true; b.textContent='Enregistrement…';
+  localSet(cfg);
+  const ok=await apiSave(cfg);
+  saved=structuredClone(cfg); touch();
+  b.disabled=false; b.textContent='Enregistrer';
+  $('noteLocal').classList.toggle('hidden',ok);
+  toast(ok?'Configuration envoyée au bot ✓':'Enregistré localement — API du bot injoignable',ok?'ok':'err');
+});
+$('btnReset').addEventListener('click',()=>{
+  if(!confirm('Remettre TOUS les réglages de ce serveur par défaut ?')) return;
+  cfg=structuredClone(DEFAULTS); render(); touch();
+  toast('Réglages remis par défaut — pense à enregistrer','err');
+});
+$('btnExport').addEventListener('click',async()=>{
+  const txt=JSON.stringify(cfg,null,2);
+  try{ await navigator.clipboard.writeText(txt); toast('Configuration copiée ✓'); }
+  catch{ $('importBox').value=txt; toast('Copie impossible — JSON affiché ci-dessous','err'); }
+});
+$('btnImport').addEventListener('click',()=>{
+  let data; try{ data=JSON.parse($('importBox').value); }catch{ return toast('JSON invalide','err'); }
+  if(!data||typeof data!=='object') return toast('JSON invalide','err');
+  cfg=Object.assign(structuredClone(DEFAULTS),data);
+  render(); touch(); toast('Configuration importée — pense à enregistrer');
+});
+window.addEventListener('beforeunload',e=>{ if(dirty()){ e.preventDefault(); e.returnValue=''; } });
+
+function fatal(title,detail,actions){
+  $('boot').innerHTML=`<h3>${esc(title)}</h3><p>${esc(detail)}</p><div class="a">${actions}</div>`;
+}
+
+/* ---------------- démarrage ---------------- */
+async function boot(){
+  buildNav();
+  if(!guildId||!/^\d{5,25}$/.test(guildId)){
+    fatal('Serveur introuvable',"L'adresse ne contient pas d'identifiant de serveur valide.",
+      `<a class="btn p" href="/servers.html">Choisir un serveur</a>`); return;
+  }
+  const token=loadToken();
+  if(!token){ location.href=authorizeURL(); return; }
+
+  let user,guilds;
+  try{
+    user=await discord('/users/@me',token);
+    $('uName').textContent=user.global_name||user.username||'Utilisateur';
+    $('uAvatar').src=avatarURL(user);
+    guilds=await discord('/users/@me/guilds?with_counts=true',token);
+  }catch(err){
+    if(err.code===401){ try{ sessionStorage.removeItem(TOKEN_KEY); }catch{} location.href=authorizeURL(); return; }
+    fatal('Connexion impossible',err.message||String(err),
+      `<button class="btn p" onclick="location.reload()">Réessayer</button><a class="btn" href="/servers.html">Mes serveurs</a>`); return;
+  }
+
+  guild=(guilds||[]).find(x=>String(x.id)===String(guildId));
+  if(!guild){ fatal('Serveur inaccessible',"Tu n'es pas membre de ce serveur.",`<a class="btn p" href="/servers.html">Mes serveurs</a>`); return; }
+  if(!hasAdmin(guild)){
+    fatal('Accès refusé',`Il faut la permission Administrateur ou Gérer le serveur sur « ${guild.name} ».`,
+      `<a class="btn p" href="/servers.html">Mes serveurs</a>`); return;
+  }
+
+  const ini=initials(guild.name);
+  const iconURL=guild.icon?`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.${String(guild.icon).startsWith('a_')?'gif':'png'}?size=128`:null;
+  $('gswName').textContent=guild.name;
+  $('gswIcon').outerHTML=iconURL
+    ? `<img id="gswIcon" src="${iconURL}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='<div id=\\'gswIcon\\' class=\\'gi\\'>${esc(ini)}</div>'">`
+    : `<div id="gswIcon" class="gi">${esc(ini)}</div>`;
+  $('heroName').textContent=guild.name;
+  $('heroTag').textContent=guild.owner?'Propriétaire':'Administrateur';
+  $('heroIcon').innerHTML=iconURL
+    ? `<img class="hicon" src="${iconURL}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=\\'hini\\'>${esc(ini)}</div>'">`
+    : `<div class="hini">${esc(ini)}</div>`;
+  $('stMembers').textContent=guild.approximate_member_count??'—';
+  $('stOnline').textContent=guild.approximate_presence_count??'—';
+  $('pageSub').textContent=PAGES.overview[1];
+
+  // configuration : API du bot en priorité, sinon sauvegarde locale
+  const dash=await apiGet(`/api/guild/${encodeURIComponent(guildId)}/dashboard`);
+  if(dash&&dash.config){
+    apiAlive=true;
+    META={channels:dash.channels||[],roles:dash.roles||[],categories:dash.categories||[],log_types:dash.log_types||[]};
+    cfg=deepMerge(structuredClone(DEFAULTS),dash.config);
+    if(dash.guild){
+      if(dash.guild.members!=null) $('stMembers').textContent=dash.guild.members;
+      if(dash.guild.online!=null) $('stOnline').textContent=dash.guild.online;
+    }
+  }else{
+    cfg=deepMerge(structuredClone(DEFAULTS),localGet()||{});
+  }
+  saved=structuredClone(cfg);
+
+  render();
+  $('noteLocal').classList.toggle('hidden',apiAlive);
+  $('boot').classList.add('hidden');
+  $('app').classList.remove('hidden');
+  touch();
+
+  const stats=await apiGet(`/api/guild/${encodeURIComponent(guildId)}/stats`);
+  if(stats){
+    if(stats.members!=null) $('stMembers').textContent=stats.members;
+    if(stats.online!=null) $('stOnline').textContent=stats.online;
+    if(Array.isArray(stats.recent)&&stats.recent.length)
+      $('recentBox').innerHTML=stats.recent.slice(0,6).map(r=>
+        `<div class="row"><div class="row-t"><strong>${esc(r.title||'')}</strong><span>${esc(r.detail||'')}</span></div></div>`).join('');
+  }
+
+  const h=(location.hash||'').replace('#','');
+  go(h&&PAGES[h]?h:'overview');
+}
+
+function deepMerge(base,extra){
+  if(!extra||typeof extra!=='object') return base;
+  for(const [k,v] of Object.entries(extra)){
+    if(v===null||v===undefined) continue;
+    if(Array.isArray(v)) base[k]=v;
+    else if(typeof v==='object') base[k]=deepMerge(typeof base[k]==='object'&&base[k]?base[k]:{},v);
+    else base[k]=v;
+  }
+  return base;
+}
+
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot);
+else boot();
+</script>
+</body>
+</html>
