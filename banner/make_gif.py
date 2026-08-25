@@ -23,6 +23,7 @@ PRESETS = {
     "server": (960, 540),     # banniere de serveur Discord
     "wide": (960, 384),       # 2.5:1, le format de l'image d'origine
     "hd": (1920, 768),        # 2.5:1 pleine largeur, pour la video
+    "big": (1200, 480),       # 2.5:1, GIF pleine largeur
 }
 
 
@@ -138,9 +139,12 @@ def render(src, size, frames, count, seed, zoom=0.0):
 
 
 def save_gif(out, frames, fps, colors=200):
-    pal = [f.quantize(colors=colors, method=Image.MEDIANCUT) for f in frames]
+    """Palette commune a toutes les images : le fond ne bouge pas, seul ce qui
+    change est reecrit d'une image a l'autre, ce qui allege beaucoup le GIF."""
+    base = frames[len(frames) // 2].quantize(colors=colors, method=Image.MEDIANCUT)
+    pal = [f.quantize(palette=base, dither=Image.NONE) for f in frames]
     pal[0].save(out, save_all=True, append_images=pal[1:],
-                duration=int(1000 / fps), loop=0, optimize=True, disposal=2)
+                duration=int(1000 / fps), loop=0, optimize=True, disposal=1)
 
 
 def save_mp4(out, frames, fps, seconds):

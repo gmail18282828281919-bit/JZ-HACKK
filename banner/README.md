@@ -13,8 +13,9 @@ dedans, aucun fichier à côté n'est nécessaire).
   en cliquant dessus ;
 - le curseur **Densité** règle le nombre de pétales ;
 - **Mode capture** affiche la bannière seule, plein écran, pour l'enregistrer ;
-- **Télécharger en PNG** exporte la bannière seule en `1983 × 793`, avec les
-  pétales et le reflet tels qu'ils sont à l'instant du clic, et rien d'autre.
+- **GIF animé** télécharge la bannière animée en `1200 × 480` ;
+- **PNG** exporte l'image fixe en `1983 × 793`, avec les pétales et le reflet
+  tels qu'ils sont à l'instant du clic.
 
 ## 2. Les fichiers prêts à l'emploi
 
@@ -23,7 +24,8 @@ dedans, aucun fichier à côté n'est nécessaire).
 | `banner.mp4` | 1920 × 768 | version animée, 12 s en boucle — s'enregistre dans la galerie du téléphone |
 | `banner-1983x793.png` | 1983 × 793 | image fixe pleine résolution, sans texte |
 | `banner-discord-680x240.png` | 1360 × 480 | bannière de profil Discord (×2) |
-| `banner-discord.gif` | 680 × 240 | bannière de profil Discord |
+| `banner.gif` | 1200 × 480 | GIF animé pleine largeur, 4 Mo |
+| `banner-discord.gif` | 680 × 240 | bannière de profil Discord, 1,9 Mo |
 | `banner-wide.gif` | 960 × 384 | en-tête large (2.5:1, le format d'origine) |
 
 Tout boucle sans saut : les pétales et le reflet reviennent exactement à leur
