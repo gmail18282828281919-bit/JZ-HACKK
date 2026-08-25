@@ -7,7 +7,7 @@ Deux façons d'animer l'illustration `source.png`.
 Ouvre le fichier dans un navigateur (double-clic suffit, l'image est intégrée
 dedans, aucun fichier à côté n'est nécessaire).
 
-- couches à couper/remettre : pétales, vent, reflet, signature (coupée par
+- couches à couper/remettre : pétales, mouvement, signature (coupée par
   défaut) ;
 - la signature est masquée par défaut ; si tu l'actives, le texte se modifie
   en cliquant dessus ;

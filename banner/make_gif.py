@@ -47,12 +47,17 @@ def _smoothstep(e0, e1, x):
     return t * t * (3.0 - 2.0 * t)
 
 
-def _blob(u, v, cx, cy, rx, ry):
-    """Masque doux en forme d'ellipse : 1 au centre, 0 au dela."""
+def _blob(u, v, cx, cy, rx, ry, plateau=0.75):
+    """Masque en plateau : 1 sur tout le coeur de la zone, puis descente vers 0.
+
+    Le plateau est ce qui evite la deformation : le visage se deplace d'un
+    bloc, et seule la bande de descente (posee sur les cheveux et la capuche)
+    encaisse la difference.
+    """
     import numpy as np
 
     d = np.sqrt(((u - cx) / rx) ** 2 + ((v - cy) / ry) ** 2)
-    return 1.0 - _smoothstep(0.60, 1.0, d)
+    return 1.0 - _smoothstep(plateau, 1.15, d)
 
 
 def motion_setup(w, h):
@@ -69,8 +74,8 @@ def motion_setup(w, h):
 
     d_char = np.sqrt(((u - 0.30) / 0.40) ** 2 + ((v - 0.60) / 0.80) ** 2)
     m_bg = np.clip((d_char - 0.55) / 0.55, 0.0, 1.0) ** 1.4
-    m_head = _blob(u, v, 0.29, 0.35, 0.20, 0.34)
-    m_arm = _blob(u, v, 0.52, 0.78, 0.16, 0.26)
+    m_head = _blob(u, v, 0.29, 0.36, 0.25, 0.42)
+    m_arm = _blob(u, v, 0.55, 0.82, 0.18, 0.30)
     return xs, ys, u, v, m_bg, m_head, m_arm
 
 
@@ -98,12 +103,12 @@ def motion_warp(arr, xs, ys, u, v, m_bg, m_head, m_arm, t, amp):
     dy = np.sin(a + u * 7.0 + 1.7) * (amp * 1.0) * m_bg
 
     # tete : part a gauche, revient, avec un leger balancement vertical
-    dx -= m_head * (amp * 2.2 * sa)
-    dy += m_head * (amp * 0.8 * math.sin(a + 1.57))
+    dx -= m_head * (amp * 1.8 * sa)
+    dy += m_head * (amp * 0.6 * math.sin(a + 1.57))
 
     # bras : part a droite pendant que la tete part a gauche
-    dx += m_arm * (amp * 1.9 * sa)
-    dy += m_arm * (amp * 0.7 * sa)
+    dx += m_arm * (amp * 1.3 * sa)
+    dy += m_arm * (amp * 0.5 * sa)
 
     sx = np.clip(xs + dx * w, 0, w - 1.001)
     sy = np.clip(ys + dy * h, 0, h - 1.001)
@@ -129,21 +134,6 @@ def vignette(w, h, strength=0.55):
     alpha = mask.point(lambda v: int((255 - v) * strength))
     dark.putalpha(alpha)
     return dark
-
-
-def sweep_band(w, h):
-    """Bande lumineuse diagonale, pre-rendue une fois."""
-    bw = int(w * 0.34)
-    band = Image.new("L", (bw, h * 2), 0)
-    d = ImageDraw.Draw(band)
-    for x in range(bw):
-        t = x / max(bw - 1, 1)
-        v = math.sin(math.pi * t) ** 2
-        d.line((x, 0, x, h * 2), fill=int(190 * v))
-    band = band.rotate(-14, expand=True, resample=Image.BICUBIC)
-    light = Image.new("RGB", band.size, (214, 236, 255))
-    light.putalpha(band.filter(ImageFilter.GaussianBlur(6)))
-    return light
 
 
 def render(src, size, frames, count, seed, zoom=0.0, wind=0.010,
@@ -178,8 +168,6 @@ def render(src, size, frames, count, seed, zoom=0.0, wind=0.010,
             eyes_arr = np.asarray(eyes, dtype=np.float32)
     stamp = petal_stamp()
     vig = vignette(w, h)
-    band = sweep_band(w, h)
-    travel = w + band.width
 
     petals = []
     for _ in range(count):
@@ -216,12 +204,6 @@ def render(src, size, frames, count, seed, zoom=0.0, wind=0.010,
             frame = frame.crop(((cw - w) // 2, (ch - h) // 2,
                                 (cw - w) // 2 + w, (ch - h) // 2 + h))
 
-        # reflet lumineux : entre et sort du cadre sur une boucle
-        pos = int(-band.width + travel * t)
-        glow = Image.new("RGB", (w, h), (0, 0, 0))
-        glow.paste(band.convert("RGB"), (pos, -h // 4), band.split()[3])
-        frame = Image.blend(frame, _screen(frame, glow), 0.55)
-
         # petales
         layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
         for p in petals:
@@ -241,10 +223,14 @@ def render(src, size, frames, count, seed, zoom=0.0, wind=0.010,
     return out_frames
 
 
-def save_gif(out, frames, fps, colors=200):
+def save_gif(out, frames, fps, colors=256):
     """Palette commune a toutes les images : le fond ne bouge pas, seul ce qui
     change est reecrit d'une image a l'autre, ce qui allege beaucoup le GIF."""
-    base = frames[len(frames) // 2].quantize(colors=colors, method=Image.MEDIANCUT)
+    # palette prise sur plusieurs images de la boucle, pas une seule
+    sample = Image.new("RGB", (frames[0].width, frames[0].height * 3))
+    for i in range(3):
+        sample.paste(frames[i * len(frames) // 3], (0, frames[0].height * i))
+    base = sample.quantize(colors=colors, method=Image.MEDIANCUT)
     pal = [f.quantize(palette=base, dither=Image.NONE) for f in frames]
     pal[0].save(out, save_all=True, append_images=pal[1:],
                 duration=int(1000 / fps), loop=0, optimize=True, disposal=1)
@@ -293,7 +279,7 @@ def main():
                     help="amplitude du zoom lent, 0 = image fixe (defaut)")
     ap.add_argument("--wind", type=float, default=0.010,
                     help="amplitude du mouvement (decor, tete, bras)")
-    ap.add_argument("--colors", type=int, default=200,
+    ap.add_argument("--colors", type=int, default=256,
                     help="couleurs de la palette GIF, baisser allege le fichier")
     ap.add_argument("--open-eyes", dest="open_eyes",
                     help="image ou les deux yeux sont ouverts (make_open_eye.py) : "
