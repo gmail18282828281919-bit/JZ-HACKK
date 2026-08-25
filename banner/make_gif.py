@@ -74,6 +74,16 @@ def motion_setup(w, h):
     return xs, ys, u, v, m_bg, m_head, m_arm
 
 
+def eye_opening(t):
+    """Ouverture de l'oeil ferme, entre 0 et 1, calee sur le depart de la tete.
+
+    Nulle au debut et a la fin de la boucle : l'enchainement reste invisible.
+    """
+    x = math.sin(math.tau * t)
+    e = min(max((x - 0.30) / 0.60, 0.0), 1.0)
+    return e * e * (3.0 - 2.0 * e)
+
+
 def motion_warp(arr, xs, ys, u, v, m_bg, m_head, m_arm, t, amp):
     """Une image de la boucle. Tout est en sinus d'un tour complet, donc la
     derniere image retombe exactement sur la premiere : pas de coupure."""
@@ -136,7 +146,8 @@ def sweep_band(w, h):
     return light
 
 
-def render(src, size, frames, count, seed, zoom=0.0, wind=0.004):
+def render(src, size, frames, count, seed, zoom=0.0, wind=0.010,
+           open_eyes=None):
     random.seed(seed)
     w, h = size
     base = Image.open(src).convert("RGB")
@@ -146,19 +157,25 @@ def render(src, size, frames, count, seed, zoom=0.0, wind=0.004):
     bw, bh = base.size
     if bw / bh > target:
         nw = int(bh * target)
-        base = base.crop(((bw - nw) // 2, 0, (bw + nw) // 2, bh))
+        crop_box = ((bw - nw) // 2, 0, (bw + nw) // 2, bh)
     else:
         nh = int(bw / target)
         top = int((bh - nh) * 0.42)   # garde le haut, ou vivent les fleurs
-        base = base.crop((0, top, bw, top + nh))
+        crop_box = (0, top, bw, top + nh)
+    base = base.crop(crop_box)
 
     zoom_max = 1.0 + max(zoom, 0.0)
     big = base.resize((int(w * zoom_max), int(h * zoom_max)), Image.LANCZOS)
 
+    eyes_arr = None
     if wind > 0:
         import numpy as np
         wind_arr = np.asarray(big.resize((w, h), Image.LANCZOS), dtype=np.float32)
         wind_grid = motion_setup(w, h)
+        if open_eyes:
+            eyes = Image.open(open_eyes).convert("RGB")
+            eyes = eyes.crop(crop_box).resize((w, h), Image.LANCZOS)
+            eyes_arr = np.asarray(eyes, dtype=np.float32)
     stamp = petal_stamp()
     vig = vignette(w, h)
     band = sweep_band(w, h)
@@ -184,7 +201,13 @@ def render(src, size, frames, count, seed, zoom=0.0, wind=0.004):
 
         if wind > 0:
             # decor, tete et bras bougent chacun de leur cote
-            frame = motion_warp(wind_arr, *wind_grid, t, wind)
+            src_arr = wind_arr
+            if eyes_arr is not None:
+                # l'oeil s'ouvre quand la tete part, et se referme au retour
+                k = eye_opening(t)
+                if k > 0.002:
+                    src_arr = wind_arr + (eyes_arr - wind_arr) * k
+            frame = motion_warp(src_arr, *wind_grid, t, wind)
         else:
             # zoom sinusoidal : identique au debut et a la fin
             z = 1.0 + (zoom_max - 1.0) * (0.5 - 0.5 * math.cos(math.tau * t))
@@ -272,13 +295,16 @@ def main():
                     help="amplitude du mouvement (decor, tete, bras)")
     ap.add_argument("--colors", type=int, default=200,
                     help="couleurs de la palette GIF, baisser allege le fichier")
+    ap.add_argument("--open-eyes", dest="open_eyes",
+                    help="image ou les deux yeux sont ouverts (make_open_eye.py) : "
+                         "l'oeil ferme s'ouvre alors quand la tete tourne")
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--seconds", type=float, default=8.0,
                     help="duree visee pour un MP4 (la boucle est repetee)")
     a = ap.parse_args()
 
     frames = render(a.source, PRESETS[a.preset], a.frames, a.petals,
-                    a.seed, a.zoom, a.wind)
+                    a.seed, a.zoom, a.wind, a.open_eyes)
     if a.out.lower().endswith(".mp4"):
         save_mp4(a.out, frames, a.fps, a.seconds)
     else:

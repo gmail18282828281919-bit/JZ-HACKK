@@ -39,6 +39,18 @@ Trois zones bougent séparément, chacune avec un masque à bords doux :
 | décor (branches, fleurs, ciel) | ondulation de vent à deux fréquences |
 | tête | part à gauche, revient, avec un léger balancement |
 | bras | part à droite pendant que la tête part à gauche |
+| œil fermé | s'ouvre quand la tête part, se referme au retour |
+
+L'œil ouvert n'existe pas dans l'illustration : `make_open_eye.py` le
+reconstruit en recopiant l'autre œil, retourné, redimensionné et posé avec un
+masque à bords doux. Le générateur fond les deux images l'une dans l'autre au
+fil de la boucle.
+
+```sh
+python3 banner/make_open_eye.py banner/source.png -o banner/source-open.png
+python3 banner/make_gif.py banner/source.png --open-eyes banner/source-open.png \
+    -o banner/banner.gif --preset wide
+```
 
 Tout est en sinus d'un tour complet, donc la dernière image retombe exactement
 sur la première. `--wind 0` fige l'image, `--wind 0.01` double l'amplitude.
