@@ -113,6 +113,12 @@ const OVERLAY = () => {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+// SOUS_TITRES=false → la voix off remplace le texte à l'écran.
+// Chaque réplique est horodatée pour caler l'audio ensuite.
+const SOUS_TITRES = process.env.CAPTIONS === '1';
+const MARKS = [];
+let T0 = 0;
+
 (async () => {
   fs.rmSync(OUT,{recursive:true,force:true}); fs.mkdirSync(OUT,{recursive:true});
   const browser = await chromium.launch({args:['--no-sandbox','--no-proxy-server','--disable-lcd-text']});
@@ -195,7 +201,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const page = await ctx.newPage();
   page.on('console',m=>{ if(m.type()==='error'&&!/Failed to load/.test(m.text())) errs.push(m.text()); });
 
-  const cap = t => page.evaluate(t=>window.__cap&&window.__cap(t), t).catch(()=>{});
+  const cap = async t => {
+    MARKS.push({ t:(Date.now()-T0)/1000, texte:String(t||'').replace(/\*/g,'') });
+    if(SOUS_TITRES) await page.evaluate(t=>window.__cap&&window.__cap(t), t).catch(()=>{});
+  };
   const M = page.mouse;
   let mx=VW/2, my=VH-80;
   async function moveTo(sel,{dx=0,dy=0,steps=26}={}){
@@ -209,12 +218,13 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   async function clickAt(sel,opt={}){ await moveTo(sel,opt); await sleep(180); await M.down(); await sleep(90); await M.up(); }
 
   /* ─────────── 1. LISTE DES SERVEURS ─────────── */
+  T0 = Date.now();
   await page.goto(ORIGIN+'/servers.html',{waitUntil:'domcontentloaded'});
   await page.waitForSelector('.srv',{timeout:8000});
   await sleep(400);
-  await cap('Tu te connectes *avec Discord*');
-  await sleep(1400);
-  await cap('Tu choisis *ton serveur*');
+  await cap('Tu te connectes avec Discord.');
+  await sleep(2100);
+  await cap('Tu choisis ton serveur.');
   await clickAt('.srv.clickable');
   await sleep(700);
 
@@ -222,25 +232,26 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await page.waitForURL(/dash\.html/,{timeout:8000});
   await page.waitForSelector('#app:not(.hidden)',{timeout:9000});
   await sleep(600);
-  await cap('Et là tu vois *tout* ton serveur');
+  await cap("Et là, tu vois tout ton serveur.");
   await sleep(1900);
 
   /* ─────────── 3. MENU → TICKETS ─────────── */
   await clickAt('#burger');
   await sleep(700);
-  await cap('Tout est là. *Zéro commande.*');
+  await cap('Tous les modules sont dans le menu. Zéro commande.');
+  await sleep(1200);
   await clickAt('.nav[data-p="tickets"]');
   await sleep(900);
 
   /* ─────────── 4. CONFIG DU PANNEAU ─────────── */
-  await cap('Les tickets ? *Tu cliques.*');
+  await cap("Les tickets, tu les configures ici.");
   await clickAt('[data-k="tickets.panel.titre"]');
   await page.keyboard.type('Support ModeraBot',{delay:55});
   await sleep(500);
 
   await clickAt('#tkAdd');
   await sleep(700);
-  await cap('Le salon, la *catégorie*, les rôles staff');
+  await cap('Tu choisis la catégorie, puis les rôles du staff.');
 
   await clickAt('[data-k="tickets.choix.0.nom"]');
   await page.keyboard.press('Control+A'); await page.keyboard.type('Support',{delay:60});
@@ -257,19 +268,20 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await page.selectOption('[data-roles="tickets.choix.0.roles"] select','302');
   await sleep(700);
 
-  await cap("Tu actives *l'IA* qui répond toute seule");
+  await cap("Tu peux même activer l'I.A., qui répond à ta place.");
+  await sleep(900);
   await clickAt('[data-k="tickets.choix.0.ia_enabled"] + i');
-  await sleep(700);
+  await sleep(1700);
 
   /* ─────────── 5. ENREGISTRER ─────────── */
-  await cap("Tu enregistres. *C'est envoye au bot.*".replace("envoye","envoyé"));
+  await cap("Tu enregistres, et tout part dans le bot.");
   await clickAt('#btnSave');
   await sleep(1500);
 
   /* ─────────── 6. DISCORD ─────────── */
   await page.goto(ORIGIN+'/promo/discord.html',{waitUntil:'domcontentloaded'});
   await sleep(500);
-  await cap('Et sur Discord... *le panneau est là*');
+  await cap('Sur Discord, le panneau est déjà là.');
   await page.evaluate(()=>document.getElementById('panel').classList.add('in'));
   await sleep(1400);
   await clickAt('#btnSupport');
@@ -277,7 +289,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await sleep(160);
   await page.evaluate(()=>document.getElementById('btnSupport').classList.remove('press'));
   await sleep(400);
-  await cap('Un clic → le ticket se crée *tout seul*');
+  await cap('Un clic, et le ticket se crée tout seul.');
   await page.evaluate(()=>document.getElementById('chNew').classList.add('in'));
   await sleep(700);
   await page.evaluate(()=>document.getElementById('created').classList.add('in'));
@@ -285,8 +297,12 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   /* ─────────── 7. FIN ─────────── */
   await page.goto(ORIGIN+'/promo/end.html',{waitUntil:'domcontentloaded'});
-  await sleep(2600);
+  await sleep(300);
+  await cap('ModeraBot. Ton serveur, réglé depuis ton navigateur.');
+  await sleep(2900);
 
+  fs.writeFileSync(DIR+'/promo/marks.json', JSON.stringify(MARKS,null,2));
+  console.log('répliques horodatées :', MARKS.length);
   console.log(errs.length?'ERREURS: '+errs.join(' | '):'aucune erreur JS');
   await ctx.close(); await browser.close();
   const f=fs.readdirSync(OUT).find(x=>x.endsWith('.webm'));

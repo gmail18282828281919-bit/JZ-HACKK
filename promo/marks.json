@@ -1,0 +1,46 @@
+[
+  {
+    "t": 0.793,
+    "texte": "Tu te connectes avec Discord."
+  },
+  {
+    "t": 2.894,
+    "texte": "Tu choisis ton serveur."
+  },
+  {
+    "t": 5.324,
+    "texte": "Et là, tu vois tout ton serveur."
+  },
+  {
+    "t": 9.238,
+    "texte": "Tous les modules sont dans le menu. Zéro commande."
+  },
+  {
+    "t": 12.75,
+    "texte": "Les tickets, tu les configures ici."
+  },
+  {
+    "t": 17.635,
+    "texte": "Tu choisis la catégorie, puis les rôles du staff."
+  },
+  {
+    "t": 23.429,
+    "texte": "Tu peux même activer l'I.A., qui répond à ta place."
+  },
+  {
+    "t": 27.088,
+    "texte": "Tu enregistres, et tout part dans le bot."
+  },
+  {
+    "t": 30.485,
+    "texte": "Sur Discord, le panneau est déjà là."
+  },
+  {
+    "t": 33.435,
+    "texte": "Un clic, et le ticket se crée tout seul."
+  },
+  {
+    "t": 36.66,
+    "texte": "ModeraBot. Ton serveur, réglé depuis ton navigateur."
+  }
+]
