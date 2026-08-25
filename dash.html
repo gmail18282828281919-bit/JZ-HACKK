@@ -207,6 +207,25 @@ textarea{min-height:94px;resize:vertical;line-height:1.6}
 .ovl{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:55}
 .ovl.show{display:block}
 
+
+/* ==== composants dashboard complet ==== */
+.tk{position:relative;background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:15px 16px;margin-top:12px}
+.tk-h{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.tk-h .em{font-size:20px;line-height:1}
+.tk-h b{font-size:14px;font-weight:600;flex:1}
+.tk-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tk-grid .full{grid-column:1/-1}
+.tk-grid label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px}
+.mini{font-size:11.5px;font-weight:500;color:var(--dim);margin-top:5px;line-height:1.45}
+.rolebox{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pill-i{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--accent);
+  background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);border-radius:20px;padding:3px 10px}
+.subhead{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);
+  padding:16px 0 2px;border-top:1px solid var(--border);margin-top:8px}
+.subhead:first-child{border-top:none;margin-top:0;padding-top:4px}
+@media(max-width:700px){.tk-grid,.grid2{grid-template-columns:1fr}}
+
 @media(max-width:900px){
   .side{transform:translateX(-100%);box-shadow:0 0 40px rgba(0,0,0,.6)}
   .side.open{transform:none}
@@ -226,6 +245,7 @@ textarea{min-height:94px;resize:vertical;line-height:1.6}
 </head>
 <body>
 
+
 <!-- ============ SIDEBAR ============ -->
 <aside class="side" id="side">
   <div class="brand">
@@ -239,65 +259,7 @@ textarea{min-height:94px;resize:vertical;line-height:1.6}
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 9 12 5 16 9"/><polyline points="16 15 12 19 8 15"/></svg>
   </a>
 
-  <div class="navwrap" id="navwrap">
-    <div class="grp">Tableau de bord</div>
-    <button class="nav on" data-p="overview">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-      Vue d'ensemble
-    </button>
-    <button class="nav" data-p="general">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      Paramètres généraux
-    </button>
-
-    <div class="grp">Sécurité</div>
-    <button class="nav" data-p="automod">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="3"/><line x1="12" y1="8" x2="12" y2="11"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
-      AutoMod
-    </button>
-    <button class="nav" data-p="antiraid">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      Anti-raid
-    </button>
-    <button class="nav" data-p="sanctions">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12" y2="17"/></svg>
-      Sanctions
-    </button>
-    <button class="nav" data-p="logs">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
-      Logs
-    </button>
-    <button class="nav" data-p="staff">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
-      Rôles staff
-    </button>
-
-    <div class="grp">Communauté</div>
-    <button class="nav" data-p="welcome">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-      Bienvenue &amp; Au revoir
-    </button>
-    <button class="nav" data-p="autorole">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-      Rôle automatique
-    </button>
-
-    <div class="grp">Engagement</div>
-    <button class="nav" data-p="levels">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      Niveaux &amp; XP
-    </button>
-
-    <div class="grp">Avancé</div>
-    <button class="nav" data-p="export">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Import / Export
-    </button>
-    <button class="nav" data-p="danger">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-      Zone de danger
-    </button>
-  </div>
+  <div class="navwrap" id="navwrap"></div>
 </aside>
 <div class="ovl" id="ovl"></div>
 
@@ -341,145 +303,142 @@ textarea{min-height:94px;resize:vertical;line-height:1.6}
     <div id="app" class="hidden">
       <div id="noteLocal" class="banner warn hidden">
         <div class="ic">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12" y2="17"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
         </div>
-        <div>L'API du bot ne répond pas — tes réglages sont enregistrés <b>dans ce navigateur</b> et repartiront vers le bot dès que l'API refonctionnera.</div>
+        <div><b>L'API du bot ne répond pas.</b> Les salons et rôles ne peuvent pas être listés (saisie par ID), et tes réglages sont gardés dans ce navigateur en attendant.</div>
       </div>
 
       <!-- ===== VUE D'ENSEMBLE ===== -->
       <div class="page on" id="pg-overview">
-        <div class="banner">
-          <div class="ic">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-          </div>
-          L'état de ton serveur en un coup d'œil.
-        </div>
-
         <div class="hero">
           <div class="hi">
             <div id="heroIcon"></div>
             <div>
               <h2><span id="heroName">—</span><span class="tagp" id="heroTag">Administrateur</span></h2>
-              <p>Modération · Anti-raid · Bienvenue · Logs · Niveaux</p>
+              <p id="heroSub">Tickets · AutoMod · Anti-raid · Logs · Niveaux · Giveaways</p>
             </div>
           </div>
         </div>
-
         <div class="stats">
-          <div class="stat">
-            <div><b id="stMembers">—</b><span>Membres</span></div>
-            <div class="sic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
-          </div>
-          <div class="stat">
-            <div><b id="stOnline">—</b><span>En ligne</span></div>
-            <div class="sic g"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="12" r="5"/></svg></div>
-          </div>
-          <div class="stat">
-            <div><b id="stInfractions">—</b><span>Sanctions</span></div>
-            <div class="sic r"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg></div>
-          </div>
-          <div class="stat">
-            <div><b id="stModules">0</b><span>Modules actifs</span></div>
-            <div class="sic b"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-          </div>
+          <div class="stat"><div><b id="stMembers">—</b><span>Membres</span></div>
+            <div class="sic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div></div>
+          <div class="stat"><div><b id="stOnline">—</b><span>En ligne</span></div>
+            <div class="sic g"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="12" cy="12" r="5"/></svg></div></div>
+          <div class="stat"><div><b id="stTickets">—</b><span>Types de tickets</span></div>
+            <div class="sic b"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 6v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-6z"/></svg></div></div>
+          <div class="stat"><div><b id="stModules">0</b><span>Modules actifs</span></div>
+            <div class="sic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></div>
         </div>
-
-        <div class="card">
-          <div class="card-h"><h3>Activité — 7 derniers jours</h3></div>
-          <div class="card-b" id="activityBox">
-            <div class="empty">Données indisponibles — l'API du bot doit fournir <code>/api/guild/&lt;id&gt;/stats</code>.</div>
-          </div>
-        </div>
-
-        <div class="two">
+        <div class="grid2">
           <div class="card">
-            <div class="card-h"><h3>Modules activés</h3><p>Ce que ModeraBot applique en ce moment.</p></div>
+            <div class="card-h"><h3>Modules</h3><p>Ce que le bot applique en ce moment sur ce serveur.</p></div>
             <div class="card-b"><div id="modList"></div></div>
           </div>
           <div class="card">
-            <div class="card-h"><h3>Activité récente</h3></div>
-            <div class="card-b" id="recentBox"><div class="empty">Aucune activité récente</div></div>
+            <div class="card-h"><h3>Top membres</h3><p>Classement XP renvoyé par le bot.</p></div>
+            <div class="card-b" id="recentBox"><div class="empty">Aucune donnée</div></div>
           </div>
         </div>
       </div>
 
-      <!-- ===== GENERAL ===== -->
+      <!-- ===== GÉNÉRAL ===== -->
       <div class="page" id="pg-general">
         <div class="card">
-          <div class="card-h"><h3>Paramètres généraux</h3><p>Le comportement de base du bot sur ce serveur.</p></div>
+          <div class="card-h"><h3>Préfixe des commandes</h3><p>Le préfixe utilisé pour les commandes texte du bot sur ce serveur.</p></div>
           <div class="card-b">
             <div class="field">
-              <label for="prefix">Préfixe des commandes</label>
-              <div class="hint">Utilisé pour les commandes texte — les slash-commands fonctionnent toujours.</div>
-              <input type="text" id="prefix" class="w-md" maxlength="5" placeholder="!">
-            </div>
-            <div class="field">
-              <label for="lang">Langue du bot</label>
-              <div class="hint">Langue des réponses automatiques.</div>
-              <select id="lang"><option value="fr">Français</option><option value="en">English</option><option value="es">Español</option></select>
-            </div>
-            <div class="row">
-              <div class="row-t"><strong>Supprimer la commande</strong><span>Efface le message du membre après exécution.</span></div>
-              <div class="row-c"><label class="sw"><input type="checkbox" id="delCmd"><i></i></label></div>
-            </div>
-            <div class="row">
-              <div class="row-t"><strong>Erreurs en message privé</strong><span>Les erreurs partent en MP plutôt qu'en salon.</span></div>
-              <div class="row-c"><label class="sw"><input type="checkbox" id="dmErrors"><i></i></label></div>
+              <label for="f-prefix">Préfixe</label>
+              <div class="hint">1 à 5 caractères. Exemple : <code>+</code> → <code>+ticket</code></div>
+              <input type="text" id="f-prefix" class="w-md" maxlength="5" data-k="prefix" placeholder="+">
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ===== AUTOMOD ===== -->
-      <div class="page" id="pg-automod">
+      <!-- ===== TICKETS ===== -->
+      <div class="page" id="pg-tickets">
         <div class="card">
-          <div class="card-h"><h3>Filtres automatiques</h3><p>Messages supprimés automatiquement par le bot.</p></div>
+          <div class="card-h"><h3>Panneau des tickets</h3><p>L'embed que les membres voient pour ouvrir un ticket (commande <code>+ticket</code>).</p></div>
           <div class="card-b">
-            <div class="row"><div class="row-t"><strong>Anti-spam</strong><span>Supprime les messages répétés ou trop rapides.</span></div><div class="row-c"><label class="sw"><input type="checkbox" id="antiSpam"><i></i></label></div></div>
-            <div class="row"><div class="row-t"><strong>Messages max / 5 secondes</strong><span>Au-delà, le membre est averti.</span></div><div class="row-c"><input type="number" id="spamRate" min="2" max="20"></div></div>
-            <div class="row"><div class="row-t"><strong>Anti-invitations</strong><span>Supprime les liens d'invitation Discord.</span></div><div class="row-c"><label class="sw"><input type="checkbox" id="antiInvite"><i></i></label></div></div>
-            <div class="row"><div class="row-t"><strong>Anti-liens</strong><span>Supprime tous les liens externes.</span></div><div class="row-c"><label class="sw"><input type="checkbox" id="antiLink"><i></i></label></div></div>
-            <div class="row"><div class="row-t"><strong>Anti-majuscules</strong><span>Supprime les messages écrits en MAJUSCULES.</span></div><div class="row-c"><label class="sw"><input type="checkbox" id="antiCaps"><i></i></label></div></div>
-            <div class="row"><div class="row-t"><strong>Mentions max par message</strong><span>Au-delà, le message est supprimé.</span></div><div class="row-c"><input type="number" id="maxMentions" min="1" max="30"></div></div>
+            <div class="tk-grid">
+              <div><label>Titre du panneau</label><input type="text" data-k="tickets.panel.titre" maxlength="100" placeholder="Support ModeraBot"></div>
+              <div><label>Mode d'affichage</label>
+                <select data-k="tickets.panel.mode">
+                  <option value="select">Menu déroulant</option>
+                  <option value="bouton">Boutons</option>
+                  <option value="container_v2">Container V2</option>
+                </select>
+              </div>
+              <div class="full"><label>Description</label>
+                <textarea data-k="tickets.panel.description" maxlength="500" placeholder="Clique ci-dessous pour ouvrir un ticket."></textarea>
+              </div>
+              <div><label>Salon des logs tickets</label><span data-select="channel" data-sk="tickets.panel.logs"></span></div>
+              <div><label>Couleur de l'embed</label><input type="text" data-k="tickets.panel.couleur" maxlength="10" placeholder="#5865F2"></div>
+              <div class="full"><label>Image / bannière (URL)</label><input type="text" data-k="tickets.panel.image" maxlength="300" placeholder="https://..."></div>
+            </div>
           </div>
         </div>
         <div class="card">
-          <div class="card-h"><h3>Mots interdits</h3><p>Tout message contenant l'un de ces mots est supprimé.</p></div>
-          <div class="card-b">
-            <div class="add"><input type="text" id="wordIn" placeholder="Ajouter un mot puis Entrée"><button class="btn" id="wordAdd">Ajouter</button></div>
-            <div class="chips" id="badWordsChips"></div>
+          <div class="card-h">
+            <h3>Types de tickets</h3>
+            <p>Chaque type crée son propre salon, avec sa catégorie et ses rôles staff. 25 maximum (5 en mode boutons).</p>
           </div>
-        </div>
-        <div class="card">
-          <div class="card-h"><h3>Salons ignorés</h3><p>L'auto-modération ne s'applique pas dans ces salons.</p></div>
           <div class="card-b">
-            <div class="add"><input type="text" id="ignIn" placeholder="ID du salon" inputmode="numeric"><button class="btn" id="ignAdd">Ajouter</button></div>
-            <div class="chips" id="ignoredChannelsChips"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== ANTIRAID ===== -->
-      <div class="page" id="pg-antiraid">
-        <div class="card">
-          <div class="card-h"><h3>Protection anti-raid</h3><p>Sécurité contre les arrivées massives et les comptes jetables.</p></div>
-          <div class="card-b">
-            <div class="row"><div class="row-t"><strong>Anti-raid</strong><span>Bloque les vagues d'arrivées suspectes.</span></div><div class="row-c"><label class="sw"><input type="checkbox" id="antiRaid"><i></i></label></div></div>
-            <div class="row"><div class="row-t"><strong>Âge minimum du compte (jours)</strong><span>Les comptes plus récents sont refusés. 0 = désactivé.</span></div><div class="row-c"><input type="number" id="minAge" min="0" max="365"></div></div>
-            <div class="row"><div class="row-t"><strong>Protéger le staff</strong><span>Les rôles staff sont exemptés de l'auto-modération.</span></div><div class="row-c"><label class="sw"><input type="checkbox" id="staffImmune"><i></i></label></div></div>
+            <div id="tkList"></div>
+            <div style="margin-top:14px"><button class="btn p" id="tkAdd">+ Ajouter un type</button></div>
           </div>
         </div>
       </div>
 
-      <!-- ===== SANCTIONS ===== -->
-      <div class="page" id="pg-sanctions">
+      <!-- ===== BIENVENUE ===== -->
+      <div class="page" id="pg-welcome">
         <div class="card">
-          <div class="card-h"><h3>Sanctions automatiques</h3><p>Ce que fait le bot quand un membre accumule des avertissements.</p></div>
+          <div class="card-h"><h3>Message de bienvenue</h3><p>Envoyé quand un membre rejoint le serveur.</p></div>
           <div class="card-b">
-            <div class="row"><div class="row-t"><strong>Avertissements avant sanction</strong><span>Nombre de warns déclenchant la sanction.</span></div><div class="row-c"><input type="number" id="warnLimit" min="1" max="20"></div></div>
-            <div class="row"><div class="row-t"><strong>Sanction appliquée</strong><span>Action déclenchée à la limite atteinte.</span></div><div class="row-c"><select id="warnAction"><option value="none">Aucune</option><option value="mute">Rendre muet</option><option value="kick">Expulser</option><option value="ban">Bannir</option></select></div></div>
-            <div class="row"><div class="row-t"><strong>Durée du mute (minutes)</strong><span>Durée par défaut d'un mute automatique.</span></div><div class="row-c"><input type="number" id="muteDur" min="1" max="10080"></div></div>
-            <div class="row"><div class="row-t"><strong>Expiration des warns (jours)</strong><span>0 = les warns ne s'effacent jamais.</span></div><div class="row-c"><input type="number" id="warnExpire" min="0" max="365"></div></div>
+            <div class="row"><div class="row-t"><strong>Activer la bienvenue</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="welcome.enabled"><i></i></label></div></div>
+            <div class="field"><label>Salon d'accueil</label><div class="hint">Où le message est publié.</div>
+              <span data-select="channel" data-sk="welcome.channel_id" class="w-md"></span></div>
+            <div class="field"><label>Format du message</label>
+              <select data-k="welcome.mode" class="w-md"><option value="texte">Texte simple</option><option value="embed">Embed</option></select></div>
+            <div class="field" data-when="welcome.mode=texte"><label>Message</label>
+              <div class="hint">Variables cliquables ci-dessous.</div>
+              <textarea data-k="welcome.message" placeholder="Bienvenue {user} sur {server} !"></textarea>
+              <div class="vars" data-target="welcome.message"></div></div>
+            <div data-when="welcome.mode=embed">
+              <div class="field"><label>Titre de l'embed</label><input type="text" data-k="welcome.embed.titre" maxlength="256" placeholder="Bienvenue {username} !"></div>
+              <div class="field"><label>Description de l'embed</label>
+                <textarea data-k="welcome.embed.desc" placeholder="{user} a rejoint {server} !"></textarea>
+                <div class="vars" data-target="welcome.embed.desc"></div></div>
+              <div class="tk-grid">
+                <div><label>Couleur</label><input type="text" data-k="welcome.embed.color" maxlength="10" placeholder="#5865F2"></div>
+                <div><label>Miniature</label><input type="text" data-k="welcome.embed.thumb" placeholder="avatar ou une URL"></div>
+                <div class="full"><label>Grande image (URL)</label><input type="text" data-k="welcome.embed.image" placeholder="https://..."></div>
+              </div>
+            </div>
+            <div class="row"><div class="row-t"><strong>Suppression automatique</strong><span>Efface le message après X secondes. 0 = jamais.</span></div>
+              <div class="row-c"><input type="number" data-k="welcome.auto_delete" min="0" max="3600"></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Message privé d'accueil</h3><p>Envoyé en MP au membre qui rejoint.</p></div>
+          <div class="card-b">
+            <div class="row"><div class="row-t"><strong>Activer le MP</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="welcome.mp_enabled"><i></i></label></div></div>
+            <div class="field"><label>Message privé</label>
+              <textarea data-k="welcome.mp_message" placeholder="Salut {username}, bienvenue sur {server} !"></textarea>
+              <div class="vars" data-target="welcome.mp_message"></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Message de départ</h3><p>Envoyé quand un membre quitte le serveur.</p></div>
+          <div class="card-b">
+            <div class="field"><label>Salon des départs</label><div class="hint">Vide = départs non annoncés.</div>
+              <span data-select="channel" data-sk="depart.channel_id" class="w-md"></span></div>
+            <div class="field"><label>Titre</label><input type="text" data-k="depart.title" maxlength="256" placeholder="{username} a quitté le serveur."></div>
+            <div class="field"><label>Description</label>
+              <textarea data-k="depart.description" placeholder="Nous étions {membercount} membres."></textarea>
+              <div class="vars" data-target="depart.description"></div></div>
           </div>
         </div>
       </div>
@@ -487,134 +446,215 @@ textarea{min-height:94px;resize:vertical;line-height:1.6}
       <!-- ===== LOGS ===== -->
       <div class="page" id="pg-logs">
         <div class="card">
-          <div class="card-h"><h3>Journal des événements</h3><p>Le bot enregistre l'activité dans un salon dédié.</p></div>
+          <div class="card-h"><h3>Journaux d'événements</h3><p>Active chaque type de log et choisis son salon. Correspond à la commande <code>+logs</code>.</p></div>
+          <div class="card-b" id="logsBox"></div>
+        </div>
+      </div>
+
+      <!-- ===== ANTI-LIEN ===== -->
+      <div class="page" id="pg-antilink">
+        <div class="card">
+          <div class="card-h"><h3>Anti-lien</h3><p>Supprime les liens postés par les membres non autorisés (<code>+antilink</code>).</p></div>
           <div class="card-b">
-            <div class="row"><div class="row-t"><strong>Activer les logs</strong><span></span></div><div class="row-c"><label class="sw"><input type="checkbox" id="logEnabled"><i></i></label></div></div>
-            <div class="field">
-              <label for="logChannel">Salon des logs</label>
-              <div class="hint">ID du salon réservé au staff.</div>
-              <input type="text" id="logChannel" class="w-md" placeholder="123456789012345678" inputmode="numeric">
-            </div>
+            <div class="row"><div class="row-t"><strong>Activer l'anti-lien</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antilink.enabled"><i></i></label></div></div>
+            <div class="field"><label>Sanction</label>
+              <select data-k="antilink.action" class="w-md">
+                <option value="delete">Supprimer le message</option>
+                <option value="warn">Supprimer + avertir</option>
+                <option value="mute">Supprimer + rendre muet</option>
+                <option value="kick">Supprimer + expulser</option>
+                <option value="ban">Supprimer + bannir</option>
+              </select></div>
           </div>
         </div>
         <div class="card">
-          <div class="card-h"><h3>Événements enregistrés</h3></div>
+          <div class="card-h"><h3>Domaines autorisés</h3><p>Les liens contenant ces domaines ne sont jamais supprimés.</p></div>
           <div class="card-b">
-            <div class="row"><div class="row-t"><strong>Messages supprimés</strong><span></span></div><div class="row-c"><label class="sw"><input type="checkbox" id="logDel"><i></i></label></div></div>
-            <div class="row"><div class="row-t"><strong>Messages modifiés</strong><span></span></div><div class="row-c"><label class="sw"><input type="checkbox" id="logEdit"><i></i></label></div></div>
-            <div class="row"><div class="row-t"><strong>Arrivées et départs</strong><span></span></div><div class="row-c"><label class="sw"><input type="checkbox" id="logJoin"><i></i></label></div></div>
-            <div class="row"><div class="row-t"><strong>Sanctions</strong><span></span></div><div class="row-c"><label class="sw"><input type="checkbox" id="logSanction"><i></i></label></div></div>
-            <div class="row"><div class="row-t"><strong>Changements de rôles</strong><span></span></div><div class="row-c"><label class="sw"><input type="checkbox" id="logRole"><i></i></label></div></div>
-            <div class="row"><div class="row-t"><strong>Salons créés / supprimés</strong><span></span></div><div class="row-c"><label class="sw"><input type="checkbox" id="logChan"><i></i></label></div></div>
+            <div class="add"><input type="text" id="wlIn" placeholder="exemple : youtube.com"><button class="btn" id="wlAdd">Ajouter</button></div>
+            <div class="chips" id="wlChips"></div>
           </div>
         </div>
       </div>
 
-      <!-- ===== STAFF ===== -->
-      <div class="page" id="pg-staff">
+      <!-- ===== ANTI-RAID ===== -->
+      <div class="page" id="pg-antiraid">
         <div class="card">
-          <div class="card-h"><h3>Rôles du staff</h3><p>Ces rôles peuvent utiliser les commandes de modération. Active le mode développeur sur Discord, puis clic droit sur un rôle → Copier l'identifiant.</p></div>
+          <div class="card-h"><h3>Anti-raid</h3><p>Protection contre les vagues d'arrivées et le spam (<code>+antiraid</code>).</p></div>
           <div class="card-b">
-            <div class="add"><input type="text" id="staffIn" placeholder="ID du rôle" inputmode="numeric"><button class="btn" id="staffAdd">Ajouter</button></div>
-            <div class="chips" id="staffRolesChips"></div>
+            <div class="row"><div class="row-t"><strong>Activer l'anti-raid</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antiraid.enabled"><i></i></label></div></div>
+            <div class="field"><label>Salon des alertes</label><div class="hint">Le bot y signale les déclenchements.</div>
+              <span data-select="channel" data-sk="antiraid.modlog" class="w-md"></span></div>
+
+            <div class="subhead">Arrivées massives</div>
+            <div class="row"><div class="row-t"><strong>Détecter les vagues d'arrivées</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antiraid.join.enabled"><i></i></label></div></div>
+            <div class="row"><div class="row-t"><strong>Arrivées déclenchant l'alerte</strong><span>Nombre de membres…</span></div>
+              <div class="row-c"><input type="number" data-k="antiraid.join_threshold" min="2" max="100"></div></div>
+            <div class="row"><div class="row-t"><strong>…en combien de secondes</strong></div>
+              <div class="row-c"><input type="number" data-k="antiraid.join_interval" min="1" max="600"></div></div>
+            <div class="row"><div class="row-t"><strong>Sanction</strong></div>
+              <div class="row-c"><select data-k="antiraid.join_action"><option value="none">Alerter seulement</option><option value="kick">Expulser</option><option value="ban">Bannir</option><option value="lockdown">Verrouiller le serveur</option></select></div></div>
+
+            <div class="subhead">Spam de messages</div>
+            <div class="row"><div class="row-t"><strong>Détecter le spam</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antiraid.spam.enabled"><i></i></label></div></div>
+            <div class="row"><div class="row-t"><strong>Messages déclenchant l'alerte</strong></div>
+              <div class="row-c"><input type="number" data-k="antiraid.spam_threshold" min="2" max="50"></div></div>
+            <div class="row"><div class="row-t"><strong>…en combien de secondes</strong></div>
+              <div class="row-c"><input type="number" data-k="antiraid.spam_interval" min="1" max="120"></div></div>
+            <div class="row"><div class="row-t"><strong>Sanction</strong></div>
+              <div class="row-c"><select data-k="antiraid.spam_action"><option value="none">Alerter seulement</option><option value="mute">Rendre muet</option><option value="kick">Expulser</option><option value="ban">Bannir</option></select></div></div>
+
+            <div class="subhead">Mentions massives</div>
+            <div class="row"><div class="row-t"><strong>Détecter les mentions massives</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antiraid.mention.enabled"><i></i></label></div></div>
+            <div class="row"><div class="row-t"><strong>Mentions maximum par message</strong></div>
+              <div class="row-c"><input type="number" data-k="antiraid.mention_limit" min="1" max="50"></div></div>
+            <div class="row"><div class="row-t"><strong>Sanction</strong></div>
+              <div class="row-c"><select data-k="antiraid.mention_action"><option value="none">Alerter seulement</option><option value="mute">Rendre muet</option><option value="kick">Expulser</option><option value="ban">Bannir</option></select></div></div>
+
+            <div class="subhead">Majuscules et emojis</div>
+            <div class="row"><div class="row-t"><strong>Détecter les majuscules</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antiraid.caps.enabled"><i></i></label></div></div>
+            <div class="row"><div class="row-t"><strong>% de majuscules toléré</strong></div>
+              <div class="row-c"><input type="number" data-k="antiraid.caps_percent" min="10" max="100"></div></div>
+            <div class="row"><div class="row-t"><strong>Longueur minimale du message</strong><span>En dessous, les majuscules sont ignorées.</span></div>
+              <div class="row-c"><input type="number" data-k="antiraid.caps_min_length" min="1" max="500"></div></div>
+            <div class="row"><div class="row-t"><strong>Détecter le spam d'emojis</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antiraid.emoji_spam.enabled"><i></i></label></div></div>
+            <div class="row"><div class="row-t"><strong>Emojis maximum par message</strong></div>
+              <div class="row-c"><input type="number" data-k="antiraid.max_emojis" min="1" max="100"></div></div>
           </div>
         </div>
       </div>
 
-      <!-- ===== WELCOME ===== -->
-      <div class="page" id="pg-welcome">
+      <!-- ===== VÉRIFICATION ===== -->
+      <div class="page" id="pg-captcha">
         <div class="card">
-          <div class="card-h"><h3>Message de bienvenue</h3><p>Envoyé quand un membre rejoint le serveur.</p></div>
+          <div class="card-h"><h3>Vérification par captcha</h3><p>Les nouveaux membres doivent saisir un code pour accéder au serveur (<code>+captcha</code>).</p></div>
           <div class="card-b">
-            <div class="row"><div class="row-t"><strong>Activer la bienvenue</strong><span></span></div><div class="row-c"><label class="sw"><input type="checkbox" id="wcEnabled"><i></i></label></div></div>
-            <div class="field">
-              <label for="wcChannel">Salon d'accueil</label><div class="hint">ID du salon.</div>
-              <input type="text" id="wcChannel" class="w-md" placeholder="123456789012345678" inputmode="numeric">
-            </div>
-            <div class="field">
-              <label for="wcMsg">Message</label><div class="hint">Clique sur une variable pour l'insérer.</div>
-              <textarea id="wcMsg"></textarea>
-              <div class="vars" data-target="wcMsg"><span class="var">{user}</span><span class="var">{username}</span><span class="var">{server}</span><span class="var">{count}</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-h"><h3>Message d'au revoir</h3><p>Envoyé quand un membre quitte le serveur.</p></div>
-          <div class="card-b">
-            <div class="row"><div class="row-t"><strong>Activer l'au revoir</strong><span></span></div><div class="row-c"><label class="sw"><input type="checkbox" id="byEnabled"><i></i></label></div></div>
-            <div class="field">
-              <label for="byChannel">Salon</label><div class="hint">ID du salon.</div>
-              <input type="text" id="byChannel" class="w-md" placeholder="123456789012345678" inputmode="numeric">
-            </div>
-            <div class="field">
-              <label for="byMsg">Message</label><div class="hint"></div>
-              <textarea id="byMsg"></textarea>
-              <div class="vars" data-target="byMsg"><span class="var">{user}</span><span class="var">{username}</span><span class="var">{server}</span><span class="var">{count}</span></div>
-            </div>
+            <div class="row"><div class="row-t"><strong>Activer la vérification</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="captcha.enabled"><i></i></label></div></div>
+            <div class="field"><label>Salon de vérification</label>
+              <span data-select="channel" data-sk="captcha.channel_id" class="w-md"></span></div>
+            <div class="field"><label>Rôle donné après vérification</label>
+              <span data-select="role" data-sk="captcha.verified_role" class="w-md"></span></div>
+            <div class="field"><label>Rôle des membres non vérifiés</label>
+              <div class="hint">Attribué à l'arrivée, retiré une fois le code validé.</div>
+              <span data-select="role" data-sk="captcha.unverified_role" class="w-md"></span></div>
+            <div class="row"><div class="row-t"><strong>Longueur du code</strong></div>
+              <div class="row-c"><input type="number" data-k="captcha.code_length" min="4" max="10"></div></div>
+            <div class="row"><div class="row-t"><strong>Tentatives autorisées</strong></div>
+              <div class="row-c"><input type="number" data-k="captcha.max_tries" min="1" max="10"></div></div>
+            <div class="row"><div class="row-t"><strong>Expulser après échec</strong><span>Le membre est expulsé s'il rate toutes ses tentatives.</span></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="captcha.kick_on_fail"><i></i></label></div></div>
+            <div class="field"><label>Message de vérification</label>
+              <textarea data-k="captcha.welcome_message" placeholder="Bienvenue {user} ! Saisis le code pour accéder au serveur."></textarea>
+              <div class="vars" data-target="captcha.welcome_message"></div></div>
           </div>
         </div>
       </div>
 
-      <!-- ===== AUTOROLE ===== -->
-      <div class="page" id="pg-autorole">
-        <div class="card">
-          <div class="card-h"><h3>Rôle automatique</h3><p>Attribué à chaque nouveau membre dès son arrivée.</p></div>
-          <div class="card-b">
-            <div class="field">
-              <label for="autoRole">Rôle à donner</label>
-              <div class="hint">ID du rôle. Laisse vide pour désactiver.</div>
-              <input type="text" id="autoRole" class="w-md" placeholder="ID du rôle" inputmode="numeric">
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== LEVELS ===== -->
+      <!-- ===== NIVEAUX ===== -->
       <div class="page" id="pg-levels">
         <div class="card">
-          <div class="card-h"><h3>Niveaux &amp; XP</h3><p>Les membres gagnent de l'expérience en discutant.</p></div>
+          <div class="card-h"><h3>Niveaux &amp; XP</h3><p>Les membres gagnent de l'XP en discutant (<code>+level</code>, <code>+top</code>).</p></div>
           <div class="card-b">
-            <div class="row"><div class="row-t"><strong>Activer les niveaux</strong><span></span></div><div class="row-c"><label class="sw"><input type="checkbox" id="lvlEnabled"><i></i></label></div></div>
-            <div class="row"><div class="row-t"><strong>XP par message</strong><span>Points gagnés à chaque message.</span></div><div class="row-c"><input type="number" id="lvlXp" min="1" max="100"></div></div>
-            <div class="row"><div class="row-t"><strong>Anti-farm (secondes)</strong><span>Délai minimum entre deux gains d'XP.</span></div><div class="row-c"><input type="number" id="lvlCooldown" min="0" max="600"></div></div>
-            <div class="row"><div class="row-t"><strong>Annoncer les montées de niveau</strong><span></span></div><div class="row-c"><label class="sw"><input type="checkbox" id="lvlAnnounce"><i></i></label></div></div>
-            <div class="field">
-              <label for="lvlChannel">Salon des annonces</label>
-              <div class="hint">Vide = message posté là où le membre a parlé.</div>
-              <input type="text" id="lvlChannel" class="w-md" placeholder="ID du salon (optionnel)" inputmode="numeric">
-            </div>
+            <div class="field"><label>Salon où l'XP est gagnée</label>
+              <div class="hint">Vide = tous les salons rapportent de l'XP.</div>
+              <span data-select="channel" data-sk="levels.xp_channel" class="w-md"></span></div>
+            <div class="field"><label>Salon des annonces de niveau</label>
+              <div class="hint">Vide = annonce dans le salon où le membre a parlé.</div>
+              <span data-select="channel" data-sk="levels.notif_channel" class="w-md"></span></div>
+            <div class="row"><div class="row-t"><strong>XP minimum par message</strong></div>
+              <div class="row-c"><input type="number" data-k="levels.xp_min" min="0" max="100"></div></div>
+            <div class="row"><div class="row-t"><strong>XP maximum par message</strong><span>Le gain est tiré au hasard entre le min et le max.</span></div>
+              <div class="row-c"><input type="number" data-k="levels.xp_max" min="0" max="100"></div></div>
           </div>
         </div>
       </div>
 
-      <!-- ===== EXPORT ===== -->
+      <!-- ===== GIVEAWAY ===== -->
+      <div class="page" id="pg-giveaway">
+        <div class="card">
+          <div class="card-h"><h3>Giveaways</h3><p>Valeurs par défaut des concours créés avec <code>+giveaway</code>.</p></div>
+          <div class="card-b">
+            <div class="field"><label>Salon des giveaways</label>
+              <span data-select="channel" data-sk="giveaway.salon_id" class="w-md"></span></div>
+            <div class="tk-grid">
+              <div><label>Emoji</label><input type="text" data-k="giveaway.emoji" maxlength="8" placeholder="🎉"></div>
+              <div><label>Texte du bouton</label><input type="text" data-k="giveaway.btn_text" maxlength="40" placeholder="Participer"></div>
+              <div><label>Couleur du bouton</label>
+                <select data-k="giveaway.btn_color"><option value="bleu">Bleu</option><option value="vert">Vert</option><option value="rouge">Rouge</option><option value="gris">Gris</option></select></div>
+              <div><label>Nombre de gagnants</label><input type="number" data-k="giveaway.gagnants" min="1" max="50"></div>
+              <div><label>Durée par défaut</label><input type="text" data-k="giveaway.duree" maxlength="20" placeholder="1h, 30m, 2d…"></div>
+            </div>
+            <div class="row"><div class="row-t"><strong>Présence vocale obligatoire</strong><span>Il faut être en vocal pour participer.</span></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="giveaway.vocal_required"><i></i></label></div></div>
+            <div class="field"><label>Rôles requis pour participer</label>
+              <div class="rolebox" data-roles="giveaway.required_roles"></div></div>
+            <div class="field"><label>Rôles interdits</label>
+              <div class="rolebox" data-roles="giveaway.blacklist_roles"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== DIVERS ===== -->
+      <div class="page" id="pg-divers">
+        <div class="card">
+          <div class="card-h"><h3>Anti-bot</h3><p>Bloque l'ajout de bots non autorisés (<code>+antibot</code>).</p></div>
+          <div class="card-b">
+            <div class="row"><div class="row-t"><strong>Activer l'anti-bot</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antibot.enabled"><i></i></label></div></div>
+            <div class="field"><label>Salon des alertes</label>
+              <span data-select="channel" data-sk="antibot.channel_id" class="w-md"></span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Starboard</h3><p>Les messages les plus étoilés sont republiés (<code>+starboard</code>).</p></div>
+          <div class="card-b">
+            <div class="field"><label>Salon du starboard</label><div class="hint">Vide = starboard désactivé.</div>
+              <span data-select="channel" data-sk="starboard.channel_id" class="w-md"></span></div>
+            <div class="tk-grid">
+              <div><label>Étoiles nécessaires</label><input type="number" data-k="starboard.seuil" min="1" max="50"></div>
+              <div><label>Emoji</label><input type="text" data-k="starboard.emoji" maxlength="8" placeholder="⭐"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Rôles automatiques</h3><p>Donnés à chaque nouveau membre (<code>+defaultrole</code>).</p></div>
+          <div class="card-b"><div class="rolebox" data-roles="defaultroles"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Photo de profil à l'arrivée</h3><p>Publie l'avatar des nouveaux membres (<code>+showpic</code>).</p></div>
+          <div class="card-b">
+            <div class="row"><div class="row-t"><strong>Activer</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="showpic.enabled"><i></i></label></div></div>
+            <div class="field"><label>Salon</label>
+              <span data-select="channel" data-sk="showpic.channel_id" class="w-md"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== IMPORT / EXPORT ===== -->
       <div class="page" id="pg-export">
         <div class="card">
           <div class="card-h"><h3>Import / Export</h3><p>Sauvegarde la configuration de ce serveur, ou applique celle d'un autre.</p></div>
           <div class="card-b">
-            <div class="row">
-              <div class="row-t"><strong>Exporter la configuration</strong><span>Copie tous les réglages au format JSON.</span></div>
-              <div class="row-c"><button class="btn" id="btnExport">Copier le JSON</button></div>
-            </div>
-            <div class="field">
-              <label for="importBox">Importer une configuration</label>
-              <div class="hint">Colle ici un JSON exporté, puis applique.</div>
-              <textarea id="importBox" placeholder='{"prefix":"!", ...}'></textarea>
-              <div style="margin-top:10px"><button class="btn" id="btnImport">Appliquer</button></div>
-            </div>
+            <div class="row"><div class="row-t"><strong>Exporter</strong><span>Copie toute la configuration au format JSON.</span></div>
+              <div class="row-c"><button class="btn" id="btnExport">Copier le JSON</button></div></div>
+            <div class="field"><label>Importer</label><div class="hint">Colle un JSON exporté, puis applique.</div>
+              <textarea id="importBox" placeholder='{"prefix":"+", ...}'></textarea>
+              <div style="margin-top:10px"><button class="btn" id="btnImport">Appliquer</button></div></div>
           </div>
         </div>
-      </div>
-
-      <!-- ===== DANGER ===== -->
-      <div class="page" id="pg-danger">
         <div class="card">
-          <div class="card-h"><h3>Zone de danger</h3><p>Actions irréversibles sur la configuration de ce serveur.</p></div>
+          <div class="card-h"><h3>Zone de danger</h3><p>Action irréversible.</p></div>
           <div class="card-b">
-            <div class="row">
-              <div class="row-t"><strong>Réinitialiser la configuration</strong><span>Remet tous les réglages de ce serveur par défaut.</span></div>
-              <div class="row-c"><button class="btn dg" id="btnReset">Réinitialiser</button></div>
-            </div>
+            <div class="row"><div class="row-t"><strong>Réinitialiser la configuration</strong><span>Remet tous les réglages de ce serveur par défaut.</span></div>
+              <div class="row-c"><button class="btn dg" id="btnReset">Réinitialiser</button></div></div>
           </div>
         </div>
       </div>
@@ -633,6 +673,13 @@ textarea{min-height:94px;resize:vertical;line-height:1.6}
 <div class="toast" id="toast"></div>
 
 <script>
+/* =============================================================
+   ModeraBot — Dashboard serveur
+   Auth : token Discord implicite (posé par servers.html)
+   Données : /api/guild/<id>/dashboard  (GET config + salons + rôles, POST config)
+   Si l'API du bot est HS : la page reste utilisable, saisie par ID,
+   et les réglages sont conservés localement en attendant.
+   ============================================================= */
 const CLIENT_ID='1447165780708823140', SCOPES='identify guilds';
 const REDIRECT=location.origin+'/servers.html', TOKEN_KEY='mb_discord_token';
 const guildId=new URLSearchParams(location.search).get('guild');
@@ -642,47 +689,88 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const initials=n=>{const p=String(n||'?').trim().split(/\s+/).filter(Boolean);return p.length?p.map(w=>w[0]).join('').slice(0,2).toUpperCase():'?';};
 
-const PAGES={
-  overview:['Vue d\'ensemble','L\'état de ton serveur'],
-  general:['Paramètres généraux','Comportement de base du bot'],
-  automod:['AutoMod','Filtres de messages automatiques'],
-  antiraid:['Anti-raid','Protection contre les raids'],
-  sanctions:['Sanctions','Avertissements et punitions'],
-  logs:['Logs','Journal des événements'],
-  staff:['Rôles staff','Qui peut modérer'],
-  welcome:['Bienvenue & Au revoir','Messages d\'arrivée et de départ'],
-  autorole:['Rôle automatique','Rôle donné aux nouveaux membres'],
-  levels:['Niveaux & XP','Système d\'expérience'],
-  export:['Import / Export','Sauvegarde de la configuration'],
-  danger:['Zone de danger','Actions irréversibles'],
-};
+const NAV=[
+  ['Tableau de bord',[
+    ['overview','Vue d\'ensemble',"L'état de ton serveur",'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'],
+    ['general','Général','Préfixe des commandes','<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'],
+  ]],
+  ['Support',[
+    ['tickets','Tickets','Panneau et types de tickets','<path d="M3 9V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 6v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-6z"/><line x1="12" y1="7" x2="12" y2="17"/>'],
+  ]],
+  ['Sécurité',[
+    ['antilink','Anti-lien','Filtrage des liens','<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'],
+    ['antiraid','Anti-raid','Protection contre les raids','<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'],
+    ['captcha','Vérification','Captcha à l\'arrivée','<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'],
+    ['logs','Logs','Journaux d\'événements','<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/>'],
+  ]],
+  ['Communauté',[
+    ['welcome','Bienvenue & Départ','Arrivées et départs','<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>'],
+    ['levels','Niveaux & XP','Système d\'expérience','<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>'],
+    ['giveaway','Giveaways','Concours','<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>'],
+    ['divers','Divers','Anti-bot, starboard, rôles auto','<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>'],
+  ]],
+  ['Avancé',[
+    ['export','Import / Export','Sauvegarde de la configuration','<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>'],
+  ]],
+];
+const PAGES={}; NAV.forEach(([,items])=>items.forEach(([k,t,s])=>PAGES[k]=[t,s]));
+
+const VARS=['{user}','{username}','{server}','{membercount}','{id}','{tag}','{created}'];
 
 const DEFAULTS={
-  prefix:'!',lang:'fr',delCmd:false,dmErrors:false,staffRoles:[],
-  warnLimit:3,warnAction:'mute',muteDur:60,warnExpire:30,
-  antiRaid:false,minAge:0,staffImmune:true,
-  antiSpam:false,spamRate:5,antiInvite:false,antiLink:false,antiCaps:false,maxMentions:5,
-  badWords:[],ignoredChannels:[],
-  wcEnabled:false,wcChannel:'',wcMsg:'Bienvenue {user} sur {server} ! Tu es le membre n°{count}.',autoRole:'',
-  byEnabled:false,byChannel:'',byMsg:'{username} vient de quitter le serveur.',
-  logEnabled:false,logChannel:'',logDel:true,logEdit:true,logJoin:true,logSanction:true,logRole:false,logChan:false,
-  lvlEnabled:false,lvlXp:10,lvlCooldown:60,lvlAnnounce:true,lvlChannel:''
+  prefix:'+',
+  tickets:{panel:{titre:'',description:'',image:'',logs:null,couleur:'#5865F2',mode:'select'},choix:[]},
+  welcome:{enabled:false,channel_id:null,mode:'texte',message:'',auto_delete:0,mp_enabled:false,mp_message:'',
+           embed:{titre:'',desc:'',color:'#5865F2',thumb:'',image:''}},
+  depart:{channel_id:null,title:'',description:''},
+  logs:{},
+  antilink:{enabled:false,action:'delete',whitelist:[]},
+  antiraid:{enabled:false,modlog:null,join:false,join_threshold:5,join_interval:10,join_action:'none',
+            spam:false,spam_threshold:5,spam_interval:5,spam_action:'none',
+            mention:false,mention_limit:5,mention_action:'none',
+            caps:false,caps_percent:70,caps_min_length:10,emoji_spam:false,max_emojis:10},
+  captcha:{enabled:false,channel_id:null,verified_role:null,unverified_role:null,code_length:6,max_tries:3,
+           kick_on_fail:false,style:'code',welcome_message:''},
+  levels:{xp_channel:null,notif_channel:null,xp_min:5,xp_max:15},
+  giveaway:{salon_id:null,emoji:'🎉',btn_text:'Participer',btn_color:'bleu',duree:'',gagnants:1,
+            required_roles:[],blacklist_roles:[],vocal_required:false},
+  antibot:{enabled:false,channel_id:null},
+  starboard:{channel_id:null,seuil:3,emoji:'⭐'},
+  showpic:{enabled:false,channel_id:null},
+  defaultroles:[],
 };
-const LISTS=['staffRoles','badWords','ignoredChannels'];
 const MODULES=[
-  ['antiSpam','Anti-spam'],['antiInvite','Anti-invitations'],['antiLink','Anti-liens'],['antiCaps','Anti-majuscules'],
-  ['antiRaid','Anti-raid'],['logEnabled','Logs'],['wcEnabled','Bienvenue'],['byEnabled','Au revoir'],['lvlEnabled','Niveaux & XP']
+  ['tickets','Tickets',c=>(c.tickets.choix||[]).length>0],
+  ['antilink','Anti-lien',c=>!!c.antilink.enabled],
+  ['antiraid','Anti-raid',c=>!!c.antiraid.enabled],
+  ['captcha','Vérification',c=>!!c.captcha.enabled],
+  ['logs','Logs',c=>Object.values(c.logs||{}).some(v=>v&&v.enabled)],
+  ['welcome','Bienvenue',c=>!!c.welcome.enabled],
+  ['depart','Départs',c=>!!c.depart.channel_id],
+  ['levels','Niveaux',c=>!!(c.levels.xp_min||c.levels.notif_channel)],
+  ['antibot','Anti-bot',c=>!!c.antibot.enabled],
+  ['starboard','Starboard',c=>!!c.starboard.channel_id],
+  ['showpic','Photo à l\'arrivée',c=>!!c.showpic.enabled],
 ];
 
-let cfg=structuredClone(DEFAULTS), saved=structuredClone(DEFAULTS), apiAlive=false, guild=null;
+let cfg=structuredClone(DEFAULTS), saved=structuredClone(DEFAULTS);
+let META={channels:[],roles:[],categories:[],log_types:[]};
+let apiAlive=false, guild=null;
 
-/* ---------- Discord ---------- */
+/* ---------------- chemins ---------------- */
+function getPath(o,p){ return p.split('.').reduce((a,k)=>(a==null?undefined:a[k]),o); }
+function setPath(o,p,v){
+  const ks=p.split('.'); const last=ks.pop();
+  let t=o; for(const k of ks){ if(typeof t[k]!=='object'||t[k]===null) t[k]={}; t=t[k]; }
+  t[last]=v;
+}
+
+/* ---------------- Discord ---------------- */
 function loadToken(){
   try{ const o=JSON.parse(sessionStorage.getItem(TOKEN_KEY)||'null');
        if(!o||!o.t||Date.now()>o.exp){ sessionStorage.removeItem(TOKEN_KEY); return null; } return o.t; }catch{ return null; }
 }
 const authorizeURL=()=>'https://discord.com/oauth2/authorize?client_id='+CLIENT_ID+'&response_type=token&scope='+encodeURIComponent(SCOPES)+'&redirect_uri='+encodeURIComponent(REDIRECT);
-
 async function discord(path,token){
   for(let i=0;i<4;i++){
     let res;
@@ -707,8 +795,7 @@ function hasAdmin(g){
        return (p&BigInt(0x8))!==BigInt(0)||(p&BigInt(0x20))!==BigInt(0); }catch{ return false; }
 }
 
-/* ---------- stockage ---------- */
-const lsKey=()=>'mb_cfg_'+guildId;
+/* ---------------- API bot ---------------- */
 async function apiGet(path){
   try{
     const r=await fetch(path,{credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});
@@ -718,74 +805,250 @@ async function apiGet(path){
 }
 async function apiSave(data){
   try{
-    const r=await fetch(`/api/guild/${encodeURIComponent(guildId)}/config`,{
+    const r=await fetch(`/api/guild/${encodeURIComponent(guildId)}/dashboard`,{
       method:'POST',credentials:'same-origin',
       headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(data)});
     return r.ok;
   }catch{ return false; }
 }
+const lsKey=()=>'mb_cfg_'+guildId;
 const localGet=()=>{ try{ const o=JSON.parse(localStorage.getItem(lsKey())||'null'); return o&&typeof o==='object'?o:null; }catch{ return null; } };
 const localSet=d=>{ try{ localStorage.setItem(lsKey(),JSON.stringify(d)); }catch{} };
 
-/* ---------- formulaire ---------- */
-function fillForm(){
-  for(const k of Object.keys(DEFAULTS)){
-    if(LISTS.includes(k)){ renderChips(k); continue; }
-    const el=$(k); if(!el) continue;
-    if(el.type==='checkbox') el.checked=!!cfg[k]; else el.value=cfg[k]??'';
+/* ---------------- sélecteurs salons / rôles ---------------- */
+function optionsFor(kind,current){
+  const list = kind==='role'?META.roles : kind==='category'?META.categories : META.channels;
+  const cur = current==null?'':String(current);
+  const prefix = kind==='role'?'@':kind==='category'?'📁 ':'#';
+  let html=`<option value="">— Aucun —</option>`;
+  let found=false;
+  for(const it of list){
+    const sel = String(it.id)===cur ? ' selected':'';
+    if(sel) found=true;
+    html+=`<option value="${esc(it.id)}"${sel}>${esc(prefix+it.name)}</option>`;
   }
-  renderModules();
+  if(cur&&!found) html+=`<option value="${esc(cur)}" selected>ID ${esc(cur)} (introuvable)</option>`;
+  return html;
 }
-function readForm(){
-  for(const k of Object.keys(DEFAULTS)){
-    if(LISTS.includes(k)) continue;
-    const el=$(k); if(!el) continue;
-    if(el.type==='checkbox') cfg[k]=el.checked;
-    else if(el.type==='number') cfg[k]=el.value===''?DEFAULTS[k]:Number(el.value);
-    else cfg[k]=el.value.trim();
-  }
+function buildSelects(){
+  document.querySelectorAll('[data-select]').forEach(host=>{
+    const kind=host.dataset.select, key=host.dataset.sk, val=getPath(cfg,key);
+    const list = kind==='role'?META.roles : kind==='category'?META.categories : META.channels;
+    if(list.length){
+      host.innerHTML=`<select data-k="${esc(key)}">${optionsFor(kind,val)}</select>`;
+    }else{
+      // API du bot indisponible → saisie manuelle de l'ID
+      host.innerHTML=`<input type="text" inputmode="numeric" data-k="${esc(key)}" placeholder="ID ${kind==='role'?'du rôle':kind==='category'?'de la catégorie':'du salon'}" value="${esc(val??'')}">`;
+    }
+  });
 }
-const dirty=()=>JSON.stringify(cfg)!==JSON.stringify(saved);
-function refreshBar(){ $('savebar').classList.toggle('show',dirty()); renderModules(); }
-
-function renderChips(key){
-  const box=$(key+'Chips'); if(!box) return;
-  box.innerHTML=(cfg[key]||[]).map((v,i)=>
-    `<span class="chip"><b>${esc(v)}</b><button type="button" data-k="${key}" data-i="${i}" title="Retirer">×</button></span>`).join('');
-}
-function addTo(key,value){
-  const v=String(value||'').trim(); if(!v) return;
-  cfg[key]=cfg[key]||[];
-  if(cfg[key].some(x=>String(x).toLowerCase()===v.toLowerCase())) return toast('Déjà dans la liste','err');
-  if(cfg[key].length>=100) return toast('Liste pleine (100 max)','err');
-  cfg[key].push(v); renderChips(key); refreshBar();
+/* listes de rôles multiples (chips + ajout) */
+function buildRoleBoxes(){
+  document.querySelectorAll('[data-roles]').forEach(box=>{
+    const key=box.dataset.roles;
+    const cur=(getPath(cfg,key)||[]).map(String);
+    const name=id=>{ const r=META.roles.find(r=>String(r.id)===String(id)); return r?'@'+r.name:'ID '+id; };
+    const chips=cur.map((id,i)=>`<span class="chip"><b>${esc(name(id))}</b><button type="button" data-rrm="${esc(key)}" data-i="${i}">×</button></span>`).join('');
+    const adder = META.roles.length
+      ? `<select data-radd="${esc(key)}"><option value="">+ Ajouter un rôle…</option>${META.roles.filter(r=>!cur.includes(String(r.id))).map(r=>`<option value="${esc(r.id)}">@${esc(r.name)}</option>`).join('')}</select>`
+      : `<div class="add"><input type="text" inputmode="numeric" data-rinput="${esc(key)}" placeholder="ID du rôle"><button class="btn" data-radd2="${esc(key)}">Ajouter</button></div>`;
+    box.innerHTML=`<div class="chips" style="margin:0 0 10px">${chips||'<span class="mini">Aucun rôle sélectionné.</span>'}</div>${adder}`;
+  });
 }
 document.addEventListener('click',e=>{
-  const b=e.target.closest('.chip button'); if(!b) return;
-  cfg[b.dataset.k].splice(Number(b.dataset.i),1); renderChips(b.dataset.k); refreshBar();
+  const rm=e.target.closest('[data-rrm]');
+  if(rm){ const k=rm.dataset.rrm; const l=getPath(cfg,k)||[]; l.splice(Number(rm.dataset.i),1); setPath(cfg,k,l); buildRoleBoxes(); touch(); return; }
+  const add2=e.target.closest('[data-radd2]');
+  if(add2){ const k=add2.dataset.radd2; const inp=document.querySelector(`[data-rinput="${k}"]`);
+    const v=(inp.value||'').trim(); if(!v) return;
+    const l=getPath(cfg,k)||[]; if(!l.map(String).includes(v)) l.push(v);
+    setPath(cfg,k,l); inp.value=''; buildRoleBoxes(); touch(); }
+});
+document.addEventListener('change',e=>{
+  const sel=e.target.closest('[data-radd]');
+  if(!sel||!sel.value) return;
+  const k=sel.dataset.radd, l=getPath(cfg,k)||[];
+  if(!l.map(String).includes(sel.value)) l.push(sel.value);
+  setPath(cfg,k,l); buildRoleBoxes(); touch();
 });
 
-function renderModules(){
-  const on=MODULES.filter(([k])=>cfg[k]);
-  $('stModules').textContent=on.length;
-  $('modList').innerHTML=on.length
-    ? MODULES.map(([k,n])=>`<div class="row"><div class="row-t"><strong>${n}</strong></div>
-        <div class="row-c"><span class="tagp" style="background:${cfg[k]?'linear-gradient(135deg,var(--accent),var(--pink))':'var(--card2)'};color:${cfg[k]?'#fff':'var(--dim)'}">${cfg[k]?'Actif':'Inactif'}</span></div></div>`).join('')
-    : `<div class="empty">Aucun module activé pour l'instant.</div>`;
+/* ---------------- logs ---------------- */
+function buildLogs(){
+  const types=META.log_types.length?META.log_types:[
+    {key:'msg',label:'Logs messages',emoji:'📨'},{key:'voc',label:'Logs vocaux',emoji:'🔊'},
+    {key:'role',label:'Logs rôles',emoji:'🎭'},{key:'mod',label:'Logs modération',emoji:'🛡️'},
+    {key:'channel',label:'Logs salons',emoji:'📺'},{key:'ticket',label:'Logs tickets',emoji:'🎫'},
+    {key:'boost',label:'Logs boosts',emoji:'🚀'},{key:'flux',label:'Arrivées / départs',emoji:'📡'}];
+  $('logsBox').innerHTML=types.map(t=>`
+    <div class="row">
+      <div class="row-t"><strong>${esc(t.emoji)} ${esc(t.label)}</strong></div>
+      <div class="row-c" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span data-select="channel" data-sk="logs.${esc(t.key)}.channel"></span>
+        <label class="sw"><input type="checkbox" data-k="logs.${esc(t.key)}.enabled"><i></i></label>
+      </div>
+    </div>`).join('');
 }
 
-/* ---------- navigation ---------- */
+/* ---------------- tickets ---------------- */
+const BTN_COLORS=[['bleu','Bleu'],['vert','Vert'],['rouge','Rouge'],['gris','Gris']];
+function buildTickets(){
+  const list=cfg.tickets.choix||[];
+  $('tkList').innerHTML = list.length ? list.map((c,i)=>`
+    <div class="tk">
+      <div class="tk-h">
+        <span class="em">${esc(c.emoji||'🎫')}</span>
+        <b>${esc(c.nom||'Sans nom')}</b>
+        <span class="pill-i">Type ${i+1}</span>
+        <button class="btn sm dg" data-tkrm="${i}">Supprimer</button>
+      </div>
+      <div class="tk-grid">
+        <div><label>Nom du type</label><input type="text" maxlength="25" data-k="tickets.choix.${i}.nom" placeholder="Support"></div>
+        <div><label>Emoji</label><input type="text" maxlength="5" data-k="tickets.choix.${i}.emoji" placeholder="🎫"></div>
+        <div class="full"><label>Description courte</label>
+          <input type="text" maxlength="97" data-k="tickets.choix.${i}.description" placeholder="Aide générale">
+          <div class="mini">Affichée sous le nom dans le menu déroulant.</div></div>
+        <div><label>Catégorie où créer le ticket</label><span data-select="category" data-sk="tickets.choix.${i}.categorie"></span></div>
+        <div><label>Nom du salon créé</label>
+          <input type="text" maxlength="50" data-k="tickets.choix.${i}.salon_name" placeholder="ticket-{username}">
+          <div class="mini">Variables : {username} {userid} {server}</div></div>
+        <div class="full"><label>Rôles staff qui voient le ticket</label>
+          <div class="rolebox" data-roles="tickets.choix.${i}.roles"></div></div>
+        <div class="full"><label>Titre de l'embed dans le ticket</label>
+          <input type="text" maxlength="100" data-k="tickets.choix.${i}.titre" placeholder="🎫 Ticket Support"></div>
+        <div class="full"><label>Message d'ouverture</label>
+          <textarea maxlength="500" data-k="tickets.choix.${i}.message" placeholder="Bienvenue {user} ! Explique ton problème."></textarea>
+          <div class="vars" data-target="tickets.choix.${i}.message"></div></div>
+        <div><label>Couleur du bouton</label>
+          <select data-k="tickets.choix.${i}.btn_color">${BTN_COLORS.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>
+          <div class="mini">Utilisée en mode Boutons / Container V2.</div></div>
+        <div><label>Réponse automatique IA</label>
+          <div style="padding-top:6px"><label class="sw"><input type="checkbox" data-k="tickets.choix.${i}.ia_enabled"><i></i></label></div></div>
+      </div>
+    </div>`).join('')
+    : `<div class="empty">Aucun type de ticket. Ajoute-en un pour que le panneau fonctionne.</div>`;
+}
+$('tkAdd').addEventListener('click',()=>{
+  cfg.tickets.choix=cfg.tickets.choix||[];
+  if(cfg.tickets.choix.length>=25) return toast('25 types maximum','err');
+  cfg.tickets.choix.push({nom:'Support',description:'Aide générale',emoji:'🎫',categorie:null,roles:[],
+    titre:'Ticket — Support',message:'Bienvenue {user} ! Explique ton problème.',btn_color:'bleu',
+    salon_name:'ticket-{username}',ia_enabled:false});
+  render(); touch();
+  toast('Type ajouté — pense à enregistrer');
+});
+document.addEventListener('click',e=>{
+  const rm=e.target.closest('[data-tkrm]');
+  if(!rm) return;
+  const i=Number(rm.dataset.tkrm);
+  if(!confirm(`Supprimer le type « ${cfg.tickets.choix[i]?.nom||''} » ?`)) return;
+  cfg.tickets.choix.splice(i,1); render(); touch();
+});
+
+/* ---------------- anti-lien whitelist ---------------- */
+function buildWhitelist(){
+  const l=cfg.antilink.whitelist||[];
+  $('wlChips').innerHTML=l.map((v,i)=>`<span class="chip"><b>${esc(v)}</b><button type="button" data-wlrm="${i}">×</button></span>`).join('')
+    || '<span class="mini">Aucun domaine autorisé.</span>';
+}
+$('wlAdd').addEventListener('click',()=>{
+  const v=($('wlIn').value||'').trim(); if(!v) return;
+  cfg.antilink.whitelist=cfg.antilink.whitelist||[];
+  if(cfg.antilink.whitelist.includes(v)) return toast('Déjà dans la liste','err');
+  cfg.antilink.whitelist.push(v); $('wlIn').value=''; buildWhitelist(); touch();
+});
+$('wlIn').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); $('wlAdd').click(); } });
+document.addEventListener('click',e=>{
+  const rm=e.target.closest('[data-wlrm]'); if(!rm) return;
+  cfg.antilink.whitelist.splice(Number(rm.dataset.wlrm),1); buildWhitelist(); touch();
+});
+
+/* ---------------- rendu générique ---------------- */
+function render(){
+  buildTickets(); buildLogs();
+  buildSelects(); buildRoleBoxes(); buildWhitelist(); buildVars();
+  // remplit tous les champs liés
+  document.querySelectorAll('[data-k]').forEach(el=>{
+    const v=getPath(cfg,el.dataset.k);
+    if(el.type==='checkbox') el.checked=!!v;
+    else if(el.tagName==='SELECT') el.value=(v==null?'':String(v));
+    else el.value=(v==null?'':v);
+  });
+  applyConditions(); renderModules();
+}
+function applyConditions(){
+  document.querySelectorAll('[data-when]').forEach(el=>{
+    const [k,val]=el.dataset.when.split('=');
+    el.classList.toggle('hidden', String(getPath(cfg,k)??'')!==val);
+  });
+}
+function buildVars(){
+  document.querySelectorAll('.vars').forEach(box=>{
+    if(box.dataset.built) return;
+    box.dataset.built='1';
+    box.innerHTML=VARS.map(v=>`<span class="var">${v}</span>`).join('');
+  });
+}
+document.addEventListener('click',e=>{
+  if(!e.target.classList.contains('var')) return;
+  const box=e.target.closest('.vars'); const key=box.dataset.target;
+  const ta=document.querySelector(`[data-k="${key}"]`); if(!ta) return;
+  const s=ta.selectionStart??ta.value.length, t=ta.selectionEnd??s;
+  ta.value=ta.value.slice(0,s)+e.target.textContent+ta.value.slice(t);
+  ta.focus(); ta.selectionStart=ta.selectionEnd=s+e.target.textContent.length;
+  setPath(cfg,key,ta.value); touch();
+});
+
+function readEl(el){
+  if(el.type==='checkbox') return el.checked;
+  if(el.type==='number'){ return el.value===''?0:Number(el.value); }
+  const v=el.value;
+  return v===''?null:v;
+}
+['input','change'].forEach(ev=>document.addEventListener(ev,e=>{
+  const el=e.target;
+  if(!el.matches('[data-k]')) return;
+  let v=readEl(el);
+  if(el.tagName!=='SELECT'&&el.type!=='checkbox'&&el.type!=='number'&&v===null) v='';
+  setPath(cfg,el.dataset.k,v);
+  // l'en-tête d'un type de ticket suit le nom / l'emoji sans re-rendre toute la page
+  const m=el.dataset.k.match(/^tickets\.choix\.(\d+)\.(nom|emoji)$/);
+  if(m){
+    const card=document.querySelectorAll('#tkList .tk')[Number(m[1])];
+    if(card){
+      if(m[2]==='nom') card.querySelector('.tk-h b').textContent=(v||'Sans nom');
+      else card.querySelector('.tk-h .em').textContent=(v||'🎫');
+    }
+  }
+  applyConditions(); touch();
+}));
+
+const dirty=()=>JSON.stringify(cfg)!==JSON.stringify(saved);
+function touch(){ $('savebar').classList.toggle('show',dirty()); renderModules(); }
+function renderModules(){
+  const rows=MODULES.map(([k,label,fn])=>{ let on=false; try{ on=!!fn(cfg); }catch{} return [label,on]; });
+  $('stModules').textContent=rows.filter(r=>r[1]).length;
+  $('stTickets').textContent=(cfg.tickets.choix||[]).length;
+  $('modList').innerHTML=rows.map(([l,on])=>`
+    <div class="row"><div class="row-t"><strong>${esc(l)}</strong></div>
+      <div class="row-c"><span class="tagp" style="${on?'':'background:var(--card2);color:var(--dim)'}">${on?'Actif':'Inactif'}</span></div></div>`).join('');
+}
+
+/* ---------------- navigation ---------------- */
+function buildNav(){
+  $('navwrap').innerHTML=NAV.map(([grp,items])=>
+    `<div class="grp">${esc(grp)}</div>`+items.map(([k,label,,icon])=>
+      `<button class="nav" data-p="${k}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icon}</svg>${esc(label)}</button>`
+    ).join('')).join('');
+  document.querySelectorAll('.nav').forEach(n=>n.addEventListener('click',()=>go(n.dataset.p)));
+}
 function go(p){
   document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('on',n.dataset.p===p));
   document.querySelectorAll('.page').forEach(x=>x.classList.toggle('on',x.id==='pg-'+p));
   const [t,s]=PAGES[p]||['Dashboard',''];
   $('pageTitle').textContent=t; $('pageSub').textContent=s;
-  closeSide();
-  window.scrollTo({top:0,behavior:'smooth'});
+  closeSide(); window.scrollTo({top:0,behavior:'smooth'});
   try{ history.replaceState({},'','?guild='+encodeURIComponent(guildId)+'#'+p); }catch{}
 }
-document.querySelectorAll('.nav').forEach(n=>n.addEventListener('click',()=>go(n.dataset.p)));
-
 const openSide=()=>{ $('side').classList.add('open'); $('ovl').classList.add('show'); };
 const closeSide=()=>{ $('side').classList.remove('open'); $('ovl').classList.remove('show'); };
 $('burger').addEventListener('click',openSide);
@@ -803,48 +1066,28 @@ $('btnRefresh').addEventListener('click',()=>{
   saved=structuredClone(cfg); location.reload();
 });
 
-document.querySelectorAll('.vars').forEach(box=>box.addEventListener('click',e=>{
-  if(!e.target.classList.contains('var')) return;
-  const ta=$(box.dataset.target), s=ta.selectionStart??ta.value.length, t=ta.selectionEnd??s;
-  ta.value=ta.value.slice(0,s)+e.target.textContent+ta.value.slice(t);
-  ta.focus(); ta.selectionStart=ta.selectionEnd=s+e.target.textContent.length;
-  readForm(); refreshBar();
-}));
-
-$('staffAdd').addEventListener('click',()=>{ addTo('staffRoles',$('staffIn').value); $('staffIn').value=''; });
-$('wordAdd').addEventListener('click',()=>{ addTo('badWords',$('wordIn').value); $('wordIn').value=''; });
-$('ignAdd').addEventListener('click',()=>{ addTo('ignoredChannels',$('ignIn').value); $('ignIn').value=''; });
-[['staffIn','staffAdd'],['wordIn','wordAdd'],['ignIn','ignAdd']].forEach(([i,b])=>
-  $(i).addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); $(b).click(); } }));
-
-['input','change'].forEach(ev=>document.addEventListener(ev,e=>{
-  if(e.target.closest('.add')||e.target.id==='importBox') return;
-  if(e.target.matches('input,select,textarea')){ readForm(); refreshBar(); }
-}));
-
 function toast(msg,kind){
   const t=$('toast'); t.textContent=msg; t.className='toast show '+(kind||'ok');
-  clearTimeout(t._h); t._h=setTimeout(()=>t.className='toast',2600);
+  clearTimeout(t._h); t._h=setTimeout(()=>t.className='toast',2800);
 }
 
-$('btnCancel').addEventListener('click',()=>{ cfg=structuredClone(saved); fillForm(); refreshBar(); toast('Modifications annulées'); });
+/* ---------------- enregistrement ---------------- */
+$('btnCancel').addEventListener('click',()=>{ cfg=structuredClone(saved); render(); touch(); toast('Modifications annulées'); });
 $('btnSave').addEventListener('click',async()=>{
-  readForm();
   const b=$('btnSave'); b.disabled=true; b.textContent='Enregistrement…';
   localSet(cfg);
   const ok=await apiSave(cfg);
-  saved=structuredClone(cfg); refreshBar();
+  saved=structuredClone(cfg); touch();
   b.disabled=false; b.textContent='Enregistrer';
   $('noteLocal').classList.toggle('hidden',ok);
-  toast(ok?'Configuration enregistrée ✓':'Enregistré localement (API du bot injoignable)',ok?'ok':'err');
+  toast(ok?'Configuration envoyée au bot ✓':'Enregistré localement — API du bot injoignable',ok?'ok':'err');
 });
 $('btnReset').addEventListener('click',()=>{
   if(!confirm('Remettre TOUS les réglages de ce serveur par défaut ?')) return;
-  cfg=structuredClone(DEFAULTS); fillForm(); refreshBar();
+  cfg=structuredClone(DEFAULTS); render(); touch();
   toast('Réglages remis par défaut — pense à enregistrer','err');
 });
 $('btnExport').addEventListener('click',async()=>{
-  readForm();
   const txt=JSON.stringify(cfg,null,2);
   try{ await navigator.clipboard.writeText(txt); toast('Configuration copiée ✓'); }
   catch{ $('importBox').value=txt; toast('Copie impossible — JSON affiché ci-dessous','err'); }
@@ -852,45 +1095,21 @@ $('btnExport').addEventListener('click',async()=>{
 $('btnImport').addEventListener('click',()=>{
   let data; try{ data=JSON.parse($('importBox').value); }catch{ return toast('JSON invalide','err'); }
   if(!data||typeof data!=='object') return toast('JSON invalide','err');
-  const next=structuredClone(DEFAULTS);
-  for(const k of Object.keys(DEFAULTS)) if(k in data) next[k]=data[k];
-  for(const k of LISTS) if(!Array.isArray(next[k])) next[k]=[];
-  cfg=next; fillForm(); refreshBar();
-  toast('Configuration importée — pense à enregistrer');
+  cfg=Object.assign(structuredClone(DEFAULTS),data);
+  render(); touch(); toast('Configuration importée — pense à enregistrer');
 });
-
 window.addEventListener('beforeunload',e=>{ if(dirty()){ e.preventDefault(); e.returnValue=''; } });
 
 function fatal(title,detail,actions){
   $('boot').innerHTML=`<h3>${esc(title)}</h3><p>${esc(detail)}</p><div class="a">${actions}</div>`;
 }
 
-/* ---------- stats ---------- */
-function renderStats(g,stats){
-  $('stMembers').textContent = g.approximate_member_count ?? (stats&&stats.members) ?? '—';
-  $('stOnline').textContent  = g.approximate_presence_count ?? (stats&&stats.online) ?? '—';
-  $('stInfractions').textContent = (stats&&stats.infractions!=null) ? stats.infractions : '—';
-
-  const days=stats&&Array.isArray(stats.activity)?stats.activity:null;
-  if(days&&days.length){
-    const max=Math.max(...days.map(d=>Number(d.value)||0),1);
-    $('activityBox').innerHTML='<div class="chart">'+days.map(d=>
-      `<div class="bar" title="${esc(d.value)} messages"><div class="fill" style="height:${Math.round((Number(d.value)||0)/max*100)}%"></div><small>${esc(d.label||'')}</small></div>`
-    ).join('')+'</div>';
-  }
-  const rec=stats&&Array.isArray(stats.recent)?stats.recent:null;
-  if(rec&&rec.length){
-    $('recentBox').innerHTML=rec.slice(0,6).map(r=>
-      `<div class="row"><div class="row-t"><strong>${esc(r.title||'Événement')}</strong><span>${esc(r.detail||'')}</span></div></div>`).join('');
-  }
-}
-
-/* ---------- démarrage ---------- */
+/* ---------------- démarrage ---------------- */
 async function boot(){
+  buildNav();
   if(!guildId||!/^\d{5,25}$/.test(guildId)){
     fatal('Serveur introuvable',"L'adresse ne contient pas d'identifiant de serveur valide.",
-      `<a class="btn p" href="/servers.html">Choisir un serveur</a>`);
-    return;
+      `<a class="btn p" href="/servers.html">Choisir un serveur</a>`); return;
   }
   const token=loadToken();
   if(!token){ location.href=authorizeURL(); return; }
@@ -904,16 +1123,14 @@ async function boot(){
   }catch(err){
     if(err.code===401){ try{ sessionStorage.removeItem(TOKEN_KEY); }catch{} location.href=authorizeURL(); return; }
     fatal('Connexion impossible',err.message||String(err),
-      `<button class="btn p" onclick="location.reload()">Réessayer</button><a class="btn" href="/servers.html">Mes serveurs</a>`);
-    return;
+      `<button class="btn p" onclick="location.reload()">Réessayer</button><a class="btn" href="/servers.html">Mes serveurs</a>`); return;
   }
 
   guild=(guilds||[]).find(x=>String(x.id)===String(guildId));
   if(!guild){ fatal('Serveur inaccessible',"Tu n'es pas membre de ce serveur.",`<a class="btn p" href="/servers.html">Mes serveurs</a>`); return; }
   if(!hasAdmin(guild)){
     fatal('Accès refusé',`Il faut la permission Administrateur ou Gérer le serveur sur « ${guild.name} ».`,
-      `<a class="btn p" href="/servers.html">Mes serveurs</a>`);
-    return;
+      `<a class="btn p" href="/servers.html">Mes serveurs</a>`); return;
   }
 
   const ini=initials(guild.name);
@@ -927,25 +1144,53 @@ async function boot(){
   $('heroIcon').innerHTML=iconURL
     ? `<img class="hicon" src="${iconURL}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=\\'hini\\'>${esc(ini)}</div>'">`
     : `<div class="hini">${esc(ini)}</div>`;
+  $('stMembers').textContent=guild.approximate_member_count??'—';
+  $('stOnline').textContent=guild.approximate_presence_count??'—';
   $('pageSub').textContent=PAGES.overview[1];
 
-  const remote=await apiGet(`/api/guild/${encodeURIComponent(guildId)}/config`);
-  if(remote) apiAlive=true;
-  const conf=remote?(remote.config||remote):null;
-  cfg=Object.assign(structuredClone(DEFAULTS),localGet()||{},conf||{});
-  for(const k of LISTS) if(!Array.isArray(cfg[k])) cfg[k]=[];
+  // configuration : API du bot en priorité, sinon sauvegarde locale
+  const dash=await apiGet(`/api/guild/${encodeURIComponent(guildId)}/dashboard`);
+  if(dash&&dash.config){
+    apiAlive=true;
+    META={channels:dash.channels||[],roles:dash.roles||[],categories:dash.categories||[],log_types:dash.log_types||[]};
+    cfg=deepMerge(structuredClone(DEFAULTS),dash.config);
+    if(dash.guild){
+      if(dash.guild.members!=null) $('stMembers').textContent=dash.guild.members;
+      if(dash.guild.online!=null) $('stOnline').textContent=dash.guild.online;
+    }
+  }else{
+    cfg=deepMerge(structuredClone(DEFAULTS),localGet()||{});
+  }
   saved=structuredClone(cfg);
 
-  fillForm();
+  render();
   $('noteLocal').classList.toggle('hidden',apiAlive);
   $('boot').classList.add('hidden');
   $('app').classList.remove('hidden');
+  touch();
 
   const stats=await apiGet(`/api/guild/${encodeURIComponent(guildId)}/stats`);
-  renderStats(guild,stats&&(stats.stats||stats));
+  if(stats){
+    if(stats.members!=null) $('stMembers').textContent=stats.members;
+    if(stats.online!=null) $('stOnline').textContent=stats.online;
+    if(Array.isArray(stats.recent)&&stats.recent.length)
+      $('recentBox').innerHTML=stats.recent.slice(0,6).map(r=>
+        `<div class="row"><div class="row-t"><strong>${esc(r.title||'')}</strong><span>${esc(r.detail||'')}</span></div></div>`).join('');
+  }
 
   const h=(location.hash||'').replace('#','');
-  if(h&&PAGES[h]) go(h);
+  go(h&&PAGES[h]?h:'overview');
+}
+
+function deepMerge(base,extra){
+  if(!extra||typeof extra!=='object') return base;
+  for(const [k,v] of Object.entries(extra)){
+    if(v===null||v===undefined) continue;
+    if(Array.isArray(v)) base[k]=v;
+    else if(typeof v==='object') base[k]=deepMerge(typeof base[k]==='object'&&base[k]?base[k]:{},v);
+    else base[k]=v;
+  }
+  return base;
 }
 
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot);
