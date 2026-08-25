@@ -128,6 +128,11 @@ MENTIONS_PAR_DEFAUT = discord.AllowedMentions(
     replied_user=False,  # répondre à quelqu'un ne le ping pas
 )
 
+# A l'ouverture d'un ticket, on notifie exprès : le membre concerne ET les roles
+# staff charges de ce type de ticket. C'est la seule exception au silence general.
+MENTIONS_TICKET = discord.AllowedMentions(everyone=False, roles=True, users=True)
+
+
 # Dans un salon de logs, personne n'est notifie : ni role, ni @everyone, ni membre.
 # Les mentions restent affichees en bleu et cliquables, elles ne declenchent
 # simplement aucune notification.
@@ -3645,7 +3650,7 @@ async def _log_action(guild, action, mod, target, reason):
 
     e.add_field(name="📝 Raison", value=reason, inline=False)
 
-    try: await ch.send(embed=e)
+    try: await ch.send(embed=e, allowed_mentions=MENTIONS_LOGS)
 
     except: pass
 
@@ -6289,9 +6294,13 @@ class TicketButtonPanelView(discord.ui.View):
 
             _stamp_ticket_embed(e, f"Ticket {choix['nom']}")
 
-            await ch.send(content=interaction.user.mention, embed=e,
+            _staff = " ".join(f"<@&{rid}>" for rid in choix.get("roles", []))
 
-                          view=TicketCloseView2(interaction.user.id, choix["roles"], logs_ch))
+            await ch.send(content=f"{interaction.user.mention} {_staff}".strip(), embed=e,
+
+                          view=TicketCloseView2(interaction.user.id, choix["roles"], logs_ch),
+
+                          allowed_mentions=MENTIONS_TICKET)
 
             tk_record_ticket(ch, interaction.user.id, choix["roles"], logs_ch)
 
@@ -6390,9 +6399,13 @@ class TicketContainerV2View(discord.ui.View):
 
             _stamp_ticket_embed(e, f"Ticket {choix['nom']}")
 
-            await ch.send(content=interaction.user.mention, embed=e,
+            _staff = " ".join(f"<@&{rid}>" for rid in choix.get("roles", []))
 
-                          view=TicketCloseView2(interaction.user.id, choix["roles"], logs_ch))
+            await ch.send(content=f"{interaction.user.mention} {_staff}".strip(), embed=e,
+
+                          view=TicketCloseView2(interaction.user.id, choix["roles"], logs_ch),
+
+                          allowed_mentions=MENTIONS_TICKET)
 
             tk_record_ticket(ch, interaction.user.id, choix["roles"], logs_ch)
 
@@ -7142,7 +7155,13 @@ class TicketSelectMenu2(discord.ui.Select):
 
         _stamp_ticket_embed(e, f"Ticket {choix['nom']}")
 
-        await ch.send(content=interaction.user.mention, embed=e, view=TicketCloseView2(interaction.user.id, choix["roles"], logs_ch))
+        _staff = " ".join(f"<@&{rid}>" for rid in choix.get("roles", []))
+
+        await ch.send(content=f"{interaction.user.mention} {_staff}".strip(), embed=e,
+
+                      view=TicketCloseView2(interaction.user.id, choix["roles"], logs_ch),
+
+                      allowed_mentions=MENTIONS_TICKET)
 
         tk_record_ticket(ch, interaction.user.id, choix["roles"], logs_ch)
 
