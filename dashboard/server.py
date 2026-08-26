@@ -25,7 +25,7 @@ from flask import jsonify, request, send_from_directory
 STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 
 # pages servies telles quelles depuis dashboard/static/
-PAGES = ("index.html", "servers.html", "dashboard.html")
+PAGES = ("index.html", "servers.html", "dash.html", "dashboard.html")
 
 # cache des tokens Discord verifies : token -> (expiration, user, guilds)
 _TOKEN_CACHE = {}
@@ -97,7 +97,7 @@ def _is_admin(guild):
 
 
 def register_dashboard(app, bot, client_id="", port=None, public_url="",
-                       allowed_origins=None, invite_permissions=8):
+                       allowed_origins=None, invite_permissions=8, start_time=None):
     """Ajoute les pages du dashboard et les routes d'appoint a l'app Flask du bot.
 
     app                : l'instance Flask deja creee dans le bot
@@ -109,7 +109,9 @@ def register_dashboard(app, bot, client_id="", port=None, public_url="",
     allowed_origins    : origines autorisees en CORS si le dashboard est heberge ailleurs.
                          Liste ou chaine separee par des virgules, "*" pour tout autoriser.
     invite_permissions : permissions du lien d'invitation du bot
+    start_time         : timestamp de demarrage du bot, pour l'uptime affiche
     """
+    started = float(start_time or time.time())
     client_id = str(client_id or os.environ.get("DISCORD_CLIENT_ID") or "")
     public_url = (public_url or os.environ.get("DASHBOARD_PUBLIC_URL") or "").rstrip("/")
     origins = _split_origins(
@@ -146,7 +148,8 @@ def register_dashboard(app, bot, client_id="", port=None, public_url="",
     # alias pratiques
     @app.route("/dashboard")
     def _dash_alias():
-        return send_from_directory(STATIC_DIR, "dashboard.html")
+        name = "dash.html" if os.path.exists(os.path.join(STATIC_DIR, "dash.html")) else "dashboard.html"
+        return send_from_directory(STATIC_DIR, name)
 
     @app.route("/servers")
     def _servers_alias():
@@ -172,6 +175,50 @@ def register_dashboard(app, bot, client_id="", port=None, public_url="",
                            if getattr(bot, "user", None) else None),
             "bot_ready": bool(getattr(bot, "is_ready", lambda: False)()),
             "guild_count": len(getattr(bot, "guilds", []) or []),
+        })
+
+    @app.route("/api/status")
+    def _api_status():
+        """Etat temps reel du bot, consomme par l'indicateur du dashboard.
+
+        Repondre a cette route prouve deja que le serveur web du bot recoit
+        bien les requetes ; bot_ready dit en plus si la connexion Discord
+        (gateway) est etablie, et ws_latency_ms si elle est en bonne sante.
+        """
+        ready = False
+        try:
+            ready = bool(bot.is_ready())
+        except Exception:
+            ready = False
+
+        latency = None
+        try:
+            raw = getattr(bot, "latency", None)
+            if raw is not None and raw == raw and raw != float("inf"):
+                latency = round(raw * 1000)
+        except Exception:
+            latency = None
+
+        guilds = list(getattr(bot, "guilds", []) or [])
+        members = 0
+        for g in guilds:
+            try:
+                members += int(getattr(g, "member_count", 0) or 0)
+            except Exception:
+                pass
+
+        return jsonify({
+            "ok": True,
+            "api": True,
+            "bot_ready": ready,
+            "bot_name": str(bot.user) if getattr(bot, "user", None) else None,
+            "bot_avatar": (str(bot.user.display_avatar.url)
+                           if getattr(bot, "user", None) else None),
+            "guild_count": len(guilds),
+            "member_count": members,
+            "ws_latency_ms": latency,
+            "uptime_seconds": int(time.time() - started),
+            "server_time": int(time.time()),
         })
 
     @app.route("/api/me")

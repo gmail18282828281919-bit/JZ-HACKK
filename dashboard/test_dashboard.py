@@ -5,13 +5,14 @@ from dashboard import register_dashboard
 import dashboard.server as ds
 
 class G:
-    def __init__(s, i, n): s.id=i; s.name=n
+    def __init__(s, i, n): s.id=i; s.name=n; s.member_count=120
 class Av:  url="https://cdn.discordapp.com/embed/avatars/0.png"
 class U:
     display_avatar=Av()
     def __str__(s): return "ModeraBot#0001"
 class Bot:
     user=U(); guilds=[G(111,"Serveur A"), G(222,"Serveur B")]
+    latency=0.042
     def is_ready(s): return True
 
 # on simule Discord: pas d'appel reseau
@@ -34,7 +35,7 @@ def check(label, cond, extra=""):
     if not cond: fail += 1
 
 print("\n[pages]")
-for p in ["/", "/index.html", "/servers.html", "/dashboard.html", "/dashboard", "/servers"]:
+for p in ["/", "/index.html", "/servers.html", "/dash.html", "/dashboard", "/servers"]:
     r = c.get(p)
     check(f"GET {p} -> 200 html", r.status_code==200 and b"<!DOCTYPE html>" in r.data, r.status_code)
 
@@ -45,6 +46,16 @@ check("client_id expose", j["client_id"]=="123456", j)
 check("redirect_uri = origine + /servers.html", j["redirect_uri"].endswith("/servers.html"), j)
 check("aucun secret dans la reponse", "secret" not in json.dumps(j).lower(), j)
 check("etat du bot", j["bot_ready"] is True and j["guild_count"]==2, j)
+
+print("\n[/api/status]")
+r = c.get("/api/status"); j = r.get_json()
+check("200 sans authentification", r.status_code==200, r.status_code)
+check("bot_ready", j["bot_ready"] is True, j)
+check("latence gateway en ms", j["ws_latency_ms"]==42, j)
+check("nb de serveurs", j["guild_count"]==2, j)
+check("nb de membres", j["member_count"]==240, j)
+check("uptime present", isinstance(j["uptime_seconds"], int), j)
+check("aucun secret", "secret" not in json.dumps(j).lower(), j)
 
 print("\n[/api/me]")
 check("sans token -> 401", c.get("/api/me").status_code==401)
@@ -67,6 +78,17 @@ r = c.options("/api/config", headers={"Origin":"https://dashboard.moderabot.xyz"
                                       "Access-Control-Request-Method":"GET"})
 check("preflight OPTIONS ok", r.status_code < 400 and
       r.headers.get("Access-Control-Allow-Origin")=="https://dashboard.moderabot.xyz", r.status_code)
+
+print("\n[/api/status — bot deconnecte]")
+class BotDown:
+    user=None; guilds=[]; latency=float("nan")
+    def is_ready(s): return False
+app2 = Flask(__name__ + "2")
+register_dashboard(app2, BotDown(), client_id="123456", port=30121)
+j2 = app2.test_client().get("/api/status").get_json()
+check("API repond quand meme", j2["api"] is True, j2)
+check("bot_ready = false", j2["bot_ready"] is False, j2)
+check("latence NaN -> null", j2["ws_latency_ms"] is None, j2)
 
 print("\n[divers]")
 check("favicon -> 204", c.get("/favicon.ico").status_code==204)

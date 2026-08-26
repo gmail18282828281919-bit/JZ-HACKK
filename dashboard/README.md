@@ -37,9 +37,10 @@ Dépose le dossier `dashboard/` **à côté** de ton `app.py`, sur le serveur :
     ├── server.py
     ├── patch_app.py
     └── static/
-        ├── index.html
-        ├── servers.html
-        └── dashboard.html
+        ├── index.html      (connexion)
+        ├── servers.html    (choix du serveur)
+        ├── dash.html       (configuration)
+        └── logo.png        (ton logo, optionnel)
 ```
 
 ### 2. Patcher app.py
@@ -117,6 +118,34 @@ Au démarrage, la console doit afficher :
 Puis ouvre `http://IP_PUBLIQUE:30121/`.
 
 ---
+
+## L'indicateur d'état
+
+En haut à droite de `dash.html`, une pastille répond à la question « est-ce que
+ça marche ? ». Elle se met à jour **toutes les 15 secondes** et distingue trois
+états :
+
+| Pastille | Signification |
+|---|---|
+| 🟢 **Nom du bot en ligne** | l'API répond **et** le bot est connecté à Discord — tout fonctionne |
+| 🟠 **Bot hors ligne** | le serveur web répond, mais la connexion Discord est coupée (token invalide, intents manquants, bot en cours de démarrage) |
+| 🔴 **API injoignable** | aucune réponse : bot arrêté, ou port fermé |
+
+Un clic dessus ouvre le détail :
+
+- **API du bot** — le serveur web reçoit-il les requêtes ;
+- **Connexion Discord** — la gateway est-elle établie (`bot.is_ready()`) ;
+- **Latence API** — aller-retour navigateur → bot, mesuré côté navigateur ;
+- **Latence Discord** — latence de la gateway (`bot.latency`) ;
+- **Serveurs** — nombre de guildes et de membres vus par le bot ;
+- **En ligne depuis** — uptime ;
+- **Dernière vérification** — heure du dernier échange réussi.
+
+La distinction 🟠/🔴 est le vrai diagnostic : **orange = problème Discord**
+(token, intents), **rouge = problème réseau** (port, firewall, bot arrêté).
+
+Le pied de page de `index.html` et `servers.html` affiche le même état
+(avant, « Bot en ligne » y était écrit en dur, même bot éteint).
 
 ## Ports et firewall
 
@@ -243,6 +272,8 @@ Navigateur                        Bot (0.0.0.0:30121)
    │  GET /api/guild/<id>/dashboard  Bearer …  → salons, rôles, config actuelle
    │  POST /api/guild/<id>/dashboard Bearer …  → enregistre dans les .json du bot
    │  GET /api/guild/<id>/stats      Bearer …  → membres, en ligne, top niveaux
+  │
+  │  GET /api/status  (toutes les 15 s)  → alimente l'indicateur d'état
 ```
 
 Le token Discord n'est jamais stocké côté serveur : le bot le vérifie auprès de
@@ -254,9 +285,10 @@ guilde demandée.
 
 | Route | Rôle |
 |---|---|
-| `GET /` `/index.html` `/servers.html` `/dashboard.html` | les pages du dashboard |
+| `GET /` `/index.html` `/servers.html` `/dash.html` | les pages du dashboard |
 | `GET /dashboard` `/servers` | alias sans `.html` |
-| `GET /api/config` | `client_id`, `redirect_uri`, état du bot — **aucun secret** |
+| `GET /api/config` | `client_id`, `redirect_uri` — **aucun secret** |
+| `GET /api/status` | état temps réel : bot connecté, latences, serveurs, uptime |
 | `GET /api/me` | utilisateur + ses serveurs administrables, bot présent ou non |
 
 Les routes `/api/guild/...` existantes du bot ne sont pas modifiées.
@@ -282,6 +314,7 @@ permission, le CORS ne reflète que les origines déclarées.
 | « L'API du bot ne répond pas » | port fermé ou bot arrêté | `curl http://127.0.0.1:30121/api/health` sur le serveur |
 | « Invalid OAuth2 redirect_uri » | Redirect URI absente ou différente | recopier **exactement** l'URL affichée au démarrage |
 | Retour en boucle sur Discord | `client_id` faux dans `config.json` | vérifier l'Application ID du portail |
+| Boucle après avoir cliqué « Se connecter » | ton `index.html` utilisait `response_type=code` alors que `servers.html` attend un token | corrigé : les deux pages utilisent `response_type=token` |
 | `403 forbidden` sur `/api/guild/...` | pas admin sur ce serveur, ou bot absent | `+invite`, et vérifier tes permissions |
 | Le bot n'apparaît pas dans la liste | cache des membres | activer **Server Members Intent** sur le portail |
 | Page blanche en https | mixed content | tout servir par le bot, ou passer par nginx |

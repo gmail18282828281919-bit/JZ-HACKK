@@ -241,6 +241,36 @@ textarea{min-height:94px;resize:vertical;line-height:1.6}
   .hero{padding:22px}
   .hero h2{font-size:21px}
 }
+
+/* ===== Indicateur d'etat du bot (barre du haut) ===== */
+.stat-chip{position:relative;display:flex;align-items:center;gap:8px;padding:7px 13px;border:1px solid var(--line);
+  border-radius:999px;background:var(--card);cursor:pointer;user-select:none;font-size:13px;font-weight:600;
+  white-space:nowrap;transition:border-color .18s}
+.stat-chip:hover{border-color:var(--acc)}
+.stat-chip .sd{width:9px;height:9px;border-radius:50%;flex:none;background:#8f98b2;transition:background .25s}
+.stat-chip.ok   .sd{background:#3ba55d;animation:sdpulse 2.4s ease infinite}
+.stat-chip.warn .sd{background:#faa61a}
+.stat-chip.err  .sd{background:#ed4245}
+@keyframes sdpulse{0%,100%{box-shadow:0 0 0 0 rgba(59,165,93,.55)}50%{box-shadow:0 0 0 6px rgba(59,165,93,0)}}
+.stat-chip .st{max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.stat-chip.err .st{color:#ed4245}
+.stat-chip.warn .st{color:#faa61a}
+.stat-pop{display:none;position:absolute;top:calc(100% + 10px);right:0;z-index:300;width:290px;
+  background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;
+  box-shadow:0 14px 44px rgba(0,0,0,.5);cursor:default;
+  white-space:normal;overflow-wrap:anywhere}
+.stat-chip.open .stat-pop{display:block}
+.stat-pop h4{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin:0 0 9px}
+.sl{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;font-size:13px;font-weight:600}
+.sl+.sl{border-top:1px solid var(--line)}
+.sl span{color:var(--dim);font-weight:600}
+.sl b{font-weight:700;text-align:right}
+.sl b.good{color:#3ba55d}
+.sl b.bad{color:#ed4245}
+.sl b.mid{color:#faa61a}
+.stat-pop .hint{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);
+  font-size:11.5px;font-weight:500;color:var(--dim);line-height:1.5}
+@media(max-width:640px){.stat-chip .st{display:none}.stat-chip{padding:8px 10px}.stat-pop{width:250px}}
 </style>
 </head>
 <body>
@@ -276,6 +306,22 @@ textarea{min-height:94px;resize:vertical;line-height:1.6}
       </div>
     </div>
     <div class="acts">
+      <!-- etat du bot : l'API repond-elle, et le bot est-il connecte a Discord ? -->
+      <div class="stat-chip" id="statChip" title="État du bot">
+        <span class="sd"></span>
+        <span class="st" id="statTxt">Vérification…</span>
+        <div class="stat-pop" id="statPop">
+          <h4>État du bot</h4>
+          <div class="sl"><span>API du bot</span><b id="slApi">…</b></div>
+          <div class="sl"><span>Connexion Discord</span><b id="slBot">…</b></div>
+          <div class="sl"><span>Latence API</span><b id="slPing">…</b></div>
+          <div class="sl"><span>Latence Discord</span><b id="slWs">…</b></div>
+          <div class="sl"><span>Serveurs</span><b id="slGuilds">…</b></div>
+          <div class="sl"><span>En ligne depuis</span><b id="slUp">…</b></div>
+          <div class="sl"><span>Dernière vérification</span><b id="slLast">…</b></div>
+          <div class="hint" id="slHint"></div>
+        </div>
+      </div>
       <button class="btn sm" id="btnRefresh">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
         Actualiser
@@ -1090,6 +1136,7 @@ $('btnLogout').addEventListener('click',()=>{
   fetch(apiURL('/api/logout'),{method:'POST',credentials:API_CREDS,headers:authHeaders()}).catch(()=>{}).finally(()=>location.href='/');
 });
 $('btnRefresh').addEventListener('click',()=>{
+  checkStatus();
   if(dirty()&&!confirm('Tu as des modifications non enregistrées. Recharger quand même ?')) return;
   saved=structuredClone(cfg); location.reload();
 });
@@ -1132,9 +1179,88 @@ function fatal(title,detail,actions){
   $('boot').innerHTML=`<h3>${esc(title)}</h3><p>${esc(detail)}</p><div class="a">${actions}</div>`;
 }
 
+/* =============================================================
+   Indicateur d'etat du bot
+   Interroge /api/status en boucle et mesure le temps d'aller-retour.
+   Une reponse prouve que le serveur web du bot recoit les requetes ;
+   bot_ready dit si la connexion Discord (gateway) est etablie.
+   ============================================================= */
+const statChip=$('statChip'), statPop=$('statPop');
+let statTimer=null, statLastOk=null;
+
+statChip.addEventListener('click',e=>{
+  if(statPop.contains(e.target)) return;
+  statChip.classList.toggle('open');
+});
+document.addEventListener('click',e=>{ if(!statChip.contains(e.target)) statChip.classList.remove('open'); });
+
+function fmtUptime(sec){
+  sec=Math.max(0,Number(sec)||0);
+  const d=Math.floor(sec/86400), h=Math.floor(sec%86400/3600), m=Math.floor(sec%3600/60);
+  if(d) return `${d} j ${h} h`;
+  if(h) return `${h} h ${m} min`;
+  if(m) return `${m} min`;
+  return `${Math.floor(sec)} s`;
+}
+function pingClass(ms){ return ms==null?'':(ms<200?'good':ms<600?'mid':'bad'); }
+
+function paintStatus(st,ping){
+  const set=(id,txt,cls)=>{ const el=$(id); el.textContent=txt; el.className=cls||''; };
+  const isOpen=statChip.classList.contains('open')?' open':'';
+
+  if(!st){                                   // aucune reponse : API injoignable
+    statChip.className='stat-chip err'+isOpen;
+    $('statTxt').textContent='API injoignable';
+    set('slApi','Ne repond pas','bad');
+    set('slBot','Inconnu','bad');
+    set('slPing','—'); set('slWs','—'); set('slGuilds','—'); set('slUp','—');
+    set('slLast', statLastOk ? statLastOk.toLocaleTimeString() : 'jamais');
+    $('slHint').textContent="Le bot est arrêté, ou le port du dashboard n'est pas ouvert. "
+      + "Sur le serveur : curl http://127.0.0.1:30121/api/health";
+    return;
+  }
+
+  statLastOk=new Date();
+  const ready=!!st.bot_ready;
+  statChip.className='stat-chip '+(ready?'ok':'warn')+isOpen;
+  $('statTxt').textContent = ready
+    ? (st.bot_name ? st.bot_name.split('#')[0]+' en ligne' : 'Bot en ligne')
+    : 'Bot hors ligne';
+
+  set('slApi','Répond ✓','good');
+  set('slBot', ready?'Connecté ✓':'Déconnecté', ready?'good':'bad');
+  set('slPing', ping!=null?ping+' ms':'—', pingClass(ping));
+  set('slWs', st.ws_latency_ms!=null?st.ws_latency_ms+' ms':'—', pingClass(st.ws_latency_ms));
+  set('slGuilds', String(st.guild_count??'—') + (st.member_count?` · ${st.member_count} membres`:''));
+  set('slUp', fmtUptime(st.uptime_seconds));
+  set('slLast', statLastOk.toLocaleTimeString());
+  $('slHint').textContent = ready
+    ? 'Le dashboard communique avec le bot : tes modifications sont bien enregistrées.'
+    : "Le serveur web répond mais le bot n'est pas connecté à Discord. "
+      + "Vérifie le token dans config.json et les intents sur le portail développeur.";
+}
+
+async function checkStatus(){
+  const t0=performance.now();
+  try{
+    const r=await fetch(apiURL('/api/status'),{cache:'no-store',headers:{Accept:'application/json'}});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    paintStatus(await r.json(), Math.round(performance.now()-t0));
+  }catch{
+    paintStatus(null,null);
+  }
+}
+function startStatus(){
+  checkStatus();
+  clearInterval(statTimer);
+  statTimer=setInterval(()=>{ if(!document.hidden) checkStatus(); },15000);
+}
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkStatus(); });
+
 /* ---------------- démarrage ---------------- */
 async function boot(){
   buildNav();
+  startStatus();          // l'état du bot s'affiche dès l'ouverture de la page
   // recupere client_id / redirect_uri avant toute redirection OAuth
   await loadApiConfig();
   if(!CLIENT_ID){

@@ -219,6 +219,7 @@ try:
         public_url=os.environ.get("DASHBOARD_PUBLIC_URL")
                    or CONFIG.get("dashboard_public_url", ""),
         allowed_origins=CONFIG.get("dashboard_allowed_origins", ""),
+        start_time=globals().get("_BOT_START_TIME"),
     )
 except Exception as _web_err:
     print(f"⚠️  Dashboard web non charge : {_web_err}")
