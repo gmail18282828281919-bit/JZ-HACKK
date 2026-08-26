@@ -347,10 +347,26 @@ def register_dashboard(app, bot, client_id="", port=None, public_url="",
     def _favicon():
         return ("", 204)
 
+    def _base_url():
+        """URL publique du dashboard, vue depuis le navigateur.
+
+        Derriere un reverse proxy, request.host_url voit toujours du http :
+        c'est nginx qui parle a Flask en clair. On suit donc l'en-tete
+        X-Forwarded-Proto quand elle est presente, sinon le schema observe.
+        Une URL explicite dans la config a toujours le dernier mot.
+        """
+        if public_url:
+            return public_url
+        proto = (request.headers.get("X-Forwarded-Proto") or "").split(",")[0].strip()
+        host = request.headers.get("X-Forwarded-Host") or request.host
+        if proto in ("http", "https"):
+            return f"{proto}://{host}"
+        return request.host_url.rstrip("/")
+
     @app.route("/api/config")
     def _api_config():
         """Config publique consommee par le front : aucun secret ici."""
-        base = public_url or request.host_url.rstrip("/")
+        base = _base_url()
         return jsonify({
             "client_id": client_id,
             "redirect_uri": f"{base}/servers.html",
