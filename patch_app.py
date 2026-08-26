@@ -35,6 +35,11 @@ Ce que le script corrige :
                          avec la valeur actuelle en repli.
   6. branchement       : appel de register_dashboard(...) avant le demarrage
                          du serveur web, pour servir les pages du dashboard.
+  7. /api/debug/<id>   : route publique qui divulguait le nom d'une guilde,
+                         son nombre de membres et la liste des serveurs du
+                         bot a n'importe quel visiteur. Reservee aux admins.
+  8. init_dashboard    : ancien import mort qui affichait un avertissement
+                         alarmant a chaque demarrage.
 
 Le script est idempotent : le relancer ne casse rien.
 Une sauvegarde <fichier>.bak est creee au premier passage.
@@ -268,6 +273,72 @@ def run_bot(path):
     runpy.run_path(path, run_name="__main__")
 
 
+DEBUG_ROUTE_NEW = '''@app.route("/api/debug/<guild_id>")
+def api_debug_guild(guild_id):
+    """Diagnostic reserve aux administrateurs de la guilde concernee.
+
+    Cette route etait publique : elle renvoyait le nom du serveur, son nombre
+    de membres et un echantillon des guildes du bot a n'importe quel visiteur.
+    """
+    guild, member = require_guild_admin(guild_id)
+    if not guild:
+        return jsonify({"error": "forbidden"}), 403
+
+    user = session.get("discord_user")
+    out = {
+        "session_user": (user or {}).get("id"),
+        "guild_found": True,
+        "guild_name": guild.name,
+        "bot_ready": bot.is_ready(),
+        "member_cache_count": len(guild.members),
+        "chunked": guild.chunked,
+    }
+    if member is not None:
+        out["is_owner"] = member.id == guild.owner_id
+        out["is_admin_perm"] = member.guild_permissions.administrator
+        out["is_manage_guild_perm"] = member.guild_permissions.manage_guild
+    return jsonify(out)
+
+
+'''
+
+
+def patch_debug(src):
+    if "Diagnostic reserve aux administrateurs" in src:
+        _note(False, "/api/debug (deja fait)")
+        return src
+    pat = re.compile(
+        r'@app\.route\("/api/debug/<guild_id>"\).*?'
+        r'(?=@app\.route\("/api/guild/<guild_id>/overview")',
+        re.DOTALL)
+    src, n = pat.subn(lambda m: DEBUG_ROUTE_NEW, src, count=1)
+    _note(bool(n), "/api/debug reserve aux administrateurs")
+    return src
+
+
+def patch_legacy_import(src):
+    """Retire l'ancien bloc `from dashboard import init_dashboard`.
+
+    Ce module n'a jamais existe : le bloc echouait deja silencieusement.
+    Maintenant que dashboard.py existe, il affiche a chaque demarrage un
+    avertissement alarmant alors que tout fonctionne.
+    """
+    if "from dashboard import init_dashboard" not in src:
+        _note(False, "ancien import init_dashboard (deja retire)")
+        return src
+    pat = re.compile(
+        r"try:\s*\n+\s*from dashboard import init_dashboard.*?"
+        r"(?=\n@app\.route|\ndef |\nclass |\nThread\()",
+        re.DOTALL)
+    m = pat.search(src)
+    if not m:
+        _note(False, "ancien import init_dashboard (bloc introuvable)")
+        return src
+    src = src[:m.start()] + src[m.end():]
+    _note(True, "ancien import init_dashboard supprime")
+    return src
+
+
 def main():
     # Sans argument : mode demarrage (patch + lancement du bot).
     startup_mode = len(sys.argv) < 2
@@ -284,7 +355,8 @@ def main():
 
     src = original
     for step in (patch_port, patch_print, patch_cookie,
-                 patch_admin, patch_secrets, patch_hook):
+                 patch_admin, patch_secrets, patch_debug,
+                 patch_legacy_import, patch_hook):
         src = step(src)
 
     print(f"\n📄 {path}")
