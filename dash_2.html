@@ -1,0 +1,1933 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ModeraBot — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080b16; --side:#0c1121; --card:#111828; --card2:#172035;
+  --border:#1e2942; --border-hi:#2e3f68;
+  --text:#e6ecf9; --muted:#8794b3; --dim:#67728f;
+  --accent:#3b82f6; --accent2:#2563eb; --pink:#22d3ee;
+  --green:#22c55e; --red:#ef4444; --orange:#f59e0b; --blue:#60a5fa;
+  --sidew:252px;
+}
+body{font-family:'Outfit',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(700px 420px at 12% -8%,rgba(59,130,246,.16),transparent 60%),
+             radial-gradient(620px 400px at 105% 8%,rgba(37,99,235,.12),transparent 62%)}
+
+.side{position:fixed;top:0;left:0;bottom:0;width:var(--sidew);z-index:60;background:var(--side);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;transition:transform .28s ease}
+.brand{display:flex;align-items:center;gap:10px;padding:17px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
+.brand .logo{width:30px;height:30px;border-radius:9px;object-fit:cover;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#fff;flex-shrink:0;
+  box-shadow:0 0 18px rgba(59,130,246,.45)}
+.brand b{font-size:16px;font-weight:700;letter-spacing:-.01em}
+
+.gsw{margin:12px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--card);
+  display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;transition:.18s;flex-shrink:0}
+.gsw:hover{border-color:var(--border-hi);background:var(--card2)}
+.gsw img,.gsw .gi{width:32px;height:32px;border-radius:9px;flex-shrink:0;object-fit:cover;background:var(--card2)}
+.gsw .gi{background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff}
+.gsw .gt{min-width:0;flex:1}
+.gsw .gt b{display:block;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gsw .gt span{display:block;font-size:11px;color:var(--muted);font-weight:500}
+.gsw svg{opacity:.5;flex-shrink:0}
+
+.navwrap{flex:1;overflow-y:auto;padding:4px 12px 18px;scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent}
+.navwrap::-webkit-scrollbar{width:5px}
+.navwrap::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:6px}
+.grp{display:flex;align-items:center;gap:7px;padding:15px 8px 7px;font-size:10.5px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.1em;color:var(--dim)}
+.grp::before{content:'';width:3px;height:11px;border-radius:2px;background:linear-gradient(var(--accent),var(--accent2))}
+.nav{display:flex;align-items:center;gap:11px;width:100%;padding:9px 11px;border:none;background:none;
+  color:var(--muted);font-family:inherit;font-size:13.5px;font-weight:500;border-radius:10px;cursor:pointer;
+  text-align:left;transition:.15s;position:relative}
+.nav:hover{background:rgba(59,130,246,.08);color:var(--text)}
+.nav.on{background:linear-gradient(90deg,rgba(59,130,246,.22),rgba(59,130,246,.05));color:#fff;font-weight:600}
+.nav.on::before{content:'';position:absolute;left:-12px;top:50%;transform:translateY(-50%);width:3px;height:20px;
+  border-radius:0 3px 3px 0;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+.nav svg{flex-shrink:0;opacity:.85}
+.nav .pro{margin-left:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--orange);background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.3);padding:1px 6px;border-radius:5px}
+
+.main{margin-left:var(--sidew);position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
+.top{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:15px 26px;background:rgba(8,11,22,.82);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+.top h1{font-size:20px;font-weight:700;letter-spacing:-.02em}
+.top .sub{font-size:12.5px;font-weight:500;color:var(--muted);margin-top:1px}
+.top .acts{display:flex;align-items:center;gap:10px}
+.burger{display:none;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px;color:var(--text);cursor:pointer}
+
+.user{display:flex;align-items:center;gap:9px;padding:5px 12px 5px 5px;border:1px solid var(--border);
+  border-radius:22px;background:var(--card);cursor:pointer;position:relative;user-select:none}
+.user:hover{border-color:var(--border-hi)}
+.user img{width:27px;height:27px;border-radius:50%;object-fit:cover;background:var(--card2)}
+.user .un{font-size:13px;font-weight:600;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.menu{display:none;position:absolute;top:calc(100% + 9px);right:0;background:var(--card);border:1px solid var(--border);
+  border-radius:13px;padding:6px;min-width:190px;box-shadow:0 14px 40px rgba(0,0,0,.6);z-index:80}
+.user.open .menu{display:block}
+.mi{display:flex;align-items:center;gap:9px;padding:9px 12px;font-size:13px;font-weight:500;color:var(--text);
+  border-radius:9px;cursor:pointer;text-decoration:none}
+.mi:hover{background:rgba(59,130,246,.1)}
+.mi.danger{color:var(--red)}
+.mi.danger:hover{background:rgba(239,68,68,.1)}
+
+.content{flex:1;padding:24px 26px 90px;max-width:1120px;width:100%}
+
+.banner{display:flex;align-items:center;gap:12px;padding:13px 17px;border-radius:13px;margin-bottom:18px;
+  background:linear-gradient(90deg,rgba(59,130,246,.14),rgba(59,130,246,.02));
+  border:1px solid rgba(59,130,246,.22);font-size:13px;font-weight:500;color:var(--text);line-height:1.5}
+.banner .ic{width:30px;height:30px;border-radius:9px;background:rgba(59,130,246,.2);display:flex;
+  align-items:center;justify-content:center;color:var(--accent);flex-shrink:0}
+.banner.warn{background:linear-gradient(90deg,rgba(245,158,11,.13),rgba(245,158,11,.02));border-color:rgba(245,158,11,.25)}
+.banner.warn .ic{background:rgba(245,158,11,.18);color:var(--orange)}
+
+.hero{position:relative;overflow:hidden;border-radius:18px;border:1px solid var(--border);
+  background:linear-gradient(120deg,#11223d,#0e1729 55%,#0b1322);padding:30px 32px;margin-bottom:18px}
+.hero::after{content:'';position:absolute;top:-70px;right:-40px;width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle,rgba(59,130,246,.35),transparent 68%);filter:blur(38px)}
+.hero .hi{position:relative;z-index:2;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.hero .hicon{width:74px;height:74px;border-radius:20px;object-fit:cover;border:1px solid var(--border-hi);background:var(--card2)}
+.hero .hini{width:74px;height:74px;border-radius:20px;background:linear-gradient(135deg,var(--accent2),var(--pink));
+  display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff}
+.hero h2{font-size:26px;font-weight:700;letter-spacing:-.02em;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hero p{font-size:13.5px;font-weight:500;color:var(--muted);margin-top:5px}
+.tagp{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:3px 10px;border-radius:20px;
+  color:#fff;background:linear-gradient(135deg,var(--accent),var(--pink))}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:13px;margin-bottom:18px}
+.stat{position:relative;overflow:hidden;background:var(--card);border:1px solid var(--border);border-radius:15px;
+  padding:18px 19px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;transition:.2s}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent)}
+.stat:hover{border-color:var(--border-hi);transform:translateY(-2px)}
+.stat b{display:block;font-size:27px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.stat span{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:5px}
+.sic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  background:rgba(59,130,246,.14);color:var(--accent)}
+.sic.g{background:rgba(34,197,94,.13);color:var(--green)}
+.sic.r{background:rgba(239,68,68,.13);color:var(--red)}
+.sic.b{background:rgba(96,165,250,.13);color:var(--blue)}
+
+.card{position:relative;overflow:hidden;background:var(--card);border:1px solid var(--border);border-radius:16px;margin-bottom:14px}
+.card::before{content:'';position:absolute;top:0;left:0;width:120px;height:2px;background:linear-gradient(90deg,var(--accent),transparent)}
+.card-h{padding:17px 21px 0}
+.card-h h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.card-h p{font-size:12.5px;font-weight:500;color:var(--muted);margin-top:3px;line-height:1.5}
+.card-b{padding:6px 21px 17px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.empty{padding:34px 20px;text-align:center;font-size:13px;font-weight:500;color:var(--dim)}
+
+.chart{display:flex;align-items:flex-end;gap:8px;height:130px;padding:16px 0 0}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%}
+.bar .fill{width:100%;max-width:34px;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,var(--accent),rgba(37,99,235,.35));
+  margin-top:auto;min-height:3px;transition:height .5s cubic-bezier(.2,.8,.2,1)}
+.bar small{font-size:10.5px;font-weight:500;color:var(--dim)}
+
+.row{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 0;border-top:1px solid var(--border)}
+.row:first-child{border-top:none}
+.row-t strong{display:block;font-size:13.5px;font-weight:600}
+.row-t span{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-top:2px;line-height:1.45}
+.row-c{flex-shrink:0}
+.field{padding:14px 0;border-top:1px solid var(--border)}
+.field:first-child{border-top:none}
+.field label{display:block;font-size:13.5px;font-weight:600;margin-bottom:3px}
+.field .hint{font-size:12px;font-weight:500;color:var(--muted);margin-bottom:9px;line-height:1.45}
+
+.sw{display:inline-block;position:relative;width:44px;height:25px;flex-shrink:0;cursor:pointer;vertical-align:middle}
+.sw input{opacity:0;width:0;height:0;position:absolute}
+.sw i{position:absolute;inset:0;background:var(--card2);border:1px solid var(--border-hi);border-radius:20px;transition:.2s}
+.sw i::after{content:'';position:absolute;top:3px;left:3px;width:17px;height:17px;border-radius:50%;background:var(--dim);transition:.2s}
+.sw input:checked + i{background:linear-gradient(135deg,var(--accent2),var(--accent));border-color:transparent}
+.sw input:checked + i::after{transform:translateX(19px);background:#fff}
+
+input[type=text],input[type=number],select,textarea{font-family:inherit;font-size:13px;font-weight:500;color:var(--text);
+  background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;outline:none;width:100%;transition:.18s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.13)}
+input[type=number]{width:90px}
+select{cursor:pointer;min-width:155px}
+textarea{min-height:94px;resize:vertical;line-height:1.6}
+.w-md{max-width:240px}
+.vars{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.var{font-family:ui-monospace,Menlo,monospace;font-size:11px;font-weight:500;color:var(--accent);
+  background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);border-radius:6px;padding:3px 8px;cursor:pointer}
+.var:hover{background:rgba(59,130,246,.22)}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px;min-height:2px}
+.chip{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;background:var(--card2);
+  border:1px solid var(--border-hi);border-radius:20px;padding:4px 6px 4px 12px}
+.chip button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:0 4px;font-family:inherit}
+.chip button:hover{color:var(--red)}
+.add{display:flex;gap:8px;margin-top:11px}
+
+.btn{padding:9px 17px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border-hi);
+  color:var(--text);background:var(--card2);font-family:inherit;text-decoration:none;display:inline-flex;
+  align-items:center;gap:7px;white-space:nowrap;transition:.18s}
+.btn:hover{border-color:var(--accent);color:#fff}
+.btn.p{background:linear-gradient(135deg,var(--accent2),var(--accent));border-color:transparent;color:#fff;
+  box-shadow:0 4px 16px rgba(37,99,235,.35)}
+.btn.p:hover{filter:brightness(1.1)}
+.btn.p:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+.btn.dg{color:var(--red);border-color:rgba(239,68,68,.32)}
+.btn.dg:hover{background:rgba(239,68,68,.1);border-color:var(--red);color:var(--red)}
+.btn.sm{padding:7px 13px;font-size:12.5px}
+
+.savebar{position:fixed;left:calc(var(--sidew) + 26px);right:26px;bottom:20px;z-index:70;display:flex;align-items:center;
+  justify-content:space-between;gap:14px;background:rgba(23,32,53,.96);backdrop-filter:blur(16px);
+  border:1px solid var(--border-hi);border-radius:14px;padding:12px 16px;box-shadow:0 12px 40px rgba(0,0,0,.55);
+  opacity:0;transform:translateY(16px);pointer-events:none;transition:.25s}
+.savebar.show{opacity:1;transform:none;pointer-events:auto}
+.savebar span{font-size:13px;font-weight:600;color:var(--orange)}
+.savebar .a{display:flex;gap:9px}
+
+.toast{position:fixed;left:50%;bottom:88px;transform:translate(-50%,16px);z-index:200;background:var(--card);
+  border:1px solid var(--border-hi);border-radius:12px;padding:11px 20px;font-size:13px;font-weight:600;
+  box-shadow:0 12px 36px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:.25s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.ok{border-color:rgba(34,197,94,.5);color:var(--green)}
+.toast.err{border-color:rgba(239,68,68,.5);color:var(--red)}
+
+.page{display:none}
+.page.on{display:block}
+.hidden{display:none !important}
+.boot{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:15px;min-height:70vh;
+  text-align:center;color:var(--muted);font-size:14px;font-weight:500;padding:20px}
+.sp{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.boot h3{font-size:18px;font-weight:700;color:var(--red)}
+.boot .a{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+.ovl{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:55}
+.ovl.show{display:block}
+
+
+.tk{position:relative;background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:15px 16px;margin-top:12px}
+.tk-h{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.tk-h .em{font-size:20px;line-height:1}
+.tk-h b{font-size:14px;font-weight:600;flex:1}
+.tk-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tk-grid .full{grid-column:1/-1}
+.tk-grid label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px}
+.mini{font-size:11.5px;font-weight:500;color:var(--dim);margin-top:5px;line-height:1.45}
+.rolebox{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pill-i{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--accent);
+  background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);border-radius:20px;padding:3px 10px}
+.subhead{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);
+  padding:16px 0 2px;border-top:1px solid var(--border);margin-top:8px}
+.subhead:first-child{border-top:none;margin-top:0;padding-top:4px}
+@media(max-width:700px){.tk-grid,.grid2{grid-template-columns:1fr}}
+
+@media(max-width:900px){
+  .side{transform:translateX(-100%);box-shadow:0 0 40px rgba(0,0,0,.6)}
+  .side.open{transform:none}
+  .main{margin-left:0}
+  .burger{display:flex}
+  .content{padding:18px 14px 90px}
+  .top{padding:12px 14px}
+  .savebar{left:14px;right:14px}
+  .two{grid-template-columns:1fr}
+  .row{flex-direction:column;align-items:flex-start;gap:10px}
+  .row-c{width:100%}
+  .w-md{max-width:none}
+  .hero{padding:22px}
+  .hero h2{font-size:21px}
+}
+
+.stat-chip{position:relative;display:flex;align-items:center;gap:8px;padding:7px 13px;border:1px solid var(--line);
+  border-radius:999px;background:var(--card);cursor:pointer;user-select:none;font-size:13px;font-weight:600;
+  white-space:nowrap;transition:border-color .18s}
+.stat-chip:hover{border-color:var(--acc)}
+.stat-chip .sd{width:9px;height:9px;border-radius:50%;flex:none;background:#8f98b2;transition:background .25s}
+.stat-chip.ok   .sd{background:#3ba55d;animation:sdpulse 2.4s ease infinite}
+.stat-chip.warn .sd{background:#faa61a}
+.stat-chip.err  .sd{background:#ed4245}
+@keyframes sdpulse{0%,100%{box-shadow:0 0 0 0 rgba(59,165,93,.55)}50%{box-shadow:0 0 0 6px rgba(59,165,93,0)}}
+.stat-chip .st{max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.stat-chip.err .st{color:#ed4245}
+.stat-chip.warn .st{color:#faa61a}
+.stat-pop{display:none;position:absolute;top:calc(100% + 10px);right:0;z-index:300;width:290px;
+  background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;
+  box-shadow:0 14px 44px rgba(0,0,0,.5);cursor:default;
+  white-space:normal;overflow-wrap:anywhere}
+.stat-chip.open .stat-pop{display:block}
+.stat-pop h4{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin:0 0 9px}
+.sl{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;font-size:13px;font-weight:600}
+.sl+.sl{border-top:1px solid var(--line)}
+.sl span{color:var(--dim);font-weight:600}
+.sl b{font-weight:700;text-align:right}
+.sl b.good{color:#3ba55d}
+.sl b.bad{color:#ed4245}
+.sl b.mid{color:#faa61a}
+.stat-pop .hint{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);
+  font-size:11.5px;font-weight:500;color:var(--dim);line-height:1.5}
+@media(max-width:640px){.stat-chip .st{display:none}.stat-chip{padding:8px 10px}.stat-pop{width:250px}}
+</style>
+</head>
+<body>
+
+
+<aside class="side" id="side">
+  <div class="brand">
+    <img class="logo" src="logo.png" alt="" onerror="this.outerHTML='<div class=&quot;logo&quot;>M</div>'">
+    <b>ModeraBot</b>
+  </div>
+
+  <a class="gsw" href="/servers.html">
+    <div id="gswIcon" class="gi">?</div>
+    <div class="gt"><b id="gswName">…</b><span>Changer de serveur</span></div>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 9 12 5 16 9"/><polyline points="16 15 12 19 8 15"/></svg>
+  </a>
+
+  <div class="navwrap" id="navwrap"></div>
+</aside>
+<div class="ovl" id="ovl"></div>
+
+<div class="main">
+  <div class="top">
+    <div style="display:flex;align-items:center;gap:12px;min-width:0">
+      <button class="burger" id="burger" aria-label="Menu">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div style="min-width:0">
+        <h1 id="pageTitle">Vue d'ensemble</h1>
+        <div class="sub" id="pageSub">—</div>
+      </div>
+    </div>
+    <div class="acts">
+      <div class="stat-chip" id="statChip" title="État du bot">
+        <span class="sd"></span>
+        <span class="st" id="statTxt">Vérification…</span>
+        <div class="stat-pop" id="statPop">
+          <h4>État du bot</h4>
+          <div class="sl"><span>API du bot</span><b id="slApi">…</b></div>
+          <div class="sl"><span>Connexion Discord</span><b id="slBot">…</b></div>
+          <div class="sl"><span>Latence API</span><b id="slPing">…</b></div>
+          <div class="sl"><span>Latence Discord</span><b id="slWs">…</b></div>
+          <div class="sl"><span>Serveurs</span><b id="slGuilds">…</b></div>
+          <div class="sl"><span>En ligne depuis</span><b id="slUp">…</b></div>
+          <div class="sl"><span>Dernière vérification</span><b id="slLast">…</b></div>
+          <div class="hint" id="slHint"></div>
+        </div>
+      </div>
+      <button class="btn sm" id="btnRefresh">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Actualiser
+      </button>
+      <div class="user" id="userPill">
+        <img id="uAvatar" src="https://cdn.discordapp.com/embed/avatars/0.png" alt="">
+        <span class="un" id="uName">…</span>
+        <div class="menu">
+          <a class="mi" href="/servers.html">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/></svg>
+            Mes serveurs
+          </a>
+          <div class="mi danger" id="btnLogout">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Déconnexion
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div id="boot" class="boot"><div class="sp"></div>Chargement du dashboard…</div>
+
+    <div id="app" class="hidden">
+      <div id="noteLocal" class="banner warn hidden">
+        <div class="ic">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+        </div>
+        <div><b>L'API du bot ne répond pas.</b> Les salons et rôles ne peuvent pas être listés (saisie par ID), et tes réglages sont gardés dans ce navigateur en attendant.</div>
+      </div>
+
+      <div class="page on" id="pg-overview">
+        <div class="hero">
+          <div class="hi">
+            <div id="heroIcon"></div>
+            <div>
+              <h2><span id="heroName">—</span><span class="tagp" id="heroTag">Administrateur</span></h2>
+              <p id="heroSub">Tickets · AutoMod · Anti-raid · Logs · Niveaux · Giveaways</p>
+            </div>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat"><div><b id="stMembers">—</b><span>Membres</span></div>
+            <div class="sic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div></div>
+          <div class="stat"><div><b id="stOnline">—</b><span>En ligne</span></div>
+            <div class="sic g"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="12" cy="12" r="5"/></svg></div></div>
+          <div class="stat"><div><b id="stTickets">—</b><span>Types de tickets</span></div>
+            <div class="sic b"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 6v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-6z"/></svg></div></div>
+          <div class="stat"><div><b id="stModules">0</b><span>Modules actifs</span></div>
+            <div class="sic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <div class="card-h"><h3>Modules</h3><p>Ce que le bot applique en ce moment sur ce serveur.</p></div>
+            <div class="card-b"><div id="modList"></div></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><h3>Top membres</h3><p>Classement XP renvoyé par le bot.</p></div>
+            <div class="card-b" id="recentBox"><div class="empty">Aucune donnée</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="pg-general">
+        <div class="card">
+          <div class="card-h"><h3>Préfixe des commandes</h3><p>Le préfixe utilisé pour les commandes texte du bot sur ce serveur.</p></div>
+          <div class="card-b">
+            <div class="field">
+              <label for="f-prefix">Préfixe</label>
+              <div class="hint">1 à 5 caractères. Exemple : <code>+</code> → <code>+ticket</code></div>
+              <input type="text" id="f-prefix" class="w-md" maxlength="5" data-k="prefix" placeholder="+">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="pg-tickets">
+        <div class="card">
+          <div class="card-h"><h3>Panneau des tickets</h3><p>L'embed que les membres voient pour ouvrir un ticket (commande <code>+ticket</code>).</p></div>
+          <div class="card-b">
+            <div class="tk-grid">
+              <div><label>Titre du panneau</label><input type="text" data-k="tickets.panel.titre" maxlength="100" placeholder="Support ModeraBot"></div>
+              <div><label>Mode d'affichage</label>
+                <select data-k="tickets.panel.mode">
+                  <option value="select">Menu déroulant</option>
+                  <option value="bouton">Boutons</option>
+                  <option value="container_v2">Container V2</option>
+                </select>
+              </div>
+              <div class="full"><label>Description</label>
+                <textarea data-k="tickets.panel.description" maxlength="500" placeholder="Clique ci-dessous pour ouvrir un ticket."></textarea>
+              </div>
+              <div><label>Salon des logs tickets</label><span data-select="channel" data-sk="tickets.panel.logs"></span></div>
+              <div><label>Couleur de l'embed</label><input type="text" data-k="tickets.panel.couleur" maxlength="10" placeholder="#5865F2"></div>
+              <div class="full"><label>Image / bannière (URL)</label><input type="text" data-k="tickets.panel.image" maxlength="300" placeholder="https://..."></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h">
+            <h3>Types de tickets</h3>
+            <p>Chaque type crée son propre salon, avec sa catégorie et ses rôles staff. 25 maximum (5 en mode boutons).</p>
+          </div>
+          <div class="card-b">
+            <div id="tkList"></div>
+            <div style="margin-top:14px"><button class="btn p" id="tkAdd">+ Ajouter un type</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="pg-welcome">
+        <div class="card">
+          <div class="card-h"><h3>Message de bienvenue</h3><p>Envoyé quand un membre rejoint le serveur.</p></div>
+          <div class="card-b">
+            <div class="row"><div class="row-t"><strong>Activer la bienvenue</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="welcome.enabled"><i></i></label></div></div>
+            <div class="field"><label>Salon d'accueil</label><div class="hint">Où le message est publié.</div>
+              <span data-select="channel" data-sk="welcome.channel_id" class="w-md"></span></div>
+            <div class="field"><label>Format du message</label>
+              <select data-k="welcome.mode" class="w-md"><option value="texte">Texte simple</option><option value="embed">Embed</option></select></div>
+            <div class="field" data-when="welcome.mode=texte"><label>Message</label>
+              <div class="hint">Variables cliquables ci-dessous.</div>
+              <textarea data-k="welcome.message" placeholder="Bienvenue {user} sur {server} !"></textarea>
+              <div class="vars" data-target="welcome.message"></div></div>
+            <div data-when="welcome.mode=embed">
+              <div class="field"><label>Titre de l'embed</label><input type="text" data-k="welcome.embed.titre" maxlength="256" placeholder="Bienvenue {username} !"></div>
+              <div class="field"><label>Description de l'embed</label>
+                <textarea data-k="welcome.embed.desc" placeholder="{user} a rejoint {server} !"></textarea>
+                <div class="vars" data-target="welcome.embed.desc"></div></div>
+              <div class="tk-grid">
+                <div><label>Couleur</label><input type="text" data-k="welcome.embed.color" maxlength="10" placeholder="#5865F2"></div>
+                <div><label>Miniature</label><input type="text" data-k="welcome.embed.thumb" placeholder="avatar ou une URL"></div>
+                <div class="full"><label>Grande image (URL)</label><input type="text" data-k="welcome.embed.image" placeholder="https://..."></div>
+              </div>
+            </div>
+            <div class="row"><div class="row-t"><strong>Suppression automatique</strong><span>Efface le message après X secondes. 0 = jamais.</span></div>
+              <div class="row-c"><input type="number" data-k="welcome.auto_delete" min="0" max="3600"></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Message privé d'accueil</h3><p>Envoyé en MP au membre qui rejoint.</p></div>
+          <div class="card-b">
+            <div class="row"><div class="row-t"><strong>Activer le MP</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="welcome.mp_enabled"><i></i></label></div></div>
+            <div class="field"><label>Message privé</label>
+              <textarea data-k="welcome.mp_message" placeholder="Salut {username}, bienvenue sur {server} !"></textarea>
+              <div class="vars" data-target="welcome.mp_message"></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Message de départ</h3><p>Envoyé quand un membre quitte le serveur.</p></div>
+          <div class="card-b">
+            <div class="field"><label>Salon des départs</label><div class="hint">Vide = départs non annoncés.</div>
+              <span data-select="channel" data-sk="depart.channel_id" class="w-md"></span></div>
+            <div class="field"><label>Titre</label><input type="text" data-k="depart.title" maxlength="256" placeholder="{username} a quitté le serveur."></div>
+            <div class="field"><label>Description</label>
+              <textarea data-k="depart.description" placeholder="Nous étions {membercount} membres."></textarea>
+              <div class="vars" data-target="depart.description"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="pg-logs">
+        <div class="card">
+          <div class="card-h"><h3>Journaux d'événements</h3><p>Active chaque type de log et choisis son salon. Correspond à la commande <code>+logs</code>.</p></div>
+          <div class="card-b" id="logsBox"></div>
+        </div>
+      </div>
+
+      <div class="page" id="pg-antilink">
+        <div class="card">
+          <div class="card-h"><h3>Anti-lien</h3><p>Supprime les liens postés par les membres non autorisés (<code>+antilink</code>).</p></div>
+          <div class="card-b">
+            <div class="row"><div class="row-t"><strong>Activer l'anti-lien</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antilink.enabled"><i></i></label></div></div>
+            <div class="field"><label>Sanction</label>
+              <select data-k="antilink.action" class="w-md">
+                <option value="delete">Supprimer le message</option>
+                <option value="warn">Supprimer + avertir</option>
+                <option value="mute">Supprimer + rendre muet</option>
+                <option value="kick">Supprimer + expulser</option>
+                <option value="ban">Supprimer + bannir</option>
+              </select></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Domaines autorisés</h3><p>Les liens contenant ces domaines ne sont jamais supprimés.</p></div>
+          <div class="card-b">
+            <div class="add"><input type="text" id="wlIn" placeholder="exemple : youtube.com"><button class="btn" id="wlAdd">Ajouter</button></div>
+            <div class="chips" id="wlChips"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="pg-antiraid">
+        <div class="card">
+          <div class="card-h"><h3>Anti-raid</h3><p>Protection contre les vagues d'arrivées et le spam (<code>+antiraid</code>).</p></div>
+          <div class="card-b">
+            <div class="row"><div class="row-t"><strong>Activer l'anti-raid</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antiraid.enabled"><i></i></label></div></div>
+            <div class="field"><label>Salon des alertes</label><div class="hint">Le bot y signale les déclenchements.</div>
+              <span data-select="channel" data-sk="antiraid.modlog" class="w-md"></span></div>
+
+            <div class="subhead">Arrivées massives</div>
+            <div class="row"><div class="row-t"><strong>Détecter les vagues d'arrivées</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antiraid.join.enabled"><i></i></label></div></div>
+            <div class="row"><div class="row-t"><strong>Arrivées déclenchant l'alerte</strong><span>Nombre de membres…</span></div>
+              <div class="row-c"><input type="number" data-k="antiraid.join_threshold" min="2" max="100"></div></div>
+            <div class="row"><div class="row-t"><strong>…en combien de secondes</strong></div>
+              <div class="row-c"><input type="number" data-k="antiraid.join_interval" min="1" max="600"></div></div>
+            <div class="row"><div class="row-t"><strong>Sanction</strong></div>
+              <div class="row-c"><select data-k="antiraid.join_action"><option value="none">Alerter seulement</option><option value="kick">Expulser</option><option value="ban">Bannir</option><option value="lockdown">Verrouiller le serveur</option></select></div></div>
+
+            <div class="subhead">Spam de messages</div>
+            <div class="row"><div class="row-t"><strong>Détecter le spam</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antiraid.spam.enabled"><i></i></label></div></div>
+            <div class="row"><div class="row-t"><strong>Messages déclenchant l'alerte</strong></div>
+              <div class="row-c"><input type="number" data-k="antiraid.spam_threshold" min="2" max="50"></div></div>
+            <div class="row"><div class="row-t"><strong>…en combien de secondes</strong></div>
+              <div class="row-c"><input type="number" data-k="antiraid.spam_interval" min="1" max="120"></div></div>
+            <div class="row"><div class="row-t"><strong>Sanction</strong></div>
+              <div class="row-c"><select data-k="antiraid.spam_action"><option value="none">Alerter seulement</option><option value="mute">Rendre muet</option><option value="kick">Expulser</option><option value="ban">Bannir</option></select></div></div>
+
+            <div class="subhead">Mentions massives</div>
+            <div class="row"><div class="row-t"><strong>Détecter les mentions massives</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antiraid.mention.enabled"><i></i></label></div></div>
+            <div class="row"><div class="row-t"><strong>Mentions maximum par message</strong></div>
+              <div class="row-c"><input type="number" data-k="antiraid.mention_limit" min="1" max="50"></div></div>
+            <div class="row"><div class="row-t"><strong>Sanction</strong></div>
+              <div class="row-c"><select data-k="antiraid.mention_action"><option value="none">Alerter seulement</option><option value="mute">Rendre muet</option><option value="kick">Expulser</option><option value="ban">Bannir</option></select></div></div>
+
+            <div class="subhead">Majuscules et emojis</div>
+            <div class="row"><div class="row-t"><strong>Détecter les majuscules</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antiraid.caps.enabled"><i></i></label></div></div>
+            <div class="row"><div class="row-t"><strong>% de majuscules toléré</strong></div>
+              <div class="row-c"><input type="number" data-k="antiraid.caps_percent" min="10" max="100"></div></div>
+            <div class="row"><div class="row-t"><strong>Longueur minimale du message</strong><span>En dessous, les majuscules sont ignorées.</span></div>
+              <div class="row-c"><input type="number" data-k="antiraid.caps_min_length" min="1" max="500"></div></div>
+            <div class="row"><div class="row-t"><strong>Détecter le spam d'emojis</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antiraid.emoji_spam.enabled"><i></i></label></div></div>
+            <div class="row"><div class="row-t"><strong>Emojis maximum par message</strong></div>
+              <div class="row-c"><input type="number" data-k="antiraid.max_emojis" min="1" max="100"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="pg-captcha">
+        <div class="card">
+          <div class="card-h"><h3>Vérification par captcha</h3><p>Les nouveaux membres doivent saisir un code pour accéder au serveur (<code>+captcha</code>).</p></div>
+          <div class="card-b">
+            <div class="row"><div class="row-t"><strong>Activer la vérification</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="captcha.enabled"><i></i></label></div></div>
+            <div class="field"><label>Salon de vérification</label>
+              <span data-select="channel" data-sk="captcha.channel_id" class="w-md"></span></div>
+            <div class="field"><label>Rôle donné après vérification</label>
+              <span data-select="role" data-sk="captcha.verified_role" class="w-md"></span></div>
+            <div class="field"><label>Rôle des membres non vérifiés</label>
+              <div class="hint">Attribué à l'arrivée, retiré une fois le code validé.</div>
+              <span data-select="role" data-sk="captcha.unverified_role" class="w-md"></span></div>
+            <div class="row"><div class="row-t"><strong>Longueur du code</strong></div>
+              <div class="row-c"><input type="number" data-k="captcha.code_length" min="4" max="10"></div></div>
+            <div class="row"><div class="row-t"><strong>Tentatives autorisées</strong></div>
+              <div class="row-c"><input type="number" data-k="captcha.max_tries" min="1" max="10"></div></div>
+            <div class="row"><div class="row-t"><strong>Expulser après échec</strong><span>Le membre est expulsé s'il rate toutes ses tentatives.</span></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="captcha.kick_on_fail"><i></i></label></div></div>
+            <div class="field"><label>Message de vérification</label>
+              <textarea data-k="captcha.welcome_message" placeholder="Bienvenue {user} ! Saisis le code pour accéder au serveur."></textarea>
+              <div class="vars" data-target="captcha.welcome_message"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="pg-levels">
+        <div class="card">
+          <div class="card-h"><h3>Niveaux &amp; XP</h3><p>Les membres gagnent de l'XP en discutant (<code>+level</code>, <code>+top</code>).</p></div>
+          <div class="card-b">
+            <div class="field"><label>Salon où l'XP est gagnée</label>
+              <div class="hint">Vide = tous les salons rapportent de l'XP.</div>
+              <span data-select="channel" data-sk="levels.xp_channel" class="w-md"></span></div>
+            <div class="field"><label>Salon des annonces de niveau</label>
+              <div class="hint">Vide = annonce dans le salon où le membre a parlé.</div>
+              <span data-select="channel" data-sk="levels.notif_channel" class="w-md"></span></div>
+            <div class="row"><div class="row-t"><strong>XP minimum par message</strong></div>
+              <div class="row-c"><input type="number" data-k="levels.xp_min" min="0" max="100"></div></div>
+            <div class="row"><div class="row-t"><strong>XP maximum par message</strong><span>Le gain est tiré au hasard entre le min et le max.</span></div>
+              <div class="row-c"><input type="number" data-k="levels.xp_max" min="0" max="100"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="pg-giveaway">
+        <div class="card">
+          <div class="card-h"><h3>Giveaways</h3><p>Valeurs par défaut des concours créés avec <code>+giveaway</code>.</p></div>
+          <div class="card-b">
+            <div class="field"><label>Salon des giveaways</label>
+              <span data-select="channel" data-sk="giveaway.salon_id" class="w-md"></span></div>
+            <div class="tk-grid">
+              <div><label>Emoji</label><input type="text" data-k="giveaway.emoji" maxlength="8" placeholder="🎉"></div>
+              <div><label>Texte du bouton</label><input type="text" data-k="giveaway.btn_text" maxlength="40" placeholder="Participer"></div>
+              <div><label>Couleur du bouton</label>
+                <select data-k="giveaway.btn_color"><option value="bleu">Bleu</option><option value="vert">Vert</option><option value="rouge">Rouge</option><option value="gris">Gris</option></select></div>
+              <div><label>Nombre de gagnants</label><input type="number" data-k="giveaway.gagnants" min="1" max="50"></div>
+              <div><label>Durée par défaut</label><input type="text" data-k="giveaway.duree" maxlength="20" placeholder="1h, 30m, 2d…"></div>
+            </div>
+            <div class="row"><div class="row-t"><strong>Présence vocale obligatoire</strong><span>Il faut être en vocal pour participer.</span></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="giveaway.vocal_required"><i></i></label></div></div>
+            <div class="field"><label>Rôles requis pour participer</label>
+              <div class="rolebox" data-roles="giveaway.required_roles"></div></div>
+            <div class="field"><label>Rôles interdits</label>
+              <div class="rolebox" data-roles="giveaway.blacklist_roles"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="pg-divers">
+        <div class="card">
+          <div class="card-h"><h3>Anti-bot</h3><p>Bloque l'ajout de bots non autorisés (<code>+antibot</code>).</p></div>
+          <div class="card-b">
+            <div class="row"><div class="row-t"><strong>Activer l'anti-bot</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="antibot.enabled"><i></i></label></div></div>
+            <div class="field"><label>Salon des alertes</label>
+              <span data-select="channel" data-sk="antibot.channel_id" class="w-md"></span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Starboard</h3><p>Les messages les plus étoilés sont republiés (<code>+starboard</code>).</p></div>
+          <div class="card-b">
+            <div class="field"><label>Salon du starboard</label><div class="hint">Vide = starboard désactivé.</div>
+              <span data-select="channel" data-sk="starboard.channel_id" class="w-md"></span></div>
+            <div class="tk-grid">
+              <div><label>Étoiles nécessaires</label><input type="number" data-k="starboard.seuil" min="1" max="50"></div>
+              <div><label>Emoji</label><input type="text" data-k="starboard.emoji" maxlength="8" placeholder="⭐"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Rôles automatiques</h3><p>Donnés à chaque nouveau membre (<code>+defaultrole</code>).</p></div>
+          <div class="card-b"><div class="rolebox" data-roles="defaultroles"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Photo de profil à l'arrivée</h3><p>Publie l'avatar des nouveaux membres (<code>+showpic</code>).</p></div>
+          <div class="card-b">
+            <div class="row"><div class="row-t"><strong>Activer</strong></div>
+              <div class="row-c"><label class="sw"><input type="checkbox" data-k="showpic.enabled"><i></i></label></div></div>
+            <div class="field"><label>Salon</label>
+              <span data-select="channel" data-sk="showpic.channel_id" class="w-md"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="pg-export">
+        <div class="card">
+          <div class="card-h"><h3>Import / Export</h3><p>Sauvegarde la configuration de ce serveur, ou applique celle d'un autre.</p></div>
+          <div class="card-b">
+            <div class="row"><div class="row-t"><strong>Exporter</strong><span>Copie toute la configuration au format JSON.</span></div>
+              <div class="row-c"><button class="btn" id="btnExport">Copier le JSON</button></div></div>
+            <div class="field"><label>Importer</label><div class="hint">Colle un JSON exporté, puis applique.</div>
+              <textarea id="importBox" placeholder='{"prefix":"+", ...}'></textarea>
+              <div style="margin-top:10px"><button class="btn" id="btnImport">Appliquer</button></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Zone de danger</h3><p>Action irréversible.</p></div>
+          <div class="card-b">
+            <div class="row"><div class="row-t"><strong>Réinitialiser la configuration</strong><span>Remet tous les réglages de ce serveur par défaut.</span></div>
+              <div class="row-c"><button class="btn dg" id="btnReset">Réinitialiser</button></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="savebar" id="savebar">
+        <span>Modifications non enregistrées</span>
+        <div class="a">
+          <button class="btn" id="btnCancel">Annuler</button>
+          <button class="btn p" id="btnSave">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_BASE=(window.MB_API_BASE||'').replace(/\/+$/,'');
+const API_CREDS=API_BASE?'omit':'same-origin';   /* auth par token Bearer, pas par cookie */
+const apiURL=p=>API_BASE+p;
+let CLIENT_ID='', SCOPES='identify guilds';
+let REDIRECT=location.origin+'/servers.html';
+const TOKEN_KEY='mb_discord_token';
+async function loadApiConfig(){
+  try{
+    const r=await fetch(apiURL('/api/config'),{cache:'no-store'});
+    if(!r.ok) return false;
+    const c=await r.json();
+    if(c.client_id) CLIENT_ID=c.client_id;
+    if(c.redirect_uri) REDIRECT=c.redirect_uri;
+    return true;
+  }catch{ return false; }
+}
+const guildId=new URLSearchParams(location.search).get('guild');
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const initials=n=>{const p=String(n||'?').trim().split(/\s+/).filter(Boolean);return p.length?p.map(w=>w[0]).join('').slice(0,2).toUpperCase():'?';};
+
+const NAV=[
+  ['Tableau de bord',[
+    ['overview','Vue d\'ensemble',"L'état de ton serveur",'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'],
+    ['general','Général','Préfixe des commandes','<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'],
+  ]],
+  ['Support',[
+    ['tickets','Tickets','Panneau et types de tickets','<path d="M3 9V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 6v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-6z"/><line x1="12" y1="7" x2="12" y2="17"/>'],
+  ]],
+  ['Sécurité',[
+    ['antilink','Anti-lien','Filtrage des liens','<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'],
+    ['antiraid','Anti-raid','Protection contre les raids','<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'],
+    ['captcha','Vérification','Captcha à l\'arrivée','<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'],
+    ['logs','Logs','Journaux d\'événements','<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/>'],
+  ]],
+  ['Communauté',[
+    ['welcome','Bienvenue & Départ','Arrivées et départs','<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>'],
+    ['levels','Niveaux & XP','Système d\'expérience','<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>'],
+    ['giveaway','Giveaways','Concours','<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>'],
+    ['divers','Divers','Anti-bot, starboard, rôles auto','<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>'],
+  ]],
+  ['Avancé',[
+    ['export','Import / Export','Sauvegarde de la configuration','<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>'],
+  ]],
+];
+const PAGES={}; NAV.forEach(([,items])=>items.forEach(([k,t,s])=>PAGES[k]=[t,s]));
+
+const VARS=['{user}','{username}','{server}','{membercount}','{id}','{tag}','{created}'];
+
+const DEFAULTS={
+  prefix:'+',
+  tickets:{panel:{titre:'',description:'',image:'',logs:null,couleur:'#5865F2',mode:'select'},choix:[]},
+  welcome:{enabled:false,channel_id:null,mode:'texte',message:'',auto_delete:0,mp_enabled:false,mp_message:'',
+           embed:{titre:'',desc:'',color:'#5865F2',thumb:'',image:''}},
+  depart:{channel_id:null,title:'',description:''},
+  logs:{},
+  antilink:{enabled:false,action:'delete',whitelist:[]},
+  antiraid:{enabled:false,modlog:null,join:false,join_threshold:5,join_interval:10,join_action:'none',
+            spam:false,spam_threshold:5,spam_interval:5,spam_action:'none',
+            mention:false,mention_limit:5,mention_action:'none',
+            caps:false,caps_percent:70,caps_min_length:10,emoji_spam:false,max_emojis:10},
+  captcha:{enabled:false,channel_id:null,verified_role:null,unverified_role:null,code_length:6,max_tries:3,
+           kick_on_fail:false,style:'code',welcome_message:''},
+  levels:{xp_channel:null,notif_channel:null,xp_min:5,xp_max:15},
+  giveaway:{salon_id:null,emoji:'🎉',btn_text:'Participer',btn_color:'bleu',duree:'',gagnants:1,
+            required_roles:[],blacklist_roles:[],vocal_required:false},
+  antibot:{enabled:false,channel_id:null},
+  starboard:{channel_id:null,seuil:3,emoji:'⭐'},
+  showpic:{enabled:false,channel_id:null},
+  defaultroles:[],
+};
+const MODULES=[
+  ['tickets','Tickets',c=>(c.tickets.choix||[]).length>0],
+  ['antilink','Anti-lien',c=>!!c.antilink.enabled],
+  ['antiraid','Anti-raid',c=>!!c.antiraid.enabled],
+  ['captcha','Vérification',c=>!!c.captcha.enabled],
+  ['logs','Logs',c=>Object.values(c.logs||{}).some(v=>v&&v.enabled)],
+  ['welcome','Bienvenue',c=>!!c.welcome.enabled],
+  ['depart','Départs',c=>!!c.depart.channel_id],
+  ['levels','Niveaux',c=>!!(c.levels.xp_min||c.levels.notif_channel)],
+  ['antibot','Anti-bot',c=>!!c.antibot.enabled],
+  ['starboard','Starboard',c=>!!c.starboard.channel_id],
+  ['showpic','Photo à l\'arrivée',c=>!!c.showpic.enabled],
+];
+
+let cfg=structuredClone(DEFAULTS), saved=structuredClone(DEFAULTS);
+let META={channels:[],roles:[],categories:[],log_types:[]};
+let apiAlive=false, guild=null;
+
+function getPath(o,p){ return p.split('.').reduce((a,k)=>(a==null?undefined:a[k]),o); }
+function setPath(o,p,v){
+  const ks=p.split('.'); const last=ks.pop();
+  let t=o; for(const k of ks){ if(typeof t[k]!=='object'||t[k]===null) t[k]={}; t=t[k]; }
+  t[last]=v;
+}
+
+function loadToken(){
+  try{ const o=JSON.parse(sessionStorage.getItem(TOKEN_KEY)||'null');
+       if(!o||!o.t||Date.now()>o.exp){ sessionStorage.removeItem(TOKEN_KEY); return null; } return o.t; }catch{ return null; }
+}
+const authorizeURL=()=>'https://discord.com/oauth2/authorize?client_id='+CLIENT_ID+'&response_type=token&scope='+encodeURIComponent(SCOPES)+'&redirect_uri='+encodeURIComponent(REDIRECT);
+async function discord(path,token){
+  for(let i=0;i<4;i++){
+    let res;
+    try{ res=await fetch('https://discord.com/api/v10'+path,{headers:{Authorization:'Bearer '+token},cache:'no-store'}); }
+    catch(e){ throw new Error('Discord injoignable ('+(e.message||e)+')'); }
+    if(res.status===429){ let w=1200; try{const j=await res.json(); if(j.retry_after) w=Math.ceil(j.retry_after*1000)+250;}catch{} await sleep(Math.min(w,6000)); continue; }
+    if(res.status===401){ const e=new Error('401'); e.code=401; throw e; }
+    if(!res.ok){ if(res.status>=500&&i<3){ await sleep(700*(i+1)); continue; } throw new Error('Discord : HTTP '+res.status); }
+    return res.json();
+  }
+  throw new Error('Discord : trop de requêtes');
+}
+function avatarURL(u){
+  if(u&&u.avatar) return `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.${String(u.avatar).startsWith('a_')?'gif':'png'}?size=64`;
+  let i=0; try{ i=(u.discriminator&&u.discriminator!=='0')?Number(u.discriminator)%5:Number((BigInt(u.id)>>BigInt(22))%BigInt(6)); }catch{}
+  return `https://cdn.discordapp.com/embed/avatars/${i}.png`;
+}
+function hasAdmin(g){
+  if(!g) return false;
+  if(g.owner===true) return true;
+  try{ const p=BigInt(g.permissions_new??g.permissions??'0');
+       return (p&BigInt(0x8))!==BigInt(0)||(p&BigInt(0x20))!==BigInt(0); }catch{ return false; }
+}
+
+function authHeaders(){
+  const t=loadToken();
+  return t?{Authorization:'Bearer '+t}:{};
+}
+async function apiGet(path){
+  try{
+    const r=await fetch(apiURL(path),{credentials:API_CREDS,cache:'no-store',headers:{Accept:'application/json',...authHeaders()}});
+    if(!r.ok) return null;
+    return JSON.parse(await r.text());
+  }catch{ return null; }
+}
+async function apiSave(data){
+  try{
+    const r=await fetch(apiURL(`/api/guild/${encodeURIComponent(guildId)}/dashboard`),{
+      method:'POST',credentials:API_CREDS,
+      headers:{'Content-Type':'application/json',Accept:'application/json',...authHeaders()},body:JSON.stringify(data)});
+    return r.ok;
+  }catch{ return false; }
+}
+const lsKey=()=>'mb_cfg_'+guildId;
+const localGet=()=>{ try{ const o=JSON.parse(localStorage.getItem(lsKey())||'null'); return o&&typeof o==='object'?o:null; }catch{ return null; } };
+const localSet=d=>{ try{ localStorage.setItem(lsKey(),JSON.stringify(d)); }catch{} };
+
+function optionsFor(kind,current){
+  const list = kind==='role'?META.roles : kind==='category'?META.categories : META.channels;
+  const cur = current==null?'':String(current);
+  const prefix = kind==='role'?'@':kind==='category'?'📁 ':'#';
+  let html=`<option value="">— Aucun —</option>`;
+  let found=false;
+  for(const it of list){
+    const sel = String(it.id)===cur ? ' selected':'';
+    if(sel) found=true;
+    html+=`<option value="${esc(it.id)}"${sel}>${esc(prefix+it.name)}</option>`;
+  }
+  if(cur&&!found) html+=`<option value="${esc(cur)}" selected>ID ${esc(cur)} (introuvable)</option>`;
+  return html;
+}
+function buildSelects(){
+  document.querySelectorAll('[data-select]').forEach(host=>{
+    const kind=host.dataset.select, key=host.dataset.sk, val=getPath(cfg,key);
+    const list = kind==='role'?META.roles : kind==='category'?META.categories : META.channels;
+    if(list.length){
+      host.innerHTML=`<select data-k="${esc(key)}">${optionsFor(kind,val)}</select>`;
+    }else{
+      host.innerHTML=`<input type="text" inputmode="numeric" data-k="${esc(key)}" placeholder="ID ${kind==='role'?'du rôle':kind==='category'?'de la catégorie':'du salon'}" value="${esc(val??'')}">`;
+    }
+  });
+}
+
+function buildRoleBoxes(){
+  document.querySelectorAll('[data-roles]').forEach(box=>{
+    const key=box.dataset.roles;
+    const cur=(getPath(cfg,key)||[]).map(String);
+    const name=id=>{ const r=META.roles.find(r=>String(r.id)===String(id)); return r?'@'+r.name:'ID '+id; };
+    const chips=cur.map((id,i)=>`<span class="chip"><b>${esc(name(id))}</b><button type="button" data-rrm="${esc(key)}" data-i="${i}">×</button></span>`).join('');
+    const adder = META.roles.length
+      ? `<select data-radd="${esc(key)}"><option value="">+ Ajouter un rôle…</option>${META.roles.filter(r=>!cur.includes(String(r.id))).map(r=>`<option value="${esc(r.id)}">@${esc(r.name)}</option>`).join('')}</select>`
+      : `<div class="add"><input type="text" inputmode="numeric" data-rinput="${esc(key)}" placeholder="ID du rôle"><button class="btn" data-radd2="${esc(key)}">Ajouter</button></div>`;
+    box.innerHTML=`<div class="chips" style="margin:0 0 10px">${chips||'<span class="mini">Aucun rôle sélectionné.</span>'}</div>${adder}`;
+  });
+}
+document.addEventListener('click',e=>{
+  const rm=e.target.closest('[data-rrm]');
+  if(rm){ const k=rm.dataset.rrm; const l=getPath(cfg,k)||[]; l.splice(Number(rm.dataset.i),1); setPath(cfg,k,l); buildRoleBoxes(); touch(); return; }
+  const add2=e.target.closest('[data-radd2]');
+  if(add2){ const k=add2.dataset.radd2; const inp=document.querySelector(`[data-rinput="${k}"]`);
+    const v=(inp.value||'').trim(); if(!v) return;
+    const l=getPath(cfg,k)||[]; if(!l.map(String).includes(v)) l.push(v);
+    setPath(cfg,k,l); inp.value=''; buildRoleBoxes(); touch(); }
+});
+document.addEventListener('change',e=>{
+  const sel=e.target.closest('[data-radd]');
+  if(!sel||!sel.value) return;
+  const k=sel.dataset.radd, l=getPath(cfg,k)||[];
+  if(!l.map(String).includes(sel.value)) l.push(sel.value);
+  setPath(cfg,k,l); buildRoleBoxes(); touch();
+});
+
+function buildLogs(){
+  const types=META.log_types.length?META.log_types:[
+    {key:'msg',label:'Logs messages',emoji:'📨'},{key:'voc',label:'Logs vocaux',emoji:'🔊'},
+    {key:'role',label:'Logs rôles',emoji:'🎭'},{key:'mod',label:'Logs modération',emoji:'🛡️'},
+    {key:'channel',label:'Logs salons',emoji:'📺'},{key:'ticket',label:'Logs tickets',emoji:'🎫'},
+    {key:'boost',label:'Logs boosts',emoji:'🚀'},{key:'flux',label:'Arrivées / départs',emoji:'📡'}];
+  $('logsBox').innerHTML=types.map(t=>`
+    <div class="row">
+      <div class="row-t"><strong>${esc(t.emoji)} ${esc(t.label)}</strong></div>
+      <div class="row-c" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span data-select="channel" data-sk="logs.${esc(t.key)}.channel"></span>
+        <label class="sw"><input type="checkbox" data-k="logs.${esc(t.key)}.enabled"><i></i></label>
+      </div>
+    </div>`).join('');
+}
+
+const BTN_COLORS=[['bleu','Bleu'],['vert','Vert'],['rouge','Rouge'],['gris','Gris']];
+function buildTickets(){
+  const list=cfg.tickets.choix||[];
+  $('tkList').innerHTML = list.length ? list.map((c,i)=>`
+    <div class="tk">
+      <div class="tk-h">
+        <span class="em">${esc(c.emoji||'🎫')}</span>
+        <b>${esc(c.nom||'Sans nom')}</b>
+        <span class="pill-i">Type ${i+1}</span>
+        <button class="btn sm dg" data-tkrm="${i}">Supprimer</button>
+      </div>
+      <div class="tk-grid">
+        <div><label>Nom du type</label><input type="text" maxlength="25" data-k="tickets.choix.${i}.nom" placeholder="Support"></div>
+        <div><label>Emoji</label><input type="text" maxlength="5" data-k="tickets.choix.${i}.emoji" placeholder="🎫"></div>
+        <div class="full"><label>Description courte</label>
+          <input type="text" maxlength="97" data-k="tickets.choix.${i}.description" placeholder="Aide générale">
+          <div class="mini">Affichée sous le nom dans le menu déroulant.</div></div>
+        <div><label>Catégorie où créer le ticket</label><span data-select="category" data-sk="tickets.choix.${i}.categorie"></span></div>
+        <div><label>Nom du salon créé</label>
+          <input type="text" maxlength="50" data-k="tickets.choix.${i}.salon_name" placeholder="ticket-{username}">
+          <div class="mini">Variables : {username} {userid} {server}</div></div>
+        <div class="full"><label>Rôles staff qui voient le ticket</label>
+          <div class="rolebox" data-roles="tickets.choix.${i}.roles"></div></div>
+        <div class="full"><label>Titre de l'embed dans le ticket</label>
+          <input type="text" maxlength="100" data-k="tickets.choix.${i}.titre" placeholder="🎫 Ticket Support"></div>
+        <div class="full"><label>Message d'ouverture</label>
+          <textarea maxlength="500" data-k="tickets.choix.${i}.message" placeholder="Bienvenue {user} ! Explique ton problème."></textarea>
+          <div class="vars" data-target="tickets.choix.${i}.message"></div></div>
+        <div><label>Couleur du bouton</label>
+          <select data-k="tickets.choix.${i}.btn_color">${BTN_COLORS.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>
+          <div class="mini">Utilisée en mode Boutons / Container V2.</div></div>
+        <div><label>Réponse automatique IA</label>
+          <div style="padding-top:6px"><label class="sw"><input type="checkbox" data-k="tickets.choix.${i}.ia_enabled"><i></i></label></div></div>
+      </div>
+    </div>`).join('')
+    : `<div class="empty">Aucun type de ticket. Ajoute-en un pour que le panneau fonctionne.</div>`;
+}
+$('tkAdd').addEventListener('click',()=>{
+  cfg.tickets.choix=cfg.tickets.choix||[];
+  if(cfg.tickets.choix.length>=25) return toast('25 types maximum','err');
+  cfg.tickets.choix.push({nom:'Support',description:'Aide générale',emoji:'🎫',categorie:null,roles:[],
+    titre:'Ticket — Support',message:'Bienvenue {user} ! Explique ton problème.',btn_color:'bleu',
+    salon_name:'ticket-{username}',ia_enabled:false});
+  render(); touch();
+  toast('Type ajouté — pense à enregistrer');
+});
+document.addEventListener('click',e=>{
+  const rm=e.target.closest('[data-tkrm]');
+  if(!rm) return;
+  const i=Number(rm.dataset.tkrm);
+  if(!confirm(`Supprimer le type « ${cfg.tickets.choix[i]?.nom||''} » ?`)) return;
+  cfg.tickets.choix.splice(i,1); render(); touch();
+});
+
+function buildWhitelist(){
+  const l=cfg.antilink.whitelist||[];
+  $('wlChips').innerHTML=l.map((v,i)=>`<span class="chip"><b>${esc(v)}</b><button type="button" data-wlrm="${i}">×</button></span>`).join('')
+    || '<span class="mini">Aucun domaine autorisé.</span>';
+}
+$('wlAdd').addEventListener('click',()=>{
+  const v=($('wlIn').value||'').trim(); if(!v) return;
+  cfg.antilink.whitelist=cfg.antilink.whitelist||[];
+  if(cfg.antilink.whitelist.includes(v)) return toast('Déjà dans la liste','err');
+  cfg.antilink.whitelist.push(v); $('wlIn').value=''; buildWhitelist(); touch();
+});
+$('wlIn').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); $('wlAdd').click(); } });
+document.addEventListener('click',e=>{
+  const rm=e.target.closest('[data-wlrm]'); if(!rm) return;
+  cfg.antilink.whitelist.splice(Number(rm.dataset.wlrm),1); buildWhitelist(); touch();
+});
+
+function render(){
+  buildTickets(); buildLogs();
+  buildSelects(); buildRoleBoxes(); buildWhitelist(); buildVars();
+  // remplit tous les champs liés
+  document.querySelectorAll('[data-k]').forEach(el=>{
+    const v=getPath(cfg,el.dataset.k);
+    if(el.type==='checkbox') el.checked=!!v;
+    else if(el.tagName==='SELECT') el.value=(v==null?'':String(v));
+    else el.value=(v==null?'':v);
+  });
+  applyConditions(); renderModules();
+}
+function applyConditions(){
+  document.querySelectorAll('[data-when]').forEach(el=>{
+    const [k,val]=el.dataset.when.split('=');
+    el.classList.toggle('hidden', String(getPath(cfg,k)??'')!==val);
+  });
+}
+function buildVars(){
+  document.querySelectorAll('.vars').forEach(box=>{
+    if(box.dataset.built) return;
+    box.dataset.built='1';
+    box.innerHTML=VARS.map(v=>`<span class="var">${v}</span>`).join('');
+  });
+}
+document.addEventListener('click',e=>{
+  if(!e.target.classList.contains('var')) return;
+  const box=e.target.closest('.vars'); const key=box.dataset.target;
+  const ta=document.querySelector(`[data-k="${key}"]`); if(!ta) return;
+  const s=ta.selectionStart??ta.value.length, t=ta.selectionEnd??s;
+  ta.value=ta.value.slice(0,s)+e.target.textContent+ta.value.slice(t);
+  ta.focus(); ta.selectionStart=ta.selectionEnd=s+e.target.textContent.length;
+  setPath(cfg,key,ta.value); touch();
+});
+
+function readEl(el){
+  if(el.type==='checkbox') return el.checked;
+  if(el.type==='number'){ return el.value===''?0:Number(el.value); }
+  const v=el.value;
+  return v===''?null:v;
+}
+['input','change'].forEach(ev=>document.addEventListener(ev,e=>{
+  const el=e.target;
+  if(!el.matches('[data-k]')) return;
+  let v=readEl(el);
+  if(el.tagName!=='SELECT'&&el.type!=='checkbox'&&el.type!=='number'&&v===null) v='';
+  setPath(cfg,el.dataset.k,v);
+  // l'en-tête d'un type de ticket suit le nom / l'emoji sans re-rendre toute la page
+  const m=el.dataset.k.match(/^tickets\.choix\.(\d+)\.(nom|emoji)$/);
+  if(m){
+    const card=document.querySelectorAll('#tkList .tk')[Number(m[1])];
+    if(card){
+      if(m[2]==='nom') card.querySelector('.tk-h b').textContent=(v||'Sans nom');
+      else card.querySelector('.tk-h .em').textContent=(v||'🎫');
+    }
+  }
+  applyConditions(); touch();
+}));
+
+const dirty=()=>JSON.stringify(cfg)!==JSON.stringify(saved);
+function touch(){ $('savebar').classList.toggle('show',dirty()); renderModules(); }
+function renderModules(){
+  const rows=MODULES.map(([k,label,fn])=>{ let on=false; try{ on=!!fn(cfg); }catch{} return [label,on]; });
+  $('stModules').textContent=rows.filter(r=>r[1]).length;
+  $('stTickets').textContent=(cfg.tickets.choix||[]).length;
+  $('modList').innerHTML=rows.map(([l,on])=>`
+    <div class="row"><div class="row-t"><strong>${esc(l)}</strong></div>
+      <div class="row-c"><span class="tagp" style="${on?'':'background:var(--card2);color:var(--dim)'}">${on?'Actif':'Inactif'}</span></div></div>`).join('');
+}
+
+function buildNav(){
+  $('navwrap').innerHTML=NAV.map(([grp,items])=>
+    `<div class="grp">${esc(grp)}</div>`+items.map(([k,label,,icon])=>
+      `<button class="nav" data-p="${k}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icon}</svg>${esc(label)}</button>`
+    ).join('')).join('');
+  document.querySelectorAll('.nav').forEach(n=>n.addEventListener('click',()=>go(n.dataset.p)));
+}
+function go(p){
+  document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('on',n.dataset.p===p));
+  document.querySelectorAll('.page').forEach(x=>x.classList.toggle('on',x.id==='pg-'+p));
+  const [t,s]=PAGES[p]||['Dashboard',''];
+  $('pageTitle').textContent=t; $('pageSub').textContent=s;
+  closeSide(); window.scrollTo({top:0,behavior:'smooth'});
+  try{ history.replaceState({},'','?guild='+encodeURIComponent(guildId)+'#'+p); }catch{}
+}
+const openSide=()=>{ $('side').classList.add('open'); $('ovl').classList.add('show'); };
+const closeSide=()=>{ $('side').classList.remove('open'); $('ovl').classList.remove('show'); };
+$('burger').addEventListener('click',openSide);
+$('ovl').addEventListener('click',closeSide);
+
+const pill=$('userPill');
+pill.addEventListener('click',e=>{ if(!e.target.closest('a,#btnLogout')) pill.classList.toggle('open'); });
+document.addEventListener('click',e=>{ if(!pill.contains(e.target)) pill.classList.remove('open'); });
+$('btnLogout').addEventListener('click',()=>{
+  try{ sessionStorage.removeItem(TOKEN_KEY); }catch{}
+  fetch(apiURL('/api/logout'),{method:'POST',credentials:API_CREDS,headers:authHeaders()}).catch(()=>{}).finally(()=>location.href='/');
+});
+$('btnRefresh').addEventListener('click',()=>{
+  checkStatus();
+  if(dirty()&&!confirm('Tu as des modifications non enregistrées. Recharger quand même ?')) return;
+  saved=structuredClone(cfg); location.reload();
+});
+
+function toast(msg,kind){
+  const t=$('toast'); t.textContent=msg; t.className='toast show '+(kind||'ok');
+  clearTimeout(t._h); t._h=setTimeout(()=>t.className='toast',2800);
+}
+
+$('btnCancel').addEventListener('click',()=>{ cfg=structuredClone(saved); render(); touch(); toast('Modifications annulées'); });
+$('btnSave').addEventListener('click',async()=>{
+  const b=$('btnSave'); b.disabled=true; b.textContent='Enregistrement…';
+  localSet(cfg);
+  const ok=await apiSave(cfg);
+  saved=structuredClone(cfg); touch();
+  b.disabled=false; b.textContent='Enregistrer';
+  $('noteLocal').classList.toggle('hidden',ok);
+  toast(ok?'Configuration envoyée au bot ✓':'Enregistré localement — API du bot injoignable',ok?'ok':'err');
+});
+$('btnReset').addEventListener('click',()=>{
+  if(!confirm('Remettre TOUS les réglages de ce serveur par défaut ?')) return;
+  cfg=structuredClone(DEFAULTS); render(); touch();
+  toast('Réglages remis par défaut — pense à enregistrer','err');
+});
+$('btnExport').addEventListener('click',async()=>{
+  const txt=JSON.stringify(cfg,null,2);
+  try{ await navigator.clipboard.writeText(txt); toast('Configuration copiée ✓'); }
+  catch{ $('importBox').value=txt; toast('Copie impossible — JSON affiché ci-dessous','err'); }
+});
+$('btnImport').addEventListener('click',()=>{
+  let data; try{ data=JSON.parse($('importBox').value); }catch{ return toast('JSON invalide','err'); }
+  if(!data||typeof data!=='object') return toast('JSON invalide','err');
+  cfg=Object.assign(structuredClone(DEFAULTS),data);
+  render(); touch(); toast('Configuration importée — pense à enregistrer');
+});
+window.addEventListener('beforeunload',e=>{ if(dirty()){ e.preventDefault(); e.returnValue=''; } });
+
+function fatal(title,detail,actions){
+  $('boot').innerHTML=`<h3>${esc(title)}</h3><p>${esc(detail)}</p><div class="a">${actions}</div>`;
+}
+
+const statChip=$('statChip'), statPop=$('statPop');
+let statTimer=null, statLastOk=null;
+
+statChip.addEventListener('click',e=>{
+  if(statPop.contains(e.target)) return;
+  statChip.classList.toggle('open');
+});
+document.addEventListener('click',e=>{ if(!statChip.contains(e.target)) statChip.classList.remove('open'); });
+
+function fmtUptime(sec){
+  sec=Math.max(0,Number(sec)||0);
+  const d=Math.floor(sec/86400), h=Math.floor(sec%86400/3600), m=Math.floor(sec%3600/60);
+  if(d) return `${d} j ${h} h`;
+  if(h) return `${h} h ${m} min`;
+  if(m) return `${m} min`;
+  return `${Math.floor(sec)} s`;
+}
+function pingClass(ms){ return ms==null?'':(ms<200?'good':ms<600?'mid':'bad'); }
+
+function paintStatus(st,ping){
+  const set=(id,txt,cls)=>{ const el=$(id); el.textContent=txt; el.className=cls||''; };
+  const isOpen=statChip.classList.contains('open')?' open':'';
+
+  if(!st){                                   // aucune reponse : API injoignable
+    statChip.className='stat-chip err'+isOpen;
+    $('statTxt').textContent='API injoignable';
+    set('slApi','Ne repond pas','bad');
+    set('slBot','Inconnu','bad');
+    set('slPing','—'); set('slWs','—'); set('slGuilds','—'); set('slUp','—');
+    set('slLast', statLastOk ? statLastOk.toLocaleTimeString() : 'jamais');
+    $('slHint').textContent="Le bot est arrêté, ou le port du dashboard n'est pas ouvert. "
+      + "Sur le serveur : curl http://127.0.0.1:30121/api/health";
+    return;
+  }
+
+  statLastOk=new Date();
+  const ready=!!st.bot_ready;
+  statChip.className='stat-chip '+(ready?'ok':'warn')+isOpen;
+  $('statTxt').textContent = ready
+    ? (st.bot_name ? st.bot_name.split('#')[0]+' en ligne' : 'Bot en ligne')
+    : 'Bot hors ligne';
+
+  set('slApi','Répond ✓','good');
+  set('slBot', ready?'Connecté ✓':'Déconnecté', ready?'good':'bad');
+  set('slPing', ping!=null?ping+' ms':'—', pingClass(ping));
+  set('slWs', st.ws_latency_ms!=null?st.ws_latency_ms+' ms':'—', pingClass(st.ws_latency_ms));
+  set('slGuilds', String(st.guild_count??'—') + (st.member_count?` · ${st.member_count} membres`:''));
+  set('slUp', fmtUptime(st.uptime_seconds));
+  set('slLast', statLastOk.toLocaleTimeString());
+  $('slHint').textContent = ready
+    ? 'Le dashboard communique avec le bot : tes modifications sont bien enregistrées.'
+    : "Le serveur web répond mais le bot n'est pas connecté à Discord. "
+      + "Vérifie le token dans config.json et les intents sur le portail développeur.";
+}
+
+async function checkStatus(){
+  const t0=performance.now();
+  try{
+    const r=await fetch(apiURL('/api/status'),{cache:'no-store',headers:{Accept:'application/json'}});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    paintStatus(await r.json(), Math.round(performance.now()-t0));
+  }catch{
+    paintStatus(null,null);
+  }
+}
+function startStatus(){
+  checkStatus();
+  clearInterval(statTimer);
+  statTimer=setInterval(()=>{ if(!document.hidden) checkStatus(); },15000);
+}
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkStatus(); });
+
+async function boot(){
+  buildNav();
+  startStatus();          
+  await loadApiConfig();
+  if(!CLIENT_ID){
+    fatal('Configuration incomplete',"L'API du bot n'a pas fourni de client_id (verifie config.json).",
+      `<button class="btn p" onclick="location.reload()">Reessayer</button>`); return;
+  }
+  if(!guildId||!/^\d{5,25}$/.test(guildId)){
+    fatal('Serveur introuvable',"L'adresse ne contient pas d'identifiant de serveur valide.",
+      `<a class="btn p" href="/servers.html">Choisir un serveur</a>`); return;
+  }
+  const token=loadToken();
+  if(!token){ location.href=authorizeURL(); return; }
+
+  let user,guilds;
+  try{
+    user=await discord('/users/@me',token);
+    $('uName').textContent=user.global_name||user.username||'Utilisateur';
+    $('uAvatar').src=avatarURL(user);
+    guilds=await discord('/users/@me/guilds?with_counts=true',token);
+  }catch(err){
+    if(err.code===401){ try{ sessionStorage.removeItem(TOKEN_KEY); }catch{} location.href=authorizeURL(); return; }
+    fatal('Connexion impossible',err.message||String(err),
+      `<button class="btn p" onclick="location.reload()">Réessayer</button><a class="btn" href="/servers.html">Mes serveurs</a>`); return;
+  }
+
+  guild=(guilds||[]).find(x=>String(x.id)===String(guildId));
+  if(!guild){ fatal('Serveur inaccessible',"Tu n'es pas membre de ce serveur.",`<a class="btn p" href="/servers.html">Mes serveurs</a>`); return; }
+  if(!hasAdmin(guild)){
+    fatal('Accès refusé',`Il faut la permission Administrateur ou Gérer le serveur sur « ${guild.name} ».`,
+      `<a class="btn p" href="/servers.html">Mes serveurs</a>`); return;
+  }
+
+  const ini=initials(guild.name);
+  const iconURL=guild.icon?`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.${String(guild.icon).startsWith('a_')?'gif':'png'}?size=128`:null;
+  $('gswName').textContent=guild.name;
+  $('gswIcon').outerHTML=iconURL
+    ? `<img id="gswIcon" src="${iconURL}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='<div id=\\'gswIcon\\' class=\\'gi\\'>${esc(ini)}</div>'">`
+    : `<div id="gswIcon" class="gi">${esc(ini)}</div>`;
+  $('heroName').textContent=guild.name;
+  $('heroTag').textContent=guild.owner?'Propriétaire':'Administrateur';
+  $('heroIcon').innerHTML=iconURL
+    ? `<img class="hicon" src="${iconURL}" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=\\'hini\\'>${esc(ini)}</div>'">`
+    : `<div class="hini">${esc(ini)}</div>`;
+  $('stMembers').textContent=guild.approximate_member_count??'—';
+  $('stOnline').textContent=guild.approximate_presence_count??'—';
+  $('pageSub').textContent=PAGES.overview[1];
+
+  const dash=await apiGet(`/api/guild/${encodeURIComponent(guildId)}/dashboard`);
+  if(dash&&dash.config){
+    apiAlive=true;
+    META={channels:dash.channels||[],roles:dash.roles||[],categories:dash.categories||[],log_types:dash.log_types||[]};
+    cfg=deepMerge(structuredClone(DEFAULTS),dash.config);
+    if(dash.guild){
+      if(dash.guild.members!=null) $('stMembers').textContent=dash.guild.members;
+      if(dash.guild.online!=null) $('stOnline').textContent=dash.guild.online;
+    }
+  }else{
+    cfg=deepMerge(structuredClone(DEFAULTS),localGet()||{});
+  }
+  saved=structuredClone(cfg);
+
+  render();
+  $('noteLocal').classList.toggle('hidden',apiAlive);
+  $('boot').classList.add('hidden');
+  $('app').classList.remove('hidden');
+  touch();
+
+  const stats=await apiGet(`/api/guild/${encodeURIComponent(guildId)}/stats`);
+  if(stats){
+    if(stats.members!=null) $('stMembers').textContent=stats.members;
+    if(stats.online!=null) $('stOnline').textContent=stats.online;
+    if(Array.isArray(stats.recent)&&stats.recent.length)
+      $('recentBox').innerHTML=stats.recent.slice(0,6).map(r=>
+        `<div class="row"><div class="row-t"><strong>${esc(r.title||'')}</strong><span>${esc(r.detail||'')}</span></div></div>`).join('');
+  }
+
+  const h=(location.hash||'').replace('#','');
+  go(h&&PAGES[h]?h:'overview');
+}
+
+function deepMerge(base,extra){
+  if(!extra||typeof extra!=='object') return base;
+  for(const [k,v] of Object.entries(extra)){
+    if(v===null||v===undefined) continue;
+    if(Array.isArray(v)) base[k]=v;
+    else if(typeof v==='object') base[k]=deepMerge(typeof base[k]==='object'&&base[k]?base[k]:{},v);
+    else base[k]=v;
+  }
+  return base;
+}
+
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot);
+else boot();
+</script>
+
+<!-- ============================================================ -->
+<!--  MODERABOT — PACK MODULES PRO (ajout dashboard)               -->
+<!--  Bloc 100% additif : a coller juste avant </body>.            -->
+<!--  Rien du dashboard existant n'est modifie.                    -->
+<!-- ============================================================ -->
+<style>
+/* ---------- reflets & effets ---------- */
+@keyframes xshine{0%{transform:translateX(-120%) skewX(-18deg)}60%,100%{transform:translateX(320%) skewX(-18deg)}}
+@keyframes xfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes xpulse{0%,100%{opacity:.55}50%{opacity:1}}
+
+.xhero{position:relative;overflow:hidden;border-radius:18px;padding:26px 28px;margin-bottom:18px;
+  border:1px solid var(--border-hi);
+  background:linear-gradient(125deg,#141f38 0%,#101a2e 45%,#0c1424 100%)}
+.xhero::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,0) 42%)}
+.xhero::after{content:'';position:absolute;top:0;left:0;width:60%;height:100%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.13),transparent);
+  animation:xshine 5.5s ease-in-out infinite}
+.xhero .xh{position:relative;z-index:2;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.xhero .xico{width:60px;height:60px;border-radius:17px;display:flex;align-items:center;justify-content:center;
+  font-size:27px;flex-shrink:0;position:relative;overflow:hidden;
+  background:linear-gradient(150deg,var(--accent),var(--accent2));
+  box-shadow:0 10px 26px rgba(59,130,246,.4),inset 0 1px 0 rgba(255,255,255,.45)}
+.xhero .xico::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.4),transparent 55%)}
+.xhero h2{font-size:22px;font-weight:700;letter-spacing:-.02em;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.xhero p{font-size:13px;font-weight:500;color:var(--muted);margin-top:5px;line-height:1.55;max-width:640px}
+.xbadge{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:3px 9px;border-radius:20px;
+  color:#fff;background:linear-gradient(135deg,var(--accent),var(--pink));box-shadow:0 0 14px rgba(34,211,238,.35)}
+.xbadge.off{background:var(--card2);color:var(--dim);box-shadow:none}
+
+/* carte vitree avec reflet */
+.xcard{position:relative;overflow:hidden;border-radius:16px;margin-bottom:14px;
+  border:1px solid var(--border);background:linear-gradient(180deg,var(--card2) 0%,var(--card) 30%);
+  transition:border-color .2s,transform .2s,box-shadow .2s}
+.xcard::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent)}
+.xcard::after{content:'';position:absolute;top:-60%;left:-30%;width:45%;height:220%;pointer-events:none;opacity:0;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.10),transparent);transition:opacity .3s}
+.xcard:hover{border-color:var(--border-hi);box-shadow:0 12px 34px rgba(0,0,0,.35)}
+.xcard:hover::after{opacity:1;animation:xshine 1.5s ease-out}
+.xcard-h{padding:17px 21px 0;position:relative;z-index:2}
+.xcard-h h3{font-size:15px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;gap:9px}
+.xcard-h h3 .xe{font-size:16px}
+.xcard-h p{font-size:12.5px;font-weight:500;color:var(--muted);margin-top:3px;line-height:1.5}
+.xcard-b{padding:15px 21px 19px;position:relative;z-index:2}
+
+/* mini-stats reflets */
+.xstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.xstat{position:relative;overflow:hidden;border-radius:14px;padding:15px 17px;border:1px solid var(--border);
+  background:linear-gradient(160deg,var(--card2),var(--card))}
+.xstat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--accent),var(--pink),transparent)}
+.xstat::after{content:'';position:absolute;top:-50%;right:-20%;width:120px;height:200%;
+  background:radial-gradient(circle,rgba(59,130,246,.20),transparent 68%);filter:blur(20px)}
+.xstat b{display:block;font-size:22px;font-weight:700;letter-spacing:-.02em;position:relative;z-index:2}
+.xstat span{display:block;font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.08em;margin-top:4px;position:relative;z-index:2}
+
+/* grille de commandes */
+.xcmds{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px}
+.xcmd{position:relative;overflow:hidden;display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border-radius:12px;
+  border:1px solid var(--border);background:var(--card2);cursor:pointer;transition:.16s}
+.xcmd::after{content:'';position:absolute;top:-60%;left:-40%;width:40%;height:220%;opacity:0;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.13),transparent);transition:opacity .25s}
+.xcmd:hover{border-color:var(--border-hi);transform:translateY(-2px)}
+.xcmd:hover::after{opacity:1;animation:xshine 1.1s ease-out}
+.xcmd .xk{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;font-weight:700;color:var(--blue)}
+.xcmd .xd{display:block;font-size:11.5px;font-weight:500;color:var(--muted);margin-top:3px;line-height:1.45}
+.xcmd .xp{margin-left:auto;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+  padding:2px 6px;border-radius:5px;color:var(--orange);background:rgba(245,158,11,.14);
+  border:1px solid rgba(245,158,11,.28);flex-shrink:0}
+.xcmd.copied{border-color:var(--green)}
+.xcmd.copied .xk{color:var(--green)}
+
+/* elements de liste (articles, postes) */
+.xitem{position:relative;overflow:hidden;border:1px solid var(--border);border-radius:13px;padding:14px 16px;
+  margin-bottom:11px;background:linear-gradient(170deg,var(--card2),var(--card))}
+.xitem::before{content:'';position:absolute;top:0;left:0;width:90px;height:1px;
+  background:linear-gradient(90deg,rgba(255,255,255,.35),transparent)}
+.xitem-h{display:flex;align-items:center;gap:9px;margin-bottom:12px;flex-wrap:wrap}
+.xitem-h .xem{font-size:17px}
+.xitem-h b{font-size:14px;font-weight:600}
+.xitem-h .xn{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);
+  border:1px solid var(--border);border-radius:6px;padding:2px 7px}
+.xitem-h .xrm{margin-left:auto}
+.xgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.xgrid .full{grid-column:1/-1}
+.xgrid label{display:block;font-size:11.5px;font-weight:600;color:var(--muted);margin-bottom:5px}
+.xempty{padding:24px;text-align:center;font-size:13px;color:var(--dim);border:1px dashed var(--border);border-radius:12px}
+.xnote{font-size:11.5px;color:var(--dim);margin-top:5px;line-height:1.45}
+.xsearch{width:100%;margin-bottom:14px}
+</style>
+
+<script>
+(function(){
+/* ------------------------------------------------------------------
+   1. CONFIG PAR DEFAUT DES NOUVEAUX MODULES
+------------------------------------------------------------------ */
+const XDEF={
+  economy:{enabled:false,symbole:'🪙',monnaie:'coins',start_balance:100,daily_amount:250,
+           work_min:50,work_max:300,work_cooldown:3600,rob_enabled:true,rob_cooldown:7200,
+           rob_success:40,rob_max_percent:20,log_channel:null,shop:[]},
+  automod:{enabled:false,log_channel:null,badwords:[],badword_action:'delete',anti_invite:false,
+           invite_action:'delete',anti_zalgo:false,anti_spoiler:false,max_lines:0,max_attachments:0,
+           ignored_channels:[],ignored_roles:[],warn_message:'{user} ce message n\'est pas autorisé ici.'},
+  suggestions:{enabled:false,channel_id:null,log_channel:null,up_emoji:'👍',down_emoji:'👎',
+               anonymous:false,threads:true,auto_delete_cmd:true,min_length:10,counter:0},
+  polls:{enabled:false,channel_id:null,default_duration:'1h',color:'#5865F2',allow_multi:false,
+         show_voters:false,ping_role:null},
+  guard:{raidmode:false,panic:false,lock_message:'🔒 Ce salon a été verrouillé par le staff.',
+         unlock_message:'🔓 Ce salon est de nouveau ouvert.',log_channel:null,agegate:false,
+         agegate_days:7,agegate_action:'kick',auto_slowmode:0,locked_channels:[],immune_roles:[]},
+  apply:{enabled:false,panel_channel:null,review_channel:null,accepted_role:null,log_channel:null,
+         titre:'📋 Candidatures',description:'Choisis un poste ci-dessous pour postuler.',
+         couleur:'#5865F2',cooldown_hours:24,postes:[]},
+};
+
+/* ------------------------------------------------------------------
+   2. CATALOGUE DES COMMANDES (affiche dans le dashboard)
+------------------------------------------------------------------ */
+const XCMDS={
+  economy:[['+economy','Ouvre le panneau de configuration',1],['+balance','Voir son portefeuille'],
+    ['+daily','Récompense quotidienne'],['+work','Travailler pour gagner des coins'],
+    ['+pay @membre 100','Envoyer de l\'argent'],['+deposit all','Déposer en banque'],
+    ['+withdraw 500','Retirer de la banque'],['+rob @membre','Tenter un braquage'],
+    ['+shop','Afficher la boutique'],['+buy 2','Acheter un article'],
+    ['+inventory','Voir son inventaire'],['+ecolb','Classement des plus riches'],
+    ['+addmoney @membre 500','Créditer un membre',1],['+removemoney @membre 500','Débiter un membre',1],
+    ['+resetmoney','Réinitialiser les comptes',1]],
+  automod:[['+automod','Ouvre le panneau AutoMod',1],['+badword add mot','Ajouter un mot interdit',1],
+    ['+badword del mot','Retirer un mot interdit',1],['+badword list','Lister les mots filtrés'],
+    ['+antiinvite on','Bloquer les invitations Discord',1],
+    ['+automodignore #salon','Ignorer un salon',1],['+automodlogs #salon','Salon des logs AutoMod',1],
+    ['+automodtest texte','Tester un message contre les filtres']],
+  suggestions:[['+suggestions','Ouvre le panneau suggestions',1],['+suggest idée','Proposer une idée'],
+    ['+approve <id> raison','Approuver une suggestion',1],['+deny <id> raison','Refuser une suggestion',1],
+    ['+suggestinfo','Statistiques des suggestions'],['+suggestreset','Remettre le compteur à zéro',1]],
+  polls:[['+pollconfig','Ouvre le panneau sondages',1],
+    ['+pollpro Q | A | B','Sondage avec barres en direct',1],
+    ['+quickpoll question','Sondage rapide 👍/👎'],
+    ['+endpoll <id>','Terminer un sondage',1],['+pollresults <id>','Afficher les résultats']],
+  guard:[['+guard','Ouvre le panneau protection',1],['+lock','Verrouiller le salon',1],
+    ['+unlock','Déverrouiller le salon',1],['+lockall','Verrouiller tout le serveur',1],
+    ['+unlockall','Tout déverrouiller',1],['+slowmode 10s','Ralentir un salon',1],
+    ['+panic','Mode panique : lock + slowmode',1],['+raidmode on','Bloquer les comptes récents',1],
+    ['+agegate 7 kick','Âge minimum du compte',1]],
+  apply:[['+apply','Ouvre le panneau candidatures',1],['+applysend #salon','Publier le panneau public',1],
+    ['+applyadd Poste | Q1 | Q2','Ajouter un poste',1],['+applydel Poste','Supprimer un poste',1],
+    ['+applylist','Lister les postes ouverts']],
+};
+
+/* ------------------------------------------------------------------
+   3. NAVIGATION — nouvelles categories
+------------------------------------------------------------------ */
+const I={
+  eco:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+  am:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>',
+  sg:'<path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>',
+  pl:'<line x1="18" y1="20" x2="18" y2="4"/><line x1="12" y1="20" x2="12" y2="10"/><line x1="6" y1="20" x2="6" y2="14"/>',
+  gd:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="15" x2="12" y2="18"/>',
+  ap:'<path d="M9 2h6a2 2 0 0 1 2 2v1h1a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1V4a2 2 0 0 1 2-2z"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>',
+  bk:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+};
+const XNAV=['⚡ Modules Pro',[
+  ['xeconomy','Économie','Monnaie, boutique, banque',I.eco],
+  ['xautomod','AutoMod Pro','Filtres de messages',I.am],
+  ['xsuggestions','Suggestions','Idées & votes des membres',I.sg],
+  ['xpolls','Sondages','Votes avec barres en direct',I.pl],
+  ['xguard','Protection & Lockdown','Verrouillage et mode raid',I.gd],
+  ['xapply','Candidatures','Recrutement du staff',I.ap],
+  ['xcommands','Toutes les commandes','Les 47 commandes ajoutées',I.bk],
+]];
+
+/* ------------------------------------------------------------------
+   4. MARKUP DES PAGES
+------------------------------------------------------------------ */
+const hero=(ico,titre,sous,badge)=>`
+  <div class="xhero"><div class="xh">
+    <div class="xico">${ico}</div>
+    <div style="flex:1;min-width:220px">
+      <h2>${titre}${badge?`<span class="xbadge" id="xb-${badge}">—</span>`:''}</h2>
+      <p>${sous}</p>
+    </div>
+  </div></div>`;
+
+const sw=k=>`<label class="sw"><input type="checkbox" data-k="${k}"><i></i></label>`;
+const row=(t,s,c)=>`<div class="row"><div class="row-t"><strong>${t}</strong>${s?`<span>${s}</span>`:''}</div><div class="row-c">${c}</div></div>`;
+const card=(emoji,titre,sous,body)=>`
+  <div class="xcard"><div class="xcard-h"><h3><span class="xe">${emoji}</span>${titre}</h3>${sous?`<p>${sous}</p>`:''}</div>
+  <div class="xcard-b">${body}</div></div>`;
+const chan=k=>`<span data-select="channel" data-sk="${k}" class="w-md"></span>`;
+const num=(k,min,max)=>`<input type="number" data-k="${k}" min="${min}" max="${max}">`;
+const txt=(k,ph,len)=>`<input type="text" data-k="${k}" placeholder="${ph||''}"${len?` maxlength="${len}"`:''}>`;
+const ACTS=[['delete','Supprimer le message'],['warn','Supprimer + avertir'],['mute','Supprimer + mute 10 min'],
+            ['kick','Supprimer + expulser'],['ban','Supprimer + bannir'],['log','Journaliser seulement']];
+const sel=(k,opts)=>`<select data-k="${k}">${opts.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>`;
+
+const PAGES_HTML={
+
+xeconomy: hero('💰','Économie',
+  'Une monnaie complète : salaire, banque, braquages et boutique d\'articles pouvant donner des rôles. Panneau in-game : <code>+economy</code>.','eco')
+ +`<div class="xstats">
+     <div class="xstat"><b id="xs-comptes">—</b><span>Comptes ouverts</span></div>
+     <div class="xstat"><b id="xs-argent">—</b><span>Argent en circulation</span></div>
+     <div class="xstat"><b id="xs-articles">—</b><span>Articles en boutique</span></div>
+   </div>`
+ +card('⚙️','Réglages généraux','',
+    row('Activer l\'économie','Sans ça, toutes les commandes d\'économie répondent une erreur.',sw('extras.economy.enabled'))
+   +`<div class="xgrid">
+      <div><label>Symbole / emoji</label>${txt('extras.economy.symbole','🪙',8)}</div>
+      <div><label>Nom de la monnaie</label>${txt('extras.economy.monnaie','coins',20)}</div>
+      <div><label>Solde de départ</label>${num('extras.economy.start_balance',0,1000000)}</div>
+      <div class="full"><label>Salon des logs (achats & transferts)</label>${chan('extras.economy.log_channel')}</div>
+     </div>`)
+ +card('💼','Gains','Ce que rapportent <code>+daily</code> et <code>+work</code>.',
+   `<div class="xgrid">
+      <div><label>Montant du daily</label>${num('extras.economy.daily_amount',0,1000000)}</div>
+      <div><label>Cooldown de +work (secondes)</label>${num('extras.economy.work_cooldown',0,604800)}</div>
+      <div><label>Gain minimum de +work</label>${num('extras.economy.work_min',0,1000000)}</div>
+      <div><label>Gain maximum de +work</label>${num('extras.economy.work_max',0,1000000)}</div>
+    </div>`)
+ +card('🔫','Braquages','La commande <code>+rob</code> permet de voler un autre membre.',
+    row('Autoriser les vols','',sw('extras.economy.rob_enabled'))
+   +`<div class="xgrid">
+      <div><label>Chance de réussite (%)</label>${num('extras.economy.rob_success',0,100)}</div>
+      <div><label>Part volée maximum (%)</label>${num('extras.economy.rob_max_percent',1,100)}</div>
+      <div><label>Cooldown (secondes)</label>${num('extras.economy.rob_cooldown',0,604800)}</div>
+    </div>`)
+ +card('🛒','Boutique','25 articles maximum. Un article peut donner un rôle à l\'achat.',
+   `<div id="xShop"></div><div style="margin-top:14px"><button class="btn p" id="xShopAdd">+ Ajouter un article</button></div>`)
+ +card('⌨️','Commandes de la catégorie','',`<div class="xcmds" data-cmds="economy"></div>`),
+
+xautomod: hero('🛡️','AutoMod Pro',
+  'Filtres de contenu appliqués à chaque message : mots interdits, pubs, zalgo, spam de lignes ou de fichiers. Complémentaire de l\'anti-raid. Panneau : <code>+automod</code>.','am')
+ +card('⚙️','Activation','',
+    row('Activer l\'AutoMod','Le staff (permissions de modération) est toujours ignoré.',sw('extras.automod.enabled'))
+   +`<div class="field"><label>Salon des logs AutoMod</label>${chan('extras.automod.log_channel')}</div>`)
+ +card('🤬','Mots interdits','Détection sur le message en minuscules, accents compris.',
+   `<div id="xBwChips" class="chips" style="margin-bottom:10px"></div>
+    <div class="add"><input type="text" id="xBwIn" placeholder="Un mot ou plusieurs séparés par des virgules"><button class="btn" id="xBwAdd">Ajouter</button></div>
+    <div class="field" style="margin-top:14px"><label>Sanction appliquée</label>${sel('extras.automod.badword_action',ACTS)}</div>`)
+ +card('🔗','Anti-pub','Bloque discord.gg / discord.com/invite et leurs raccourcis.',
+    row('Bloquer les invitations Discord','',sw('extras.automod.anti_invite'))
+   +`<div class="field"><label>Sanction appliquée</label>${sel('extras.automod.invite_action',ACTS)}</div>`)
+ +card('📏','Autres filtres','',
+    row('Anti-zalgo','Supprime les textes déformés par des caractères combinants.',sw('extras.automod.anti_zalgo'))
+   +row('Anti-spam de spoilers','Supprime les messages remplis de ||balises||.',sw('extras.automod.anti_spoiler'))
+   +row('Lignes maximum','0 = illimité. Bloque les pavés de saut de ligne.',num('extras.automod.max_lines',0,500))
+   +row('Fichiers maximum','0 = illimité. Nombre de pièces jointes par message.',num('extras.automod.max_attachments',0,10))
+   +`<div class="field"><label>Message d'avertissement</label>
+      <div class="hint">Variables : <code>{user}</code> <code>{motif}</code></div>
+      <textarea data-k="extras.automod.warn_message" maxlength="300"></textarea></div>`)
+ +card('🚫','Exceptions','',
+   `<div class="field"><label>Salons ignorés</label><div id="xAmChans"></div></div>
+    <div class="field"><label>Rôles ignorés</label><div class="rolebox" data-roles="extras.automod.ignored_roles"></div></div>`)
+ +card('⌨️','Commandes de la catégorie','',`<div class="xcmds" data-cmds="automod"></div>`),
+
+xsuggestions: hero('💡','Suggestions',
+  'Les membres proposent avec <code>+suggest</code>, le staff valide ou refuse en un clic depuis les boutons de la suggestion. Panneau : <code>+suggestions</code>.','sg')
+ +`<div class="xstats"><div class="xstat"><b id="xs-sugg">—</b><span>Suggestions envoyées</span></div></div>`
+ +card('⚙️','Réglages','',
+    row('Activer les suggestions','',sw('extras.suggestions.enabled'))
+   +`<div class="field"><label>Salon des suggestions</label>${chan('extras.suggestions.channel_id')}</div>
+     <div class="field"><label>Salon des logs</label>${chan('extras.suggestions.log_channel')}</div>
+     <div class="xgrid">
+       <div><label>Emoji « pour »</label>${txt('extras.suggestions.up_emoji','👍',32)}</div>
+       <div><label>Emoji « contre »</label>${txt('extras.suggestions.down_emoji','👎',32)}</div>
+       <div><label>Longueur minimum</label>${num('extras.suggestions.min_length',1,2000)}</div>
+     </div>`
+   +row('Créer un fil de discussion','Un thread est ouvert sous chaque suggestion.',sw('extras.suggestions.threads'))
+   +row('Mode anonyme','L\'auteur n\'est pas affiché sur la suggestion.',sw('extras.suggestions.anonymous'))
+   +row('Supprimer la commande','Efface le <code>+suggest</code> du membre.',sw('extras.suggestions.auto_delete_cmd')))
+ +card('⌨️','Commandes de la catégorie','',`<div class="xcmds" data-cmds="suggestions"></div>`),
+
+xpolls: hero('📊','Sondages',
+  'Des sondages à barres de progression qui se mettent à jour à chaque vote, avec bouton « retirer mon vote ». Panneau : <code>+pollconfig</code>.','pl')
+ +card('⚙️','Réglages','',
+    row('Activer les sondages','',sw('extras.polls.enabled'))
+   +`<div class="field"><label>Salon par défaut</label><div class="hint">Vide = le sondage est publié dans le salon de la commande.</div>${chan('extras.polls.channel_id')}</div>
+     <div class="xgrid">
+       <div><label>Durée par défaut</label>${txt('extras.polls.default_duration','1h',10)}</div>
+       <div><label>Couleur de l'embed</label>${txt('extras.polls.color','#5865F2',7)}</div>
+     </div>
+     <div class="field"><label>Rôle mentionné à chaque sondage</label>
+       <div class="hint">Vide = aucune mention.</div>
+       <span data-select="role" data-sk="extras.polls.ping_role" class="w-md"></span></div>`
+   +row('Afficher les votants','',sw('extras.polls.show_voters')))
+ +card('⌨️','Commandes de la catégorie','',`<div class="xcmds" data-cmds="polls"></div>`),
+
+xguard: hero('🔒','Protection & Lockdown',
+  'Le bouton rouge du serveur : verrouillage total, slowmode global, mode raid et filtre des comptes trop récents. Panneau : <code>+guard</code>.','gd')
+ +`<div class="xstats"><div class="xstat"><b id="xs-locked">—</b><span>Salons verrouillés</span></div></div>`
+ +card('🚨','Mode raid','Quand il est actif, tout compte plus récent que la limite ci-dessous est bloqué à l\'arrivée.',
+    row('Activer le mode raid','',sw('extras.guard.raidmode'))
+   +row('Slowmode automatique (secondes)','Appliqué à tous les salons quand le mode raid s\'active.',num('extras.guard.auto_slowmode',0,21600)))
+ +card('👶','Filtre des comptes récents','',
+    row('Activer le filtre','',sw('extras.guard.agegate'))
+   +`<div class="xgrid">
+      <div><label>Âge minimum du compte (jours)</label>${num('extras.guard.agegate_days',0,3650)}</div>
+      <div><label>Action</label>${sel('extras.guard.agegate_action',[['kick','Expulser'],['ban','Bannir'],['log','Journaliser seulement']])}</div>
+     </div>`)
+ +card('💬','Messages & logs','',
+   `<div class="field"><label>Message de verrouillage</label><textarea data-k="extras.guard.lock_message" maxlength="300"></textarea></div>
+    <div class="field"><label>Message de déverrouillage</label><textarea data-k="extras.guard.unlock_message" maxlength="300"></textarea></div>
+    <div class="field"><label>Salon des logs de protection</label>${chan('extras.guard.log_channel')}</div>
+    <div class="field"><label>Rôles immunisés</label><div class="rolebox" data-roles="extras.guard.immune_roles"></div></div>`)
+ +card('⌨️','Commandes de la catégorie','',`<div class="xcmds" data-cmds="guard"></div>`),
+
+xapply: hero('📋','Candidatures',
+  'Un panneau public façon ticket : le membre clique, choisit un poste, remplit un formulaire, et le staff accepte ou refuse en un clic. Panneau : <code>+apply</code>.','ap')
+ +`<div class="xstats"><div class="xstat"><b id="xs-postes">—</b><span>Postes ouverts</span></div></div>`
+ +card('⚙️','Réglages','',
+    row('Activer les candidatures','',sw('extras.apply.enabled'))
+   +`<div class="xgrid">
+      <div class="full"><label>Titre du panneau</label>${txt('extras.apply.titre','📋 Candidatures',100)}</div>
+      <div class="full"><label>Description du panneau</label><textarea data-k="extras.apply.description" maxlength="1000"></textarea></div>
+      <div><label>Couleur</label>${txt('extras.apply.couleur','#5865F2',7)}</div>
+      <div><label>Cooldown entre 2 candidatures (heures)</label>${num('extras.apply.cooldown_hours',0,8760)}</div>
+      <div><label>Salon du panneau public</label>${chan('extras.apply.panel_channel')}</div>
+      <div><label>Salon de réception (staff)</label>${chan('extras.apply.review_channel')}</div>
+      <div><label>Salon des logs</label>${chan('extras.apply.log_channel')}</div>
+      <div><label>Rôle donné si accepté</label><span data-select="role" data-sk="extras.apply.accepted_role" class="w-md"></span></div>
+     </div>`)
+ +card('💼','Postes ouverts','Chaque poste a son formulaire : 5 questions maximum, une par ligne.',
+   `<div id="xPostes"></div><div style="margin-top:14px"><button class="btn p" id="xPosteAdd">+ Ajouter un poste</button></div>`)
+ +card('⌨️','Commandes de la catégorie','',`<div class="xcmds" data-cmds="apply"></div>`),
+
+xcommands: hero('🧩','Toutes les commandes ajoutées',
+  '47 commandes réparties en 6 catégories, chacune pilotable depuis son panneau Discord ou depuis ce dashboard. Clique sur une commande pour la copier.')
+ +`<input type="text" class="xsearch" id="xSearch" placeholder="🔍 Rechercher une commande…">
+   <div id="xAllCmds"></div>`,
+};
+
+/* ------------------------------------------------------------------
+   5. BRANCHEMENT SUR LE DASHBOARD EXISTANT
+------------------------------------------------------------------ */
+const xesc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const xget=(o,p)=>p.split('.').reduce((a,k)=>(a==null?undefined:a[k]),o);
+function xsetp(o,p,v){const ks=p.split('.');const last=ks.pop();let t=o;
+  for(const k of ks){if(typeof t[k]!=='object'||t[k]===null)t[k]={};t=t[k];}t[last]=v;}
+const xclone=o=>JSON.parse(JSON.stringify(o));
+
+/* --- injection des pages --- */
+function xinject(){
+  const app=document.getElementById('app'); if(!app) return;
+  const bar=document.getElementById('savebar');
+  for(const [key,html] of Object.entries(PAGES_HTML)){
+    if(document.getElementById('pg-'+key)) continue;
+    const d=document.createElement('div');
+    d.className='page'; d.id='pg-'+key; d.innerHTML=html;
+    if(bar) app.insertBefore(d,bar); else app.appendChild(d);
+  }
+}
+
+/* --- extension de NAV / PAGES / DEFAULTS / MODULES --- */
+function xextend(){
+  try{
+    if(!NAV.some(g=>g[0]===XNAV[0])) NAV.push(XNAV);
+    XNAV[1].forEach(([k,t,s])=>{PAGES[k]=[t,s];});
+    DEFAULTS.extras=xclone(XDEF);
+    if(!cfg.extras) cfg.extras=xclone(XDEF);
+    if(!saved.extras) saved.extras=xclone(XDEF);
+    const add=[
+      ['xeconomy','Économie',c=>!!(c.extras&&c.extras.economy.enabled)],
+      ['xautomod','AutoMod Pro',c=>!!(c.extras&&c.extras.automod.enabled)],
+      ['xsuggestions','Suggestions',c=>!!(c.extras&&c.extras.suggestions.enabled)],
+      ['xpolls','Sondages',c=>!!(c.extras&&c.extras.polls.enabled)],
+      ['xguard','Protection',c=>!!(c.extras&&(c.extras.guard.raidmode||c.extras.guard.agegate))],
+      ['xapply','Candidatures',c=>!!(c.extras&&c.extras.apply.enabled)],
+    ];
+    add.forEach(m=>{ if(!MODULES.some(x=>x[0]===m[0])) MODULES.push(m); });
+    if(typeof buildNav==='function') buildNav();
+  }catch(e){ console.warn('[extras] extension impossible',e); }
+}
+
+/* --- listes dynamiques --- */
+function xBuildShop(){
+  const box=document.getElementById('xShop'); if(!box) return;
+  const list=(cfg.extras&&cfg.extras.economy.shop)||[];
+  box.innerHTML=list.length?list.map((it,i)=>`
+    <div class="xitem">
+      <div class="xitem-h"><span class="xem">🛒</span><b>${xesc(it.nom||'Sans nom')}</b>
+        <span class="xn">Article ${i+1}</span>
+        <button class="btn sm dg xrm" data-xshoprm="${i}">Supprimer</button></div>
+      <div class="xgrid">
+        <div><label>Nom</label><input type="text" maxlength="40" data-k="extras.economy.shop.${i}.nom"></div>
+        <div><label>Prix</label><input type="number" min="0" data-k="extras.economy.shop.${i}.prix"></div>
+        <div class="full"><label>Description</label><input type="text" maxlength="100" data-k="extras.economy.shop.${i}.description"></div>
+        <div><label>Rôle donné à l'achat</label><span data-select="role" data-sk="extras.economy.shop.${i}.role"></span></div>
+        <div><label>Stock</label><input type="number" min="-1" data-k="extras.economy.shop.${i}.stock">
+          <div class="xnote">-1 = illimité</div></div>
+      </div>
+    </div>`).join('')
+    :`<div class="xempty">Aucun article. La commande <code>+shop</code> répondra que la boutique est vide.</div>`;
+}
+function xBuildPostes(){
+  const box=document.getElementById('xPostes'); if(!box) return;
+  const list=(cfg.extras&&cfg.extras.apply.postes)||[];
+  box.innerHTML=list.length?list.map((p,i)=>`
+    <div class="xitem">
+      <div class="xitem-h"><span class="xem">${xesc(p.emoji||'📄')}</span><b>${xesc(p.nom||'Sans nom')}</b>
+        <span class="xn">${(p.questions||[]).length} question(s)</span>
+        <button class="btn sm dg xrm" data-xposterm="${i}">Supprimer</button></div>
+      <div class="xgrid">
+        <div><label>Nom du poste</label><input type="text" maxlength="40" data-k="extras.apply.postes.${i}.nom"></div>
+        <div><label>Emoji</label><input type="text" maxlength="8" data-k="extras.apply.postes.${i}.emoji"></div>
+        <div class="full"><label>Description courte</label><input type="text" maxlength="90" data-k="extras.apply.postes.${i}.description"></div>
+        <div class="full"><label>Questions du formulaire</label>
+          <textarea data-xq="${i}" placeholder="Ton âge ?&#10;Ton expérience ?&#10;Tes disponibilités ?"></textarea>
+          <div class="xnote">Une question par ligne, 5 maximum, 45 caractères chacune.</div></div>
+      </div>
+    </div>`).join('')
+    :`<div class="xempty">Aucun poste. Le bouton « Postuler » répondra qu'aucun poste n'est ouvert.</div>`;
+  box.querySelectorAll('[data-xq]').forEach(ta=>{
+    const i=Number(ta.dataset.xq);
+    ta.value=((cfg.extras.apply.postes[i]||{}).questions||[]).join('\n');
+  });
+}
+function xBuildBadwords(){
+  const box=document.getElementById('xBwChips'); if(!box) return;
+  const l=(cfg.extras&&cfg.extras.automod.badwords)||[];
+  box.innerHTML=l.map((v,i)=>`<span class="chip"><b>${xesc(v)}</b><button type="button" data-xbwrm="${i}">×</button></span>`).join('')
+    ||'<span class="mini">Aucun mot filtré.</span>';
+}
+function xBuildAmChannels(){
+  const box=document.getElementById('xAmChans'); if(!box) return;
+  const cur=((cfg.extras&&cfg.extras.automod.ignored_channels)||[]).map(String);
+  const name=id=>{const c=(META.channels||[]).find(c=>String(c.id)===String(id));return c?'#'+c.name:'ID '+id;};
+  const chips=cur.map((id,i)=>`<span class="chip"><b>${xesc(name(id))}</b><button type="button" data-xchrm="${i}">×</button></span>`).join('');
+  const adder=(META.channels||[]).length
+    ? `<select id="xChAdd"><option value="">+ Ignorer un salon…</option>${(META.channels||[])
+        .filter(c=>!cur.includes(String(c.id)))
+        .map(c=>`<option value="${xesc(c.id)}">#${xesc(c.name)}</option>`).join('')}</select>`
+    : `<div class="add"><input type="text" inputmode="numeric" id="xChIn" placeholder="ID du salon"><button class="btn" id="xChBtn">Ajouter</button></div>`;
+  box.innerHTML=`<div class="chips" style="margin:0 0 10px">${chips||'<span class="mini">Aucun salon ignoré.</span>'}</div>${adder}`;
+}
+function xBuildCmds(){
+  document.querySelectorAll('[data-cmds]').forEach(box=>{
+    const list=XCMDS[box.dataset.cmds]||[];
+    box.innerHTML=list.map(([c,d,admin])=>`
+      <div class="xcmd" data-copy="${xesc(c)}">
+        <div><span class="xk">${xesc(c)}</span><span class="xd">${xesc(d)}</span></div>
+        ${admin?'<span class="xp">Staff</span>':''}
+      </div>`).join('');
+  });
+  const all=document.getElementById('xAllCmds');
+  if(all){
+    const titles={economy:['💰','Économie'],automod:['🛡️','AutoMod Pro'],suggestions:['💡','Suggestions'],
+                  polls:['📊','Sondages'],guard:['🔒','Protection & Lockdown'],apply:['📋','Candidatures']};
+    all.innerHTML=Object.entries(XCMDS).map(([k,list])=>{
+      const [e,t]=titles[k];
+      return `<div class="xcard" data-grp="${k}"><div class="xcard-h"><h3><span class="xe">${e}</span>${t}
+        </h3><p>${list.length} commande(s)</p></div><div class="xcard-b"><div class="xcmds">${
+        list.map(([c,d,a])=>`<div class="xcmd" data-copy="${xesc(c)}" data-q="${xesc((c+' '+d).toLowerCase())}">
+          <div><span class="xk">${xesc(c)}</span><span class="xd">${xesc(d)}</span></div>
+          ${a?'<span class="xp">Staff</span>':''}</div>`).join('')}</div></div></div>`;
+    }).join('');
+  }
+}
+function xBuildBadges(){
+  const b=(id,on,txtOn,txtOff)=>{const el=document.getElementById('xb-'+id);if(!el)return;
+    el.textContent=on?(txtOn||'Actif'):(txtOff||'Inactif');el.className='xbadge'+(on?'':' off');};
+  const x=cfg.extras||XDEF;
+  b('eco',x.economy.enabled); b('am',x.automod.enabled); b('sg',x.suggestions.enabled);
+  b('pl',x.polls.enabled); b('gd',x.guard.raidmode||x.guard.agegate,'Protégé','Repos'); b('ap',x.apply.enabled);
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set('xs-articles',(x.economy.shop||[]).length);
+  set('xs-postes',(x.apply.postes||[]).length);
+  set('xs-sugg',x.suggestions.counter||0);
+  set('xs-locked',(x.guard.locked_channels||[]).length);
+}
+function xBuildAll(){
+  xBuildShop(); xBuildPostes(); xBuildBadwords(); xBuildAmChannels(); xBuildCmds(); xBuildBadges();
+}
+
+/* --- interactions --- */
+document.addEventListener('click',e=>{
+  const cp=e.target.closest('.xcmd[data-copy]');
+  if(cp){
+    const v=cp.dataset.copy;
+    (navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject())
+      .then(()=>{cp.classList.add('copied');setTimeout(()=>cp.classList.remove('copied'),900);
+                 if(typeof toast==='function') toast('Copié : '+v);})
+      .catch(()=>{ if(typeof toast==='function') toast('Copie impossible','err'); });
+    return;
+  }
+  const add=e.target.closest('#xShopAdd');
+  if(add){
+    const l=cfg.extras.economy.shop=cfg.extras.economy.shop||[];
+    if(l.length>=25) return toast('25 articles maximum','err');
+    l.push({nom:'Nouvel article',prix:500,description:'',role:null,stock:-1});
+    render(); touch(); toast('Article ajouté — pense à enregistrer'); return;
+  }
+  const rm=e.target.closest('[data-xshoprm]');
+  if(rm){
+    const i=Number(rm.dataset.xshoprm);
+    if(!confirm(`Supprimer l'article « ${cfg.extras.economy.shop[i]?.nom||''} » ?`)) return;
+    cfg.extras.economy.shop.splice(i,1); render(); touch(); return;
+  }
+  const addp=e.target.closest('#xPosteAdd');
+  if(addp){
+    const l=cfg.extras.apply.postes=cfg.extras.apply.postes||[];
+    if(l.length>=25) return toast('25 postes maximum','err');
+    l.push({nom:'Modérateur',emoji:'🛡️',description:'Rejoins l\'équipe de modération',
+            questions:['Ton âge ?','Ton expérience en modération ?','Tes disponibilités ?']});
+    render(); touch(); toast('Poste ajouté — pense à enregistrer'); return;
+  }
+  const rmp=e.target.closest('[data-xposterm]');
+  if(rmp){
+    const i=Number(rmp.dataset.xposterm);
+    if(!confirm(`Supprimer le poste « ${cfg.extras.apply.postes[i]?.nom||''} » ?`)) return;
+    cfg.extras.apply.postes.splice(i,1); render(); touch(); return;
+  }
+  const bwa=e.target.closest('#xBwAdd');
+  if(bwa){
+    const inp=document.getElementById('xBwIn'); const v=(inp.value||'').trim(); if(!v) return;
+    const l=cfg.extras.automod.badwords=cfg.extras.automod.badwords||[];
+    v.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean).forEach(w=>{ if(!l.includes(w)) l.push(w); });
+    inp.value=''; xBuildBadwords(); touch(); return;
+  }
+  const bwr=e.target.closest('[data-xbwrm]');
+  if(bwr){ cfg.extras.automod.badwords.splice(Number(bwr.dataset.xbwrm),1); xBuildBadwords(); touch(); return; }
+  const chr=e.target.closest('[data-xchrm]');
+  if(chr){ cfg.extras.automod.ignored_channels.splice(Number(chr.dataset.xchrm),1); xBuildAmChannels(); touch(); return; }
+  const chb=e.target.closest('#xChBtn');
+  if(chb){
+    const inp=document.getElementById('xChIn'); const v=(inp.value||'').trim(); if(!v) return;
+    const l=cfg.extras.automod.ignored_channels=cfg.extras.automod.ignored_channels||[];
+    if(!l.map(String).includes(v)) l.push(v);
+    inp.value=''; xBuildAmChannels(); touch();
+  }
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='xChAdd'&&e.target.value){
+    const l=cfg.extras.automod.ignored_channels=cfg.extras.automod.ignored_channels||[];
+    if(!l.map(String).includes(e.target.value)) l.push(e.target.value);
+    xBuildAmChannels(); touch();
+  }
+});
+document.addEventListener('input',e=>{
+  if(e.target.matches('[data-xq]')){
+    const i=Number(e.target.dataset.xq);
+    const qs=e.target.value.split('\n').map(s=>s.trim()).filter(Boolean).slice(0,5).map(s=>s.slice(0,45));
+    if(cfg.extras.apply.postes[i]) cfg.extras.apply.postes[i].questions=qs;
+    touch(); return;
+  }
+  if(e.target.id==='xSearch'){
+    const q=e.target.value.trim().toLowerCase();
+    document.querySelectorAll('#xAllCmds .xcmd').forEach(c=>{
+      c.style.display=(!q||(c.dataset.q||'').includes(q))?'':'none';
+    });
+    document.querySelectorAll('#xAllCmds .xcard').forEach(card=>{
+      const vis=[...card.querySelectorAll('.xcmd')].some(c=>c.style.display!=='none');
+      card.style.display=vis?'':'none';
+    });
+  }
+});
+
+/* --- rendu : on enveloppe render() sans le remplacer --- */
+function xhook(){
+  if(typeof render!=='function'||render.__xwrapped) return;
+  const base=render;
+  const wrapped=function(){ try{ xBuildAll(); }catch(e){} base(); try{ xBuildBadges(); }catch(e){} };
+  wrapped.__xwrapped=true;
+  try{ render=wrapped; }catch(e){ window.render=wrapped; }
+}
+
+/* --- sauvegarde : on ajoute un POST vers /extras --- */
+function xhookSave(){
+  if(typeof apiSave!=='function'||apiSave.__xwrapped) return;
+  const base=apiSave;
+  const wrapped=async function(data){
+    const okBase=await base(data);
+    let okX=true;
+    try{
+      const r=await fetch(apiURL(`/api/guild/${encodeURIComponent(guildId)}/extras`),{
+        method:'POST',credentials:API_CREDS,
+        headers:{'Content-Type':'application/json',Accept:'application/json',...authHeaders()},
+        body:JSON.stringify(data.extras||{})});
+      okX=r.ok;
+    }catch{ okX=false; }
+    return okBase&&okX;
+  };
+  wrapped.__xwrapped=true;
+  try{ apiSave=wrapped; }catch(e){ window.apiSave=wrapped; }
+}
+
+/* --- chargement de la config des modules --- */
+async function xload(){
+  try{
+    const r=await fetch(apiURL(`/api/guild/${encodeURIComponent(guildId)}/extras`),
+      {credentials:API_CREDS,cache:'no-store',headers:{Accept:'application/json',...authHeaders()}});
+    if(!r.ok) return false;
+    const j=await r.json();
+    if(!j||!j.config) return false;
+    const s=j.config._stats||{};
+    const clean=xclone(j.config); delete clean._stats;
+    cfg.extras=deepMerge(xclone(XDEF),clean);
+    saved.extras=xclone(cfg.extras);
+    const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.textContent=v;};
+    const nb=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+    set('xs-comptes',s.comptes!=null?nb(s.comptes):null);
+    set('xs-argent',s.argent_total!=null?nb(s.argent_total):null);
+    return true;
+  }catch{ return false; }
+}
+
+/* --- demarrage : on attend que le dashboard ait fini son boot --- */
+function xstart(){
+  xinject(); xhook(); xhookSave();
+  let tries=0;
+  const t=setInterval(async()=>{
+    const app=document.getElementById('app');
+    tries++;
+    if(app&&!app.classList.contains('hidden')){
+      clearInterval(t);
+      xextend();
+      await xload();
+      try{ render(); touch(); }catch(e){ xBuildAll(); }
+      const h=(location.hash||'').replace('#','');
+      if(h&&PAGES_HTML[h]&&typeof go==='function') go(h);
+    }else if(tries>400){ clearInterval(t); }
+  },150);
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',xstart);
+else xstart();
+})();
+</script>
+
+</body>
+</html>
