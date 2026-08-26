@@ -3,12 +3,22 @@
 Applique au fichier principal du bot (app.py / app_122.py) les corrections
 necessaires pour que le dashboard fonctionne reellement.
 
-A lancer une seule fois, depuis le dossier qui contient app.py :
+Deux facons de s'en servir :
 
-    python3 patch_app.py app.py
+1. PATCH SEUL — on precise le fichier a corriger :
 
-Ce fichier peut ensuite etre supprime : seuls dashboard.py et web/ sont
-necessaires au fonctionnement.
+       python3 patch_app.py app.py
+
+2. MODE DEMARRAGE — sans argument : corrige app.py, puis LANCE le bot.
+   Concu pour Pterodactyl, ou la commande de demarrage est verrouillee mais
+   ou la variable APP PY FILE est modifiable : il suffit d'y mettre
+   patch_app.py au lieu de app.py. Le patch se rejoue a chaque demarrage
+   (il ne refait rien s'il est deja applique) puis passe la main au bot.
+
+       python3 patch_app.py
+
+   Le fichier a lancer peut etre change avec la variable d'environnement
+   BOT_FILE (defaut : app.py).
 
 Ce que le script corrige :
   1. WEB_PORT       : le port alloue par Pterodactyl (SERVER_PORT) devient
@@ -32,6 +42,7 @@ Une sauvegarde <fichier>.bak est creee au premier passage.
 
 import os
 import re
+import runpy
 import shutil
 import sys
 
@@ -245,13 +256,27 @@ def patch_hook(src):
     return src
 
 
+def run_bot(path):
+    """Lance le fichier du bot dans CE processus.
+
+    On evite un sous-processus : Pterodactyl suit le PID qu'il a demarre, et
+    la console du panel ecrit sur son entree standard. Rester dans le meme
+    processus garde donc l'arret propre et la console fonctionnels.
+    """
+    print(f"\n🚀 Demarrage du bot : {path}\n", flush=True)
+    sys.argv = [path]
+    runpy.run_path(path, run_name="__main__")
+
+
 def main():
-    if len(sys.argv) < 2:
-        print(__doc__)
-        return 1
-    path = sys.argv[1]
+    # Sans argument : mode demarrage (patch + lancement du bot).
+    startup_mode = len(sys.argv) < 2
+    path = os.environ.get("BOT_FILE", "app.py") if startup_mode else sys.argv[1]
+
     if not os.path.isfile(path):
         print(f"❌ Fichier introuvable : {path}")
+        if startup_mode:
+            print("   Precise le nom du fichier du bot dans la variable BOT_FILE.")
         return 1
 
     with open(path, "r", encoding="utf-8") as f:
@@ -268,12 +293,17 @@ def main():
 
     if src == original:
         print("\n✅ Rien a changer, le fichier est deja a jour.")
+        if startup_mode:
+            run_bot(path)
         return 0
 
     try:
         compile(src, path, "exec")
     except SyntaxError as err:
         print(f"\n❌ Le resultat ne compile pas ({err}) — aucun changement ecrit.")
+        if startup_mode:
+            # on ne bloque pas le bot pour autant : il demarre sans le dashboard
+            run_bot(path)
         return 1
 
     backup = path + ".bak"
@@ -283,6 +313,8 @@ def main():
     with open(path, "w", encoding="utf-8") as f:
         f.write(src)
     print("✅ Fichier mis a jour.")
+    if startup_mode:
+        run_bot(path)
     return 0
 
 

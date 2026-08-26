@@ -34,7 +34,7 @@ Pterodactyl, via l'onglet *Gestionnaire de fichiers*) :
 ├── app.py              (déjà là)
 ├── config.json         (déjà là)
 ├── dashboard.py        ← 1. le module
-├── patch_app.py        ← 2. à lancer une fois, puis supprimable
+├── patch_app.py        ← 2. lance le patch puis le bot
 └── web/                ← dossier à créer
     ├── index.html      ← 3. connexion
     ├── servers.html    ← 4. choix du serveur
@@ -50,11 +50,32 @@ référencent, mais elles fonctionnent sans.
 
 ### 2. Patcher app.py
 
+Le patch corrige `app.py` (voir la liste plus bas). Deux façons de le lancer,
+selon ce que ton hébergeur t'autorise.
+
+**Sur Pterodactyl** — la commande de démarrage est verrouillée par l'egg, mais
+la variable **APP PY FILE** est modifiable. Onglet **Startup** → champ
+*APP PY FILE* : remplace `app.py` par :
+
+```
+patch_app.py
+```
+
+C'est tout. À chaque démarrage, le patch se rejoue (sans rien refaire s'il est
+déjà appliqué) puis passe la main au bot, dans le même processus — la console
+du panel et le bouton Stop continuent de fonctionner normalement.
+
+Si ton fichier principal ne s'appelle pas `app.py`, ajoute une variable
+d'environnement `BOT_FILE` avec son nom.
+
+**Avec un accès shell** — patch seul, sans lancer le bot :
+
 ```bash
 python3 patch_app.py app.py
 ```
 
-Le script crée un `app.py.bak`, vérifie que le résultat compile, et corrige :
+Le script crée un `app.py.bak`, vérifie que le résultat compile avant d'écrire,
+et corrige :
 
 - `WEB_PORT` → `SERVER_PORT` (l'allocation du panel) devient prioritaire, défaut **30121** ;
 - le `print` qui affichait « port 30121 » en dur alors que le bot écoutait ailleurs ;
@@ -66,7 +87,9 @@ Le script crée un `app.py.bak`, vérifie que le résultat compile, et corrige :
   variables d'environnement au lieu d'être écrits en dur dans le code ;
 - l'appel à `register_dashboard(...)` avant le démarrage du serveur web.
 
-Relancer le script est sans risque : il détecte ce qui est déjà fait.
+Relancer le script est sans risque : il détecte ce qui est déjà fait. Si le
+résultat ne compilait pas, rien n'est écrit et le bot démarre quand même, sans
+le dashboard.
 
 ### 3. Compléter config.json
 
