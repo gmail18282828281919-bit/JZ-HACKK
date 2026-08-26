@@ -35,11 +35,8 @@ import time as _time
 _BOT_START_TIME = _time.time()
 
 
-# ══════════════════════════════════════════
 
-# CONFIG & BOT
 
-# ══════════════════════════════════════════
 
 with open("config.json", "r") as f:
 
@@ -47,17 +44,14 @@ with open("config.json", "r") as f:
 
 TOKEN = CONFIG["token"]
 
-# Proprietaire principal du bot (prioritaire sur config.json)
 MAIN_OWNER_ID = "1533483654888820818"
 
 owner_id_str = CONFIG.get("owner_id", "")
 
 _cfg_owners = [oid.strip() for oid in (owner_id_str if isinstance(owner_id_str, str) else str(owner_id_str or "")).split(',') if oid.strip()]
 
-# Fondateurs / co-owners supplementaires
 FOUNDER_IDS = ["1234265378314784782"]
 
-# L'owner principal remplace celui de config.json ; ajoute d'autres IDs dans FOUNDER_IDS.
 OWNER_IDS = [MAIN_OWNER_ID] + [f for f in FOUNDER_IDS if f != MAIN_OWNER_ID]
 
 intents = discord.Intents.default()
@@ -70,15 +64,12 @@ intents.message_content = True
 
 intents.guilds = True
 
-# ══════════════════════════════════════════
 
-# PREFIXES DYNAMIQUES PAR SERVEUR
 
-# ══════════════════════════════════════════
 
 DEFAULT_PREFIX = "+"
 
-_prefix_cache = {}  # guild_id (int) → prefix (str)
+_prefix_cache = {}
 
 def _load_prefixes():
 
@@ -112,40 +103,28 @@ def get_prefix(bot, message):
 
         pfx = DEFAULT_PREFIX
 
-    # Permet aussi de mentionner le bot pour toutes commandes
 
     return commands.when_mentioned_or(pfx)(bot, message)
 
 _load_prefixes()
 
-# Aucun message du bot ne notifie un rôle ni @everyone.
-# Les rôles restent affichés en bleu (« @Membre »), mais personne n'est ping.
-# Les mentions de membres continuent de fonctionner (ticket, bienvenue, sanctions).
 MENTIONS_PAR_DEFAUT = discord.AllowedMentions(
-    everyone=False,      # pas de @everyone / @here
-    roles=False,         # pas de ping de rôle
-    users=True,          # les membres restent mentionnables
-    replied_user=False,  # répondre à quelqu'un ne le ping pas
+    everyone=False,
+    roles=False,
+    users=True,
+    replied_user=False,
 )
 
-# A l'ouverture d'un ticket, on notifie exprès : le membre concerne ET les roles
-# staff charges de ce type de ticket. C'est la seule exception au silence general.
 MENTIONS_TICKET = discord.AllowedMentions(everyone=False, roles=True, users=True)
 
 
-# Dans un salon de logs, personne n'est notifie : ni role, ni @everyone, ni membre.
-# Les mentions restent affichees en bleu et cliquables, elles ne declenchent
-# simplement aucune notification.
 MENTIONS_LOGS = discord.AllowedMentions.none()
 
 bot = commands.Bot(command_prefix=get_prefix, intents=intents, help_command=None,
                    allowed_mentions=MENTIONS_PAR_DEFAUT)
 
-# ══════════════════════════════════════════
 
-# FICHIERS
 
-# ══════════════════════════════════════════
 
 for folder in ["server_configs", "level_configs"]:
 
@@ -179,11 +158,8 @@ for key, path in FILES.items():
 
             json.dump(default, f, indent=4)
 
-# ══════════════════════════════════════════
 
-# CONSTANTES
 
-# ══════════════════════════════════════════
 
 PREMIUM_LINK = "https://discord.gg/DfAe8kQKZ"
 
@@ -206,7 +182,6 @@ C_DARK   = 0x2B2D31
 C_GOLD   = 0xFFD700
 
 
-# ─── Garde-fous (catégories & URLs) ───────────────────────────────────────────
 
 def _as_category(guild, value):
     """Retourne la CategoryChannel correspondante, ou None si l'ID n'en est pas une."""
@@ -280,18 +255,13 @@ def _install_url_guard():
 _install_url_guard()
 
 
-# ─── Images Discord CDN : anti-expiration ─────────────────────────────────────
-# Les liens cdn.discordapp.com/attachments/... sont signes (?ex=&is=&hm=) et
-# meurent au bout de ~24 h. Un panel/embed qui reste poste affiche alors une
-# image cassee. On telecharge donc l'image et on la joint au message : une piece
-# jointe appartient au message, Discord la re-signe tout seul, a vie.
 
 _CDN_ATTACH_RE = re.compile(
     r"^https?://(?:cdn\.discordapp\.com|media\.discordapp\.net)/attachments/",
     re.IGNORECASE
 )
 
-_MEDIA_MAX_BYTES = 8 * 1024 * 1024   # marge sous la limite d'upload Discord
+_MEDIA_MAX_BYTES = 8 * 1024 * 1024
 
 
 def _is_expiring_cdn(url):
@@ -301,8 +271,8 @@ def _is_expiring_cdn(url):
     return bool(_CDN_ATTACH_RE.match(url.strip())) and "hm=" in url
 
 
-_MEDIA_CACHE = {}          # cle (URL sans signature) -> (timestamp, bytes)
-_MEDIA_CACHE_TTL = 3600    # 1 h
+_MEDIA_CACHE = {}
+_MEDIA_CACHE_TTL = 3600
 
 
 def _media_key(url):
@@ -361,7 +331,7 @@ def _media_filename(url, fallback):
 async def _pin_embed_media(kw):
     """Convertit les images CDN perissables des embeds en pieces jointes."""
     if kw.get("file") is not None or kw.get("files"):
-        return  # l'appelant gere deja ses fichiers, on ne touche a rien
+        return
     embeds = kw.get("embeds") or ([kw["embed"]] if kw.get("embed") is not None else [])
     if not embeds:
         return
@@ -377,7 +347,7 @@ async def _pin_embed_media(kw):
                 continue
             data = await _fetch_media(url)
             if not data:
-                continue  # on garde le lien d'origine, valable ~24 h
+                continue
             fname = _media_filename(url, f"{kind}{n}.png")
             fname = f"{n}_{kind}_{fname}"[:80]
             files.append(discord.File(io.BytesIO(data), filename=fname))
@@ -401,9 +371,6 @@ def _stamp_ticket_embed(embed, suffix=None):
     return embed
 
 
-# ─── Container V2 Helper ──────────────────────────────────────────────────────
-# Tous les boutons / menus de sélection sont automatiquement rendus DANS un
-# Container Discord Components V2 (l'embed devient le contenu du container).
 
 def _cv2_flags():
     """Retourne les flags pour activer le mode Container V2 (composants Discord V2)."""
@@ -556,7 +523,7 @@ else:
     V2LayoutView = None
 
 
-_V2_MESSAGES = {}   # message_id -> V2LayoutView (pour ré-éditer sans perdre les composants)
+_V2_MESSAGES = {}
 
 
 def _v2_remember(message, lv, key=None):
@@ -580,7 +547,6 @@ def _v2_reedit(msg_id, kw):
     old = _V2_MESSAGES[msg_id]
     embeds = list(kw["embeds"]) if kw.get("embeds") else ([kw["embed"]] if kw.get("embed") is not None else [])
     if not embeds:
-        # Aucun embed fourni (ex. edit_message(view=self)) : on reprend celui du message
         embeds = list(getattr(old, "_v2_embeds", []))
     content = kw.get("content", getattr(old, "_v2_content", None))
     if not embeds and content is None and "view" not in kw:
@@ -590,8 +556,6 @@ def _v2_reedit(msg_id, kw):
         src = v if isinstance(v, discord.ui.View) else None
         items = [it for it in getattr(v, "children", [])] if src else []
         if not items:
-            # La vue s'est deja fait prendre ses composants par la V2LayoutView :
-            # on reprend ceux-ci (ce sont les memes objets, deja mis a jour).
             src = getattr(old, "src_view", None) or src
             items = list(getattr(old, "_v2_items", []))
     else:
@@ -614,7 +578,7 @@ def _v2_transform(kw, edit_mode=False, has_files=False):
 
     view = kw.get("view")
     if isinstance(view, discord.ui.LayoutView):
-        return None                      # deja en V2
+        return None
     if view is not None and view is not False and not isinstance(view, discord.ui.View):
         return None
 
@@ -627,11 +591,6 @@ def _v2_transform(kw, edit_mode=False, has_files=False):
         embeds = [kw["embed"]]
     content = kw.get("content")
 
-    # Un embed suffit : les messages sans bouton passent aussi en container.
-    # En revanche on laisse tranquilles :
-    #   - les messages en texte brut (say, animations, confirmations courtes)
-    #   - les envois avec pieces jointes fournies par l'appelant (exports CSV...),
-    #     que le mode V2 n'afficherait pas
     if not embeds:
         return None
     if has_files:
@@ -738,8 +697,6 @@ def _v2_rebuild_edit(message, kw, items=None):
         auto = items is None
         if auto:
             items = _v2_items_from_message(message)
-            # Si on n'a pas su relire les composants, mieux vaut ne rien faire
-            # que de publier un message ampute de ses boutons.
             if not items and getattr(message, "components", None):
                 return None
         if not embeds and content is None and not items:
@@ -834,8 +791,6 @@ def _install_v2_patch():
                     if mid is not None:
                         new = _v2_reedit(mid, kw)
                     if new is None and _v2_available():
-                        # Message V2 dont la vue n'est plus en memoire (redemarrage,
-                        # ou entree evincee du registre) : on repart du message.
                         msg = self if isinstance(self, discord.Message) else getattr(getattr(self, "_parent", None), "message", None)
                         v = kw.get("view")
                         if msg is not None and _is_v2_message(msg) and not isinstance(v, discord.ui.LayoutView):
@@ -848,7 +803,7 @@ def _install_v2_patch():
                                     except Exception:
                                         pass
                                 if not items:
-                                    items = None   # vue vidée : on relira le message
+                                    items = None
                             new = _v2_rebuild_edit(msg, kw, items)
                             if new is not None and mid is not None:
                                 _V2_MESSAGES[mid] = new["view"]
@@ -873,12 +828,8 @@ def _install_v2_patch():
                 except TypeError:
                     pass
                 except discord.HTTPException as exc:
-                    # 50035 / 50006 = requete rejetee a la validation : rien n'a
-                    # ete poste, on peut retenter en mode classique sans doublon.
                     if getattr(exc, "code", 0) not in (50035, 50006):
                         raise
-                # Le mode V2 a echoue : on rend ses composants a la vue d'origine,
-                # sinon le message de repli partirait sans boutons ni menus.
                 _v2_restore(kw.get("view"), new.get("view"))
             try:
                 return await orig(self, **kw)
@@ -930,11 +881,8 @@ ALL_COMMANDS = [
 
 ]
 
-# ══════════════════════════════════════════
 
-# HELPERS
 
-# ══════════════════════════════════════════
 
 def jload(path):
 
@@ -1342,25 +1290,15 @@ async def send_sanction_mp(user, action, reason, mod_name, guild_name, duration=
 
     except: pass
 
-# ══════════════════════════════════════════
 
-#  ███╗   ███╗ ██████╗ ██████╗  █████╗ ██╗     ███████╗
 
-#  ████╗ ████║██╔═══██╗██╔══██╗██╔══██╗██║     ██╔════╝
 
-#  ██╔████╔██║██║   ██║██║  ██║███████║██║     ███████╗
 
-#  ██║╚██╔╝██║██║   ██║██║  ██║██╔══██║██║     ╚════██║
 
-#  ██║ ╚═╝ ██║╚██████╔╝██████╔╝██║  ██║███████╗███████║
 
-#
 
-#  TOUS LES MODALS
 
-# ══════════════════════════════════════════
 
-# ─── WELCOME MODALS ───
 
 class ModalWelcomeChannel(discord.ui.Modal, title="🏷️ Salon de bienvenue"):
 
@@ -1570,7 +1508,6 @@ def build_welcome_status_embed(guild_id):
 
     return e
 
-# ─── WELCOME VIEW ─────────────────────────────────────────────────────────────
 
 class ModalWelcomeRole(discord.ui.Modal, title="🎭 Rôle de bienvenue"):
 
@@ -1777,7 +1714,6 @@ def build_giveaway_status_embed(guild_id):
 
     return e
 
-# ─── GIVEAWAY MODALS ──────────────────────────────────────────────────────────
 
 class ModalGiveawayParams(discord.ui.Modal, title="🎉 Paramètres du Giveaway"):
 
@@ -2019,7 +1955,6 @@ class ModalGiveawayWinner(discord.ui.Modal, title="🏅 Gagnant prédéfini"):
 
         await interaction.response.send_message(embed=embed_ok(msg), ephemeral=True)
 
-# ─── FIN GIVEAWAY MODALS ──────────────────────────────────────────────────────
 
 class GiveawayView(discord.ui.View):
 
@@ -2115,7 +2050,6 @@ class GiveawayView(discord.ui.View):
 
         asyncio.create_task(launch_giveaway_from_config(self.ctx, data))
 
-# ─── ANTIRAID MODALS ───
 
 class ModalAntiraidSpam(discord.ui.Modal, title="🚫 Configurer Anti-Spam"):
 
@@ -2452,7 +2386,6 @@ class ModalAntiraidLogChannel(discord.ui.Modal, title="📋 Salon des logs Anti-
 
         except: await interaction.response.send_message(embed=embed_err("ID invalide."), ephemeral=True)
 
-# ─── ANTIRAID VIEW ───
 
 def build_antiraid_status_embed(guild_id):
 
@@ -2596,7 +2529,6 @@ class AntiraidView(discord.ui.View):
 
             await interaction.response.send_message(embed=embed_ok("Toutes les protections **activées** !"), ephemeral=True)
 
-# ─── MODALS MODERATION / NIVEAUX ───
 
 class ModalModoRoles(discord.ui.Modal, title="👮 Rôles modérateurs"):
 
@@ -2733,7 +2665,6 @@ class ModalLevelSetup(discord.ui.Modal, title="⚙️ Configuration du système 
             embed=embed_ok(f"Système XP configuré : {ch.mention} • {xmin}-{xmax} XP/message"), ephemeral=True)
 
 
-# ─── MODERATION VIEW ───
 
 def build_modo_status_embed(guild_id):
 
@@ -2789,7 +2720,6 @@ class ModoView(discord.ui.View):
 
             await interaction.response.send_modal(ModalModoLogChannel(gid))
 
-# ─── LEVEL VIEW ───
 
 def build_level_status_embed(guild_id):
 
@@ -2853,11 +2783,8 @@ class LevelView(discord.ui.View):
 
             await interaction.response.send_message(embed=embed_ok("Classement XP réinitialisé !"), ephemeral=True)
 
-# ══════════════════════════════════════════
 
-# COMMANDES PRÉFIXE +
 
-# ══════════════════════════════════════════
 
 @bot.command(name="welcome", aliases=["welcom","welcum","wlcm","bienvenue"])
 
@@ -2879,16 +2806,9 @@ async def giveaway_cmd(ctx):
 
     await ctx.send(embed=build_giveaway_status_embed(ctx.guild.id), view=GiveawayView(ctx))
 
-# ══════════════════════════════════════════
-# GIVEAWAY — PERSISTANCE + MOTEUR DE FIN + REROLL
-#  · Les giveaways sont sauvegardés dans giveaways.json
-#  · Un loop unique (gw_watcher) met à jour les embeds et tire au sort
-#  · Au démarrage, tout giveaway dont l'heure de fin est passée pendant que
-#    le bot était hors ligne est terminé et son gagnant annoncé
-# ══════════════════════════════════════════
 
 GW_FILE      = "giveaways.json"
-GW_KEEP_DAYS = 14          # on garde les giveaways terminés N jours (pour le reroll)
+GW_KEEP_DAYS = 14
 
 _gw_last_refresh = {}
 
@@ -3000,7 +2920,7 @@ async def gw_collect_participants(guild, msg, rec):
                 reaction = r
                 break
     if reaction is None:
-        for r in msg.reactions:   # giveaway relancé avec un autre emoji
+        for r in msg.reactions:
             reaction = r
             break
     if reaction is None:
@@ -3070,8 +2990,8 @@ async def finish_giveaway(mid):
         return None
     guild, channel, msg = await gw_fetch_message(rec)
     if not guild:
-        return None                      # serveur pas encore en cache → on retentera
-    if channel is None:                  # salon supprimé → on clôture sans annonce
+        return None
+    if channel is None:
         gw_patch(mid, ended=True, ended_ts=discord.utils.utcnow().timestamp())
         return []
 
@@ -3083,7 +3003,7 @@ async def finish_giveaway(mid):
     rec["past_winners"] = list(dict.fromkeys([int(u) for u in rec.get("past_winners", [])] + winners))
     rec["ended"]        = True
     rec["ended_ts"]     = discord.utils.utcnow().timestamp()
-    gw_put(rec)                          # sauvegardé AVANT l'annonce → jamais deux annonces
+    gw_put(rec)
 
     mentions = ", ".join(f"<@{w}>" for w in winners)
 
@@ -3124,7 +3044,6 @@ async def finish_giveaway(mid):
 async def gw_watcher():
     now = discord.utils.utcnow().timestamp()
 
-    # 1) purge des vieux giveaways terminés
     d, changed = gw_all(), False
     for mid, rec in list(d.items()):
         if rec.get("ended") and rec.get("ended_ts", now) < now - GW_KEEP_DAYS * 86400:
@@ -3133,7 +3052,6 @@ async def gw_watcher():
     if changed:
         gw_save_all(d)
 
-    # 2) fin des giveaways arrivés à terme + rafraîchissement des embeds
     for mid, rec in list(gw_all().items()):
         if rec.get("ended"):
             continue
@@ -3170,7 +3088,6 @@ async def gw_engine_start():
     if not gw_watcher.is_running():
         gw_watcher.start()
 
-# ─── +greroll ──────────────────────────────────────────────────────────────────
 
 @bot.command(name="greroll", aliases=["gw-reroll","gwreroll","reroll-giveaway","rerollgw","reroll"])
 async def greroll_cmd(ctx, message_id: int = None, nb_gagnants: int = None):
@@ -3179,7 +3096,6 @@ async def greroll_cmd(ctx, message_id: int = None, nb_gagnants: int = None):
 
     rec = gw_get(message_id) if message_id else None
 
-    # Sans ID → dernier giveaway terminé du serveur
     if rec is None and not message_id:
         ended = [r for r in gw_all().values() if r.get("guild_id") == ctx.guild.id and r.get("ended")]
         ended.sort(key=lambda r: r.get("ended_ts", 0), reverse=True)
@@ -3189,7 +3105,6 @@ async def greroll_cmd(ctx, message_id: int = None, nb_gagnants: int = None):
                 "Aucun giveaway terminé trouvé sur ce serveur."))
         rec = ended[0]
 
-    # ID inconnu du bot (ancien giveaway) → on reconstruit depuis les réactions
     if rec is None:
         target = await gw_find_message(ctx.guild, message_id)
         if not target:
@@ -3251,7 +3166,6 @@ async def greroll_cmd(ctx, message_id: int = None, nb_gagnants: int = None):
     await ctx.send(embed=e)
     await dest.send(f"🎉 Félicitations {mentions} ! Vous êtes le(s) nouveau(x) gagnant(s) !")
 
-# ─── +gsend ────────────────────────────────────────────────────────────────────
 
 @bot.command(name="gsend", aliases=["gw-send","gwsend","send-giveaway","sendgw","lancergw","lancergiveaway"])
 
@@ -3281,7 +3195,6 @@ async def gsend_cmd(ctx, salon: discord.TextChannel = None, duree: str = None, g
 
         return await ctx.send(embed=e)
 
-    # Parser la durée
     unit = duree[-1].lower()
 
     try: value = int(duree[:-1])
@@ -3339,8 +3252,6 @@ async def gsend_cmd(ctx, salon: discord.TextChannel = None, duree: str = None, g
     gw_put(rec)
     giveaways[msg.id] = rec
 
-    # Plus de asyncio.sleep() bloquant : le moteur persistant (gw_watcher) gère
-    # la mise à jour de l'embed et le tirage, et reprend après un redémarrage.
 
 @bot.command(name="antiraid", aliases=["protection","protect","raid"])
 
@@ -3360,7 +3271,6 @@ async def antilink_cmd(ctx):
 
         return await ctx.send(embed=embed_err("Permission administrateur requise."))
 
-    # Shortcut: ouvre directement le modal anti-lien
 
     await ctx.send(embed=build_antiraid_status_embed(ctx.guild.id), view=AntiraidView(ctx))
 
@@ -3384,7 +3294,6 @@ async def setup_cmd(ctx):
 
     await ctx.send(embed=build_level_status_embed(ctx.guild.id), view=LevelView(ctx))
 
-# ─── ANTI-BOT (HONEYPOT) ───
 
 def _antibot_cfg(gid):
 
@@ -3654,7 +3563,6 @@ async def _handle_antibot(message):
 
     return True
 
-# ─── MODERATION COMMANDS ───
 
 @bot.command(name="ban", aliases=["bannir","bann"])
 
@@ -3882,9 +3790,7 @@ async def _log_action(guild, action, mod, target, reason):
 
     except: pass
 
-# ─── UTILITY COMMANDS ───
 
-# ─── PING (Container V2) ──────────────────────────────────────────────────────
 
 def _ping_quality(lat):
     """(libellé, couleur) selon la latence en ms."""
@@ -3990,7 +3896,7 @@ async def ping_cmd(ctx):
 
     gateway = round(bot.latency * 1000)
 
-    if PingView is None:   # discord.py trop ancien : ancien affichage
+    if PingView is None:
 
         label, color = _ping_quality(gateway)
 
@@ -4192,7 +4098,6 @@ async def variables_cmd(ctx):
 
     await ctx.send(embed=e)
 
-# ─── LEVEL COMMANDS ───
 
 @bot.command(name="level", aliases=["rank","niveau","xp"])
 
@@ -4258,7 +4163,6 @@ async def top_cmd(ctx):
 
     await ctx.send(embed=e)
 
-# ─── SONDAGE ───
 
 @bot.command(name="sondage", aliases=["poll","sondage2"])
 
@@ -4332,9 +4236,7 @@ async def sondage_cmd(ctx, duration="1m", *, contenu=None):
 
     await poll_msg.edit(embed=e)
 
-# ─── DMALL ───
 
-# ─── DM ───
 
 @bot.command(name="dm", aliases=["dmall"])
 
@@ -4368,12 +4270,9 @@ async def dm_cmd(ctx, user: discord.Member = None, *, message=None):
 
         await ctx.send(embed=embed_err(f"Impossible d'envoyer un MP à **{user}** (DMs fermés)."))
 
-# ─── VIP / CODEGEN ───
 
 
-# ─── AIDE ───
 
-# ─── HELP DATA ────────────────────────────────────────────────────────────────
 
 AIDE_CATEGORIES = [
 
@@ -4861,7 +4760,7 @@ AIDE_PAGES = {
 
 }
 
-AIDE_PER_PAGE = 7   # catégories par page dans le select
+AIDE_PER_PAGE = 7
 
 def _build_aide_embed(cat_key: str, pfx: str) -> discord.Embed:
 
@@ -4945,7 +4844,6 @@ def _build_home_embed(pfx: str, ctx=None) -> discord.Embed:
 
     return e
 
-# ─── Help View (select + arrow buttons) ──────────────────────────────────────
 
 class AideView(discord.ui.View):
 
@@ -4971,11 +4869,9 @@ class AideView(discord.ui.View):
 
         self._build_select()
 
-    # ── select menu ──────────────────────────────────────────────────────────
 
     def _build_select(self):
 
-        # Remove old select if present (called from button callbacks)
 
         for item in list(self.children):
 
@@ -5009,7 +4905,6 @@ class AideView(discord.ui.View):
 
         self.add_item(sel)
 
-        # update button states
 
         self._prev_btn.disabled = (self.current_idx is None or self.current_idx == 0)
 
@@ -5019,7 +4914,6 @@ class AideView(discord.ui.View):
 
         self._page_btn.label = lbl
 
-    # ── select callback ───────────────────────────────────────────────────────
 
     async def _on_select(self, interaction: discord.Interaction):
 
@@ -5033,7 +4927,6 @@ class AideView(discord.ui.View):
 
             embed=_build_aide_embed(self.current_cat, self.pfx), view=self)
 
-    # ── navigation buttons ────────────────────────────────────────────────────
 
     @discord.ui.button(label="◄", style=discord.ButtonStyle.secondary, row=1, disabled=True)
 
@@ -5053,7 +4946,7 @@ class AideView(discord.ui.View):
 
     async def _page_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
 
-        pass  # indicateur seulement
+        pass
 
     @discord.ui.button(label="►", style=discord.ButtonStyle.secondary, row=1, disabled=False)
 
@@ -5167,11 +5060,8 @@ async def aide_cmd(ctx):
 
     await ctx.send(embed=_build_home_embed(pfx, ctx), view=AideView(cat=None, pfx=pfx))
 
-# ══════════════════════════════════════════
 
-# GIVEAWAY LAUNCH ENGINE
 
-# ══════════════════════════════════════════
 
 async def launch_giveaway_from_config(ctx_or_channel, data):
 
@@ -5229,7 +5119,6 @@ async def launch_giveaway_from_config(ctx_or_channel, data):
 
     if required_roles: conditions.append("🎭 Rôles requis : " + " ".join(f"<@&{r}>" for r in required_roles))
 
-    # organizer_id doit être défini AVANT l'embed
 
     organizer_id = ctx_or_channel.author.id if hasattr(ctx_or_channel, 'author') else None
 
@@ -5253,7 +5142,6 @@ async def launch_giveaway_from_config(ctx_or_channel, data):
 
         e.add_field(name="📋 Conditions", value="\n".join(conditions), inline=False)
 
-    # Buttons view
 
     view = discord.ui.View(timeout=None)
 
@@ -5283,15 +5171,10 @@ async def launch_giveaway_from_config(ctx_or_channel, data):
     gw_put(rec)
     giveaways[msg.id] = rec
 
-    # Le moteur persistant (gw_watcher) rafraîchit l'embed toutes les 20 s et
-    # effectue le tirage à la fin — même si le bot redémarre entre-temps.
     return rec
 
-# ══════════════════════════════════════════
 
-# ANTIRAID & ANTILINK HANDLERS
 
-# ══════════════════════════════════════════
 
 async def send_antiraid_log(guild, text):
 
@@ -5313,7 +5196,6 @@ async def _handle_antiraid(message):
 
     cfg = get_server_config(guild.id).get("antiraid", {})
 
-    # Anti-Spam
 
     if cfg.get("spam"):
 
@@ -5355,7 +5237,6 @@ async def _handle_antiraid(message):
 
             await send_antiraid_log(guild, f"🚨 Anti-spam : {message.author} ({action}) — {thresh} msgs/{interval}s")
 
-    # Anti-Mention
 
     if cfg.get("mention"):
 
@@ -5387,7 +5268,6 @@ async def _handle_antiraid(message):
 
             await send_antiraid_log(guild, f"🚨 Anti-mention : {message.author} ({total} mentions/{limit} max)")
 
-    # Anti-Caps
 
     if cfg.get("caps"):
 
@@ -5411,7 +5291,6 @@ async def _handle_antiraid(message):
 
                 except: pass
 
-    # Anti-Emoji Spam
 
     if cfg.get("emoji_spam"):
 
@@ -5605,7 +5484,6 @@ async def _handle_welcome_join(member):
 
                 except: pass
 
-        # Mention séparée si mode embed
 
         if mode == "embed" and data.get("mention", True):
 
@@ -5613,7 +5491,6 @@ async def _handle_welcome_join(member):
 
             except: pass
 
-    # Rôle de bienvenue
 
     wrid = data.get("welcome_role")
 
@@ -5627,7 +5504,6 @@ async def _handle_welcome_join(member):
 
             except: pass
 
-    # MP bienvenue
 
     if data.get("mp_enabled") and data.get("mp_message"):
 
@@ -5635,7 +5511,6 @@ async def _handle_welcome_join(member):
 
         except: pass
 
-    # joinmp.json
 
     jmp = jload(FILES["joinmp"]).get(str(member.guild.id))
 
@@ -5665,7 +5540,6 @@ async def _handle_welcome_join(member):
 
         except: pass
 
-    # Anti-raid join flood
 
     cfg = get_server_config(member.guild.id).get("antiraid", {})
 
@@ -5699,17 +5573,11 @@ async def _handle_welcome_join(member):
 
             dq.clear()
 
-# ══════════════════════════════════════════
 
-# PREMIUM SLASH COMMANDS (inchangés)
 
-# ══════════════════════════════════════════
 
-# ══════════════════════════════════════════════════
 
-# TICKET SYSTEM — 100% PREFIX + MODALS
 
-# ══════════════════════════════════════════════════
 
 def build_ticket_status_embed(guild_id):
 
@@ -5829,7 +5697,6 @@ class TicketModeModal(discord.ui.Modal, title="🎨 Mode d'affichage du panel"):
 
         if mode in ("containerv2", "v2", "container"): mode = "container_v2"
 
-        # Mode select = premium uniquement
         if mode == "select" and not is_premium(str(interaction.user.id)):
             return await interaction.response.send_message(embed=discord.Embed(
                 title="⭐ Fonctionnalité Premium",
@@ -5957,7 +5824,6 @@ class TicketChoixMessageModal(discord.ui.Modal, title="✏️ Modifier message, 
 
         salon_val = self.t_salon.value.strip() if self.t_salon.value.strip() else None
 
-        # Sanitize salon name: remove chars Discord doesn't allow
 
         if salon_val:
 
@@ -6075,11 +5941,6 @@ class TicketEmbedModal(discord.ui.Modal, title="🖊️ Embed du ticket — Titr
 
                 ephemeral=True)
 
-# ══════════════════════════════════════════════════════════════════════════════
-# TICKETS PERSISTANTS — état survivant aux redémarrages
-#   panels  : message du panneau → on ré-attache sa vue au démarrage
-#   tickets : salon de ticket ouvert → on retrouve auteur / staff / logs
-# ══════════════════════════════════════════════════════════════════════════════
 TICKET_STATE_FILE = "ticket_state.json"
 
 
@@ -6103,7 +5964,6 @@ def tk_record_panel(message, guild_id, mode):
             "channel": int(message.channel.id),
             "mode": mode,
         }
-        # on ne garde que les 200 derniers panneaux
         if len(d["panels"]) > 200:
             for k in list(d["panels"])[:-200]:
                 d["panels"].pop(k, None)
@@ -6137,7 +5997,6 @@ def tk_forget_ticket(channel_id):
 
 async def tk_restore_views():
     """Réactive les panneaux et les boutons de fermeture après un redémarrage."""
-    # Boutons Claim / Fermer : une seule vue globale, l'état est relu au clic
     try:
         bot.add_view(TicketCloseView2(0, [], None))
     except Exception as err:
@@ -6163,14 +6022,12 @@ async def tk_restore_views():
                 view = TicketContainerV2View(guild, conf)
             else:
                 view = TicketSelectView2(guild, conf)
-            # lié au message : deux serveurs peuvent avoir les mêmes custom_id sans se marcher dessus
             bot.add_view(view, message_id=int(mid))
             ok += 1
         except Exception as err:
             print(f"[tickets] panneau {mid} non réactivé : {err}")
             mortes.append(mid)
 
-    # nettoyage des salons de tickets qui n'existent plus
     for cid in list(d["tickets"]):
         if not bot.get_channel(int(cid)):
             d["tickets"].pop(cid, None)
@@ -6236,7 +6093,6 @@ class TicketEmbedSelectView(discord.ui.View):
 
         nom = interaction.data["values"][0]
 
-        # Pré-remplir les champs avec les valeurs actuelles
 
         data = ts_load()
 
@@ -6286,7 +6142,6 @@ class TicketSupprChoixModal(discord.ui.Modal, title="🗑️ Supprimer un type")
 
             await interaction.response.send_message(embed=discord.Embed(description=f"❌ Type `{self.t_nom.value}` introuvable.", color=C_RED), ephemeral=True)
 
-# ─── Panel mode BOUTONS ───────────────────────────────────────────────────────
 
 def resolve_salon_name(template, user):
 
@@ -6302,7 +6157,6 @@ def resolve_salon_name(template, user):
 
     name = name.replace("{server}", user.guild.name[:10] if hasattr(user, "guild") and user.guild else "srv")
 
-    # Nettoyage Discord: minuscules, pas d'espaces, max 100 chars
 
     name = _re.sub(r"[^a-z0-9\-]", "-", name.lower())[:80].strip("-") or "ticket"
 
@@ -6338,7 +6192,7 @@ class TicketButtonPanelView(discord.ui.View):
 
         super().__init__(timeout=None)
 
-        for i, choix in enumerate(data.get("choix", [])[:5]):  # max 5 boutons Discord
+        for i, choix in enumerate(data.get("choix", [])[:5]):
 
             style = BTN_STYLE_MAP.get(choix.get("btn_color", "bleu"), discord.ButtonStyle.primary)
 
@@ -6423,7 +6277,6 @@ class TicketButtonPanelView(discord.ui.View):
 
 
 
-# ─── Panel mode CONTAINER V2 ──────────────────────────────────────────────────
 
 class TicketContainerV2View(discord.ui.View):
 
@@ -6435,7 +6288,6 @@ class TicketContainerV2View(discord.ui.View):
 
         panel = data.get("panel", {})
 
-        # Titre + description affichés via l'embed passé au container
         self._panel_title = panel.get("titre", "🎫 Support")
         self._panel_desc  = panel.get("description", "Clique sur un bouton pour ouvrir un ticket.")
         try:
@@ -6526,7 +6378,6 @@ class TicketContainerV2View(discord.ui.View):
 
         return callback
 
-# ─── Vue de config ticket ─────────────────────────────────────────────────────
 
 class TicketView(discord.ui.View):
 
@@ -6655,9 +6506,7 @@ class TicketView(discord.ui.View):
             panel_view = TicketButtonPanelView(interaction.guild, data[gid])
 
         elif mode == "container_v2":
-            # ── Container V2 : embed DANS le container + boutons dedans ──────
             panel_view = TicketContainerV2View(interaction.guild, data[gid])
-            # L'embed est automatiquement transformé en Container V2 (boutons dedans)
             e_v2 = discord.Embed(
                 title=panel_view._panel_title,
                 description=panel_view._panel_desc,
@@ -6675,7 +6524,6 @@ class TicketView(discord.ui.View):
 
             panel_view = TicketSelectView2(interaction.guild, data[gid])
 
-        # On repond AVANT le travail lourd (l'interaction expire en 3 s)
         await interaction.response.send_message(
 
             embed=discord.Embed(description=f"✅ Panel envoyé ! (Mode : {'🔘 Boutons' if mode == 'bouton' else ('📦 Container V2' if mode == 'container_v2' else '📋 Menu déroulant')})", color=C_GREEN), ephemeral=True)
@@ -6696,11 +6544,8 @@ async def ticket_cmd(ctx):
 
     await ctx.send(embed=build_ticket_status_embed(ctx.guild.id), view=TicketView(ctx))
 
-# ══════════════════════════════════════════════════
 
-# PREMIUM — 100% PREFIX + MODALS
 
-# ══════════════════════════════════════════════════
 
 def build_premium_status_embed(guild_id):
 
@@ -6794,7 +6639,6 @@ class PremiumRemoveModal(discord.ui.Modal, title="🗑️ Retirer le premium"):
 
         jsave(FILES["premium"], data)
 
-        # Retirer le rôle
 
         guild = interaction.guild
 
@@ -6958,17 +6802,14 @@ class PremiumView(discord.ui.View):
 
 async def premium_cmd(ctx, code: str = None):
 
-    # Sans code → afficher le statut + lien support
 
     if not code:
 
-        # Owner → panel de gestion
 
         if str(ctx.author.id) in OWNER_IDS:
 
             return await ctx.send(embed=build_premium_status_embed(ctx.guild.id), view=PremiumView(ctx, is_owner=True))
 
-        # Utilisateur normal → info + comment obtenir
 
         e = discord.Embed(title="⭐ Premium ModeraBot", color=C_GOLD)
 
@@ -6990,7 +6831,6 @@ async def premium_cmd(ctx, code: str = None):
 
         return await ctx.send(embed=e)
 
-    # Avec code → activation directe
 
     data = jload(FILES["premium"])
 
@@ -7042,7 +6882,6 @@ async def premium_cmd(ctx, code: str = None):
 
     jsave(FILES["premium_logs"], logs)
 
-    # Attribuer le rôle premium
 
     guild  = ctx.guild
 
@@ -7056,7 +6895,6 @@ async def premium_cmd(ctx, code: str = None):
 
         except: pass
 
-    # Log dans le salon de logs
 
     log_ch = bot.get_channel(LOG_CHANNEL_ID)
 
@@ -7118,7 +6956,6 @@ async def check_premium_expirations():
 
     except: pass
 
-# Ticket select system
 
 class TicketCloseView2(discord.ui.View):
 
@@ -7291,23 +7128,18 @@ def ts_save(data):
 
     jsave(FILES["ticket_select"], data)
 
-# ══════════════════════════════════════════
 
-# NOUVELLES COMMANDES UTILITAIRES
 
-# ══════════════════════════════════════════
 
-# Stockage snipe par salon
 
-_snipe_deleted  = {}   # channel_id → {"content", "author", "timestamp", "attachments"}
+_snipe_deleted  = {}
 
-_snipe_edited   = {}   # channel_id → {"before", "after", "author", "timestamp"}
+_snipe_edited   = {}
 
-_prevnames_data = {}   # user_id (str) → [{"name": ..., "ts": ...}, ...]
+_prevnames_data = {}
 
-_member_stats   = {}   # guild_id → user_id → {"messages": n, "chars": n, "last_channel": ...}
+_member_stats   = {}
 
-# ─── helper: résoudre un membre par nom/mention/ID ───────────────────────────
 
 async def resolve_member(ctx, raw: str):
 
@@ -7315,7 +7147,6 @@ async def resolve_member(ctx, raw: str):
 
     raw = raw.strip().strip("<@!>").strip()
 
-    # ID
 
     if raw.isdigit():
 
@@ -7323,11 +7154,9 @@ async def resolve_member(ctx, raw: str):
 
         except: pass
 
-    # Nom
 
     return discord.utils.find(lambda m: m.name.lower() == raw.lower() or m.display_name.lower() == raw.lower(), ctx.guild.members)
 
-# ─── AVATAR ──────────────────────────────────────────────────────────────────
 
 @bot.command(name="avatar", aliases=["av","pfp"])
 
@@ -7357,7 +7186,6 @@ async def avatar_cmd(ctx, *, target: str = None):
 
     await ctx.send(embed=e)
 
-# ─── BANNER ──────────────────────────────────────────────────────────────────
 
 @bot.command(name="banner", aliases=["banniere"])
 
@@ -7399,7 +7227,6 @@ async def banner_cmd(ctx, *, target: str = None):
 
     await ctx.send(embed=e)
 
-# ─── SERVERAVATAR ─────────────────────────────────────────────────────────────
 
 @bot.command(name="serveravatar", aliases=["serverav","sav"])
 
@@ -7421,7 +7248,6 @@ async def serveravatar_cmd(ctx):
 
     await ctx.send(embed=e)
 
-# ─── SERVERBANNER ─────────────────────────────────────────────────────────────
 
 @bot.command(name="serverbanner", aliases=["serverbanniere"])
 
@@ -7443,7 +7269,6 @@ async def serverbanner_cmd(ctx):
 
     await ctx.send(embed=e)
 
-# ─── CALCUL ──────────────────────────────────────────────────────────────────
 
 @bot.command(name="calcul", aliases=["calc","math"])
 
@@ -7479,7 +7304,6 @@ async def calcul_cmd(ctx, *, expr: str = None):
 
     }
 
-    # Sécurité basique
 
     forbidden = ["import", "exec", "eval", "open", "os", "__"]
 
@@ -7507,7 +7331,6 @@ async def calcul_cmd(ctx, *, expr: str = None):
 
         await ctx.send(embed=embed_err(f"Expression invalide. Tape `+calcul help` pour l'aide."))
 
-# ─── CHANNELINFO ─────────────────────────────────────────────────────────────
 
 @bot.command(name="channelinfo", aliases=["ci","channel"])
 
@@ -7569,7 +7392,6 @@ async def channelinfo_cmd(ctx, *, target: str = None):
 
     await ctx.send(embed=e)
 
-# ─── FIND ────────────────────────────────────────────────────────────────────
 
 @bot.command(name="find")
 
@@ -7605,7 +7427,6 @@ async def find_cmd(ctx, *, target: str = None):
 
         return await ctx.send(embed=e)
 
-    # Sans argument : liste tous les salons vocaux occupés
 
     occupied = [(vc, vc.members) for vc in ctx.guild.voice_channels if vc.members]
 
@@ -7621,7 +7442,6 @@ async def find_cmd(ctx, *, target: str = None):
 
     await ctx.send(embed=e)
 
-# ─── GITHUB ──────────────────────────────────────────────────────────────────
 
 @bot.command(name="github", aliases=["gh"])
 
@@ -7679,7 +7499,6 @@ async def github_cmd(ctx, *, username: str = None):
 
         await ctx.send(embed=embed_err("Erreur lors de la récupération du profil GitHub."))
 
-# ─── INVITEINFO ───────────────────────────────────────────────────────────────
 
 @bot.command(name="inviteinfo", aliases=["invite"])
 
@@ -7733,7 +7552,6 @@ async def inviteinfo_cmd(ctx, url: str = None):
 
         await ctx.send(embed=embed_err("Impossible de récupérer les infos de cette invitation."))
 
-# ─── LINKS ────────────────────────────────────────────────────────────────────
 
 @bot.command(name="links", aliases=["lien","liens"])
 
@@ -7751,7 +7569,6 @@ async def links_cmd(ctx):
 
     await ctx.send(embed=e)
 
-# ─── NOROLE ───────────────────────────────────────────────────────────────────
 
 @bot.command(name="norole", aliases=["sansrole"])
 
@@ -7761,7 +7578,7 @@ async def norole_cmd(ctx):
 
         return await ctx.send(embed=embed_err("Permission refusée."))
 
-    no_role = [m for m in ctx.guild.members if len(m.roles) == 1 and not m.bot]  # seulement @everyone
+    no_role = [m for m in ctx.guild.members if len(m.roles) == 1 and not m.bot]
 
     if not no_role:
 
@@ -7779,7 +7596,6 @@ async def norole_cmd(ctx):
 
     await ctx.send(embed=e)
 
-# ─── PREVNAMES ────────────────────────────────────────────────────────────────
 
 @bot.command(name="prevnames", aliases=["ancienspseudos","oldnames"])
 
@@ -7811,7 +7627,6 @@ async def prevnames_cmd(ctx, *, target: str = None):
 
     await ctx.send(embed=e)
 
-# ─── ROLEINFO ─────────────────────────────────────────────────────────────────
 
 @bot.command(name="roleinfo", aliases=["ri","role"])
 
@@ -7857,7 +7672,6 @@ async def roleinfo_cmd(ctx, *, target: str = None):
 
     await ctx.send(embed=e)
 
-# ─── ROLEMEMBERS ──────────────────────────────────────────────────────────────
 
 @bot.command(name="rolemembers", aliases=["membresrole","rolemembres"])
 
@@ -7893,7 +7707,6 @@ async def rolemembers_cmd(ctx, *, target: str = None):
 
     await ctx.send(embed=e)
 
-# ─── SEARCH (commandes) ───────────────────────────────────────────────────────
 
 @bot.command(name="search", aliases=["recherche","searchcmd"])
 
@@ -7923,7 +7736,6 @@ async def search_cmd(ctx, *, query: str = None):
 
     await ctx.send(embed=e)
 
-# ─── SNIPE ────────────────────────────────────────────────────────────────────
 
 @bot.command(name="snipe")
 
@@ -7947,7 +7759,6 @@ async def snipe_cmd(ctx):
 
     await ctx.send(embed=e)
 
-# ─── SNIPEDIT ─────────────────────────────────────────────────────────────────
 
 @bot.command(name="snipedit", aliases=["editsnipe","esnipe"])
 
@@ -7971,7 +7782,6 @@ async def snipedit_cmd(ctx):
 
     await ctx.send(embed=e)
 
-# ─── SPEED ────────────────────────────────────────────────────────────────────
 
 @bot.command(name="speed", aliases=["latence","latency"])
 
@@ -8001,7 +7811,6 @@ async def speed_cmd(ctx):
 
     await msg.edit(content=None, embed=e)
 
-# ─── STATS (textuelles) ───────────────────────────────────────────────────────
 
 @bot.command(name="stats")
 
@@ -8041,7 +7850,6 @@ async def stats_cmd(ctx, *, target: str = None):
 
     await ctx.send(embed=e)
 
-# ─── SUPPORT ──────────────────────────────────────────────────────────────────
 
 @bot.command(name="support", aliases=["aide-support","botsupp"])
 
@@ -8055,7 +7863,6 @@ async def support_cmd(ctx):
 
     await ctx.send(embed=e)
 
-# ─── TEMPLATE (embed) ─────────────────────────────────────────────────────────
 
 @bot.command(name="template")
 
@@ -8083,7 +7890,6 @@ async def template_cmd(ctx):
 
     )
 
-# ─── VANITY ───────────────────────────────────────────────────────────────────
 
 @bot.command(name="vanity", aliases=["vanityu","url"])
 
@@ -8111,7 +7917,6 @@ async def vanity_cmd(ctx):
 
         await ctx.send(embed=embed_err("Impossible de récupérer les infos de la vanity URL."))
 
-# ─── VC (stats vocales) ────────────────────────────────────────────────────────
 
 @bot.command(name="vc", aliases=["vocal","voice"])
 
@@ -8141,7 +7946,6 @@ async def vc_cmd(ctx):
 
     await ctx.send(embed=e)
 
-# ─── VERSION ──────────────────────────────────────────────────────────────────
 
 @bot.command(name="version", aliases=["ver","v"])
 
@@ -8159,7 +7963,6 @@ async def version_cmd(ctx):
 
     await ctx.send(embed=e)
 
-# ─── VOTE ─────────────────────────────────────────────────────────────────────
 
 @bot.command(name="vote", aliases=["voter","topgg"])
 
@@ -8175,13 +7978,10 @@ async def vote_cmd(ctx):
 
     await ctx.send(embed=e)
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-# GESTION OWNERS (par serveur)
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-_server_owners = {}  # guild_id → set of user_id (str)
+_server_owners = {}
 
 def is_server_owner(guild_id, user_id):
 
@@ -8293,7 +8093,6 @@ async def reset_cmd(ctx):
 
     gid = str(ctx.guild.id); sgid = str(gid)
 
-    # Effacer toutes les données du serveur dans les fichiers JSON
 
     for key, path in FILES.items():
 
@@ -8309,7 +8108,6 @@ async def reset_cmd(ctx):
 
         except: pass
 
-    # Effacer en mémoire
 
     _server_owners.pop(sgid, None)
 
@@ -8325,11 +8123,8 @@ async def reset_cmd(ctx):
 
     await ctx.send(embed=e)
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-# SYSTÈME DE LOGS AVANCÉ
 
-# ══════════════════════════════════════════════════════════════════════════════
 
 FILES["logs_cfg"] = "logs_config.json"
 
@@ -8339,11 +8134,8 @@ if not os.path.exists("logs_config.json"):
 
 LOG_TYPES = ["mod", "msg", "role", "channel", "voc", "boost", "flux", "ticket"]
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-# SYSTÈME DE LOGS — CONFIG & AFFICHAGE
 
-# ══════════════════════════════════════════════════════════════════════════════
 
 LOGS_TYPES = [
 
@@ -8417,7 +8209,6 @@ def build_logs_embed(guild_id, guild=None):
 
     return e
 
-# ─── Buttons ──────────────────────────────────────────────────────────────────
 
 class LogsView(discord.ui.View):
 
@@ -8459,7 +8250,6 @@ class LogsView(discord.ui.View):
 
         cfg = get_logs_cfg(guild.id)
 
-        # Créer ou récupérer la catégorie
 
         cat_name = LOGS_CAT_NAME
 
@@ -8485,7 +8275,6 @@ class LogsView(discord.ui.View):
 
         for key, label, emoji, ch_name in LOGS_TYPES:
 
-            # Créer ou récupérer le salon
 
             full_name = LOGS_CH_PREFIX + ch_name
 
@@ -8567,7 +8356,6 @@ class LogsView(discord.ui.View):
 
                 except: pass
 
-        # Supprimer catégorie si vide
 
         cat = discord.utils.get(guild.categories, name=LOGS_CAT_NAME)
 
@@ -8689,11 +8477,10 @@ async def ticketlog_cmd(ctx, state: str = None, channel: discord.TextChannel = N
 
     await _log_type_cmd(ctx, "ticket", state, channel)
 
-# Helper: envoyer un log dans le bon salon
 
-_log_locks = {}     # channel_id -> asyncio.Lock
-_log_last  = {}     # channel_id -> horodatage du dernier envoi
-_LOG_GAP   = 1.05   # secondes entre deux logs d'un meme salon (limite Discord : 5/5s)
+_log_locks = {}
+_log_last  = {}
+_LOG_GAP   = 1.05
 
 
 async def send_log(guild, log_type: str, embed: discord.Embed):
@@ -8708,7 +8495,6 @@ async def send_log(guild, log_type: str, embed: discord.Embed):
 
     if not ch: return
 
-    # Un verrou par salon : les rafales sont etalees au lieu de partir d'un coup
     lock = _log_locks.get(ch.id)
 
     if lock is None:
@@ -8737,15 +8523,10 @@ async def send_log(guild, log_type: str, embed: discord.Embed):
 
         _log_last[ch.id] = _time.monotonic()
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-# COMMANDES FUN
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-# COMMANDES FUN
 
-# ══════════════════════════════════════════════════════════════════════════════
 
 import random as _random
 
@@ -9263,7 +9044,6 @@ async def define_cmd(ctx, *, word: str = None):
 
         if r.status_code != 200:
 
-            # Fallback anglais
 
             r = requests.get(f"https://api.dictionaryapi.dev/api/v2/entries/en/{requests.utils.quote(word)}", timeout=6)
 
@@ -9343,13 +9123,11 @@ async def binary_cmd(ctx, *, text: str = None):
 
         return await ctx.send(embed=embed_err("Usage : `+binary <texte>` ou `+binary <binaire>`"))
 
-    # Détecter si c'est du binaire (que des 0, 1 et espaces)
 
     clean = text.replace(" ", "")
 
     if all(c in "01" for c in clean) and len(clean) % 8 == 0:
 
-        # Décoder
 
         try:
 
@@ -9367,7 +9145,6 @@ async def binary_cmd(ctx, *, text: str = None):
 
     else:
 
-        # Encoder
 
         encoded = " ".join(format(ord(c), "08b") for c in text[:50])
 
@@ -9619,13 +9396,9 @@ async def undertale_cmd(ctx, *, text: str = None):
 
     await ctx.send(embed=e)
 
-# ──────────────────────────────────────────────────────────────────────────────
 
-# ──────────────────────────────────────────────────────────────────────────────
 
-# EVENT HANDLERS — prevnames
 
-# ──────────────────────────────────────────────────────────────────────────────
 
 @bot.event
 
@@ -9643,9 +9416,7 @@ async def on_user_update(before, after):
 
         _prevnames_data[uid] = _prevnames_data[uid][-50:]
 
-# EVENTS
 
-# ══════════════════════════════════════════
 
 @bot.event
 
@@ -9669,7 +9440,6 @@ async def on_member_join(member):
 
     await _handle_welcome_join(member)
 
-    # Defaultrole
 
     gid = str(member.guild.id)
 
@@ -9683,7 +9453,6 @@ async def on_member_join(member):
 
             except: pass
 
-    # Log flux
 
     e = discord.Embed(description=f"📥 {member.mention} a **rejoint** le serveur", color=C_GREEN, timestamp=discord.utils.utcnow())
 
@@ -9695,7 +9464,6 @@ async def on_member_join(member):
 
     await send_log(member.guild, "flux", e)
 
-    # ShowPic
 
     sp = _showpic_cfg.get(str(member.guild.id), {})
 
@@ -9713,7 +9481,6 @@ async def on_member_join(member):
 
             except: pass
 
-    # Captcha
     await _handle_captcha_join(member)
 
 
@@ -9728,7 +9495,6 @@ async def on_guild_channel_delete(channel):
 
 async def on_member_remove(member):
 
-    # Log flux
 
     if not member.guild: return
 
@@ -9775,27 +9541,23 @@ async def on_message(message):
     if message.author.bot:
         return
 
-    # Anti-Bot (honeypot) — priorité absolue
     try:
         if await _handle_antibot(message):
             return
     except Exception:
         pass
 
-    # Modération automatique
     for _h in (_handle_antiraid, _handle_antilink, _handle_xp):
         try:
             await _h(message)
         except Exception:
             pass
 
-    # Mention du bot → rappel du préfixe
     if bot.user in message.mentions and message.guild and not message.mention_everyone:
         pfx = _prefix_cache.get(message.guild.id, DEFAULT_PREFIX)
         e = discord.Embed(title="🟢 ModeraBot", description=f"Mon préfixe sur ce serveur est **`{pfx}`**\nTape **`{pfx}aide`** pour les commandes.", color=C_GREEN)
         await message.channel.send(embed=e)
 
-    # Captcha check
     try:
         if await _handle_captcha_check(message):
             return
@@ -9814,7 +9576,6 @@ async def on_command_error(ctx, error):
 
     if isinstance(error, commands.CommandNotFound):
 
-        # Récupérer le nom brut de façon sûre même si ctx.prefix est None
         content = ctx.message.content
         used_prefix = ctx.prefix or DEFAULT_PREFIX
         try:
@@ -9832,7 +9593,6 @@ async def on_command_error(ctx, error):
 
                 ctx.command = real_cmd
 
-                # Réinitialiser les args pour que la commande soit re-parsée correctement
                 await real_cmd.reinvoke(ctx)
 
                 return
@@ -9865,7 +9625,6 @@ async def on_command_error(ctx, error):
 
         original = error.original
 
-        # Ne pas afficher les erreurs HTTP 403/404 habituelles
         if isinstance(original, discord.Forbidden):
             await ctx.send(embed=embed_err("Je n'ai pas la permission d'effectuer cette action."))
         elif isinstance(original, discord.NotFound):
@@ -9881,21 +9640,14 @@ async def on_command_error(ctx, error):
 
     elif isinstance(error, commands.CheckFailure):
 
-        pass  # Géré individuellement dans chaque commande
+        pass
 
-# ══════════════════════════════════════════
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-# EVENT HANDLERS — LOGS AVANCÉS (messages formatés)
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-# ─── LOGS MESSAGES ────────────────────────────────────────────────────────────
 
-# ─── OUTILS DE LOGS ───────────────────────────────────────────────────────────
 
 def _cut(text, limit=1000):
     """Tronque proprement une valeur de champ d'embed."""
@@ -9971,7 +9723,6 @@ def _chan_type_label(channel):
     }.get(getattr(channel, "type", None), "📺 Salon")
 
 
-# ─── LOGS MESSAGES ────────────────────────────────────────────────────────────
 
 @bot.event
 async def on_message_delete(message):
@@ -10082,7 +9833,6 @@ async def on_message_edit(before, after):
     await send_log(before.guild, "msg", e)
 
 
-# ─── LOGS MODÉRATION ──────────────────────────────────────────────────────────
 
 @bot.event
 async def on_member_ban(guild, user):
@@ -10109,7 +9859,6 @@ async def on_member_unban(guild, user):
 async def on_member_update(before, after):
     guild = after.guild
 
-    # ── Rôles ────────────────────────────────────────────────────────────────
     added   = set(after.roles) - set(before.roles)
     removed = set(before.roles) - set(after.roles)
 
@@ -10128,7 +9877,6 @@ async def on_member_update(before, after):
                        fields, author=after, footer=f"ID : {after.id}")
         await send_log(guild, "role", e)
 
-    # ── Exclusion temporaire (timeout) ───────────────────────────────────────
     if before.timed_out_until != after.timed_out_until:
         actor, reason = await _audit(guild, discord.AuditLogAction.member_update, target_id=after.id)
         if after.timed_out_until:
@@ -10146,7 +9894,6 @@ async def on_member_update(before, after):
                            fields, author=after, footer=f"ID : {after.id}")
         await send_log(guild, "mod", e)
 
-    # ── Boost ────────────────────────────────────────────────────────────────
     if before.premium_since != after.premium_since:
         if after.premium_since and not before.premium_since:
             e = _log_embed("🚀 Nouveau boost !", f"{after.mention} a **boosté** le serveur !", 0xFF73FA,
@@ -10160,7 +9907,6 @@ async def on_member_update(before, after):
                            author=after, footer=f"ID : {after.id}")
         await send_log(guild, "boost", e)
 
-    # ── Pseudo ───────────────────────────────────────────────────────────────
     if before.nick != after.nick:
         actor, reason = await _audit(guild, discord.AuditLogAction.member_update, target_id=after.id)
         fields = [("❌ Avant", before.nick or before.name, True),
@@ -10170,7 +9916,6 @@ async def on_member_update(before, after):
                        C_BLUE, fields, author=after, footer=f"ID : {after.id}")
         await send_log(guild, "mod", e)
 
-    # ── Avatar de serveur ────────────────────────────────────────────────────
     if before.guild_avatar != after.guild_avatar:
         e = _log_embed("🖼️ Avatar de serveur modifié", f"{after.mention} a changé son avatar sur ce serveur",
                        C_BLUE, [], author=after,
@@ -10179,7 +9924,6 @@ async def on_member_update(before, after):
         await send_log(guild, "mod", e)
 
 
-# ─── LOGS RÔLES ───────────────────────────────────────────────────────────────
 
 @bot.event
 async def on_guild_role_create(role):
@@ -10233,7 +9977,6 @@ async def on_guild_role_update(before, after):
     await send_log(after.guild, "role", e)
 
 
-# ─── LOGS SALONS ──────────────────────────────────────────────────────────────
 
 @bot.event
 async def on_guild_channel_create(channel):
@@ -10297,7 +10040,6 @@ async def on_guild_channel_update(before, after):
     await send_log(after.guild, "channel", e)
 
 
-# ─── LOGS SERVEUR / DIVERS ────────────────────────────────────────────────────
 
 @bot.listen("on_guild_update")
 async def on_guild_update_log(before, after):
@@ -10380,9 +10122,8 @@ async def on_invite_delete_log(invite):
 
 
 
-# ─── MOTEUR DE LOGS VOCAUX ────────────────────────────────────────────────────
 
-_voice_sessions = {}   # (guild_id, member_id) -> timestamp de connexion
+_voice_sessions = {}
 
 
 def _fmt_voice_duration(seconds):
@@ -10412,9 +10153,8 @@ async def _log_voice_state(member, before, after):
     """Journalise TOUT ce qui bouge en vocal, pas seulement les connexions."""
     guild = member.guild
     key = (guild.id, member.id)
-    events = []   # (emoji, titre, description, couleur, [(nom, valeur), ...])
+    events = []
 
-    # ── Connexion / deconnexion / changement de salon ────────────────────────
     if before.channel != after.channel:
         if after.channel and not before.channel:
             _voice_sessions[key] = time.time()
@@ -10448,7 +10188,6 @@ async def _log_voice_state(member, before, after):
     salon = after.channel or before.channel
     salon_field = [("📍 Salon", salon.mention)] if salon else []
 
-    # ── Micro et casque du membre lui-meme ───────────────────────────────────
     if before.self_mute != after.self_mute:
         if after.self_mute:
             events.append(("🔇", "Micro coupé", f"{member.mention} a coupé son micro", C_DARK, salon_field))
@@ -10461,7 +10200,6 @@ async def _log_voice_state(member, before, after):
         else:
             events.append(("🔊", "Casque réactivé", f"{member.mention} entend à nouveau le salon", C_BLUE, salon_field))
 
-    # ── Sanctions vocales du staff ───────────────────────────────────────────
     if before.mute != after.mute:
         actor = await _voice_actor(guild, member)
         fields = list(salon_field)
@@ -10486,7 +10224,6 @@ async def _log_voice_state(member, before, after):
             events.append(("✅", "Sourdine serveur retirée",
                            f"{member.mention} entend à nouveau", C_GREEN, fields))
 
-    # ── Camera et partage d'écran ────────────────────────────────────────────
     if before.self_video != after.self_video:
         if after.self_video:
             events.append(("📹", "Caméra activée", f"{member.mention} a allumé sa caméra", C_BLUE, salon_field))
@@ -10501,7 +10238,6 @@ async def _log_voice_state(member, before, after):
             events.append(("⏹️", "Partage d'écran arrêté",
                            f"{member.mention} a arrêté son partage d'écran", C_DARK, salon_field))
 
-    # ── Conférences (stage) ──────────────────────────────────────────────────
     if before.suppress != after.suppress:
         if after.suppress:
             events.append(("👂", "Passé spectateur",
@@ -10514,7 +10250,6 @@ async def _log_voice_state(member, before, after):
         events.append(("✋", "Demande de parole",
                        f"{member.mention} demande à parler", C_ORANGE, salon_field))
 
-    # ── Envoi ────────────────────────────────────────────────────────────────
     for emoji, titre, desc, color, fields in events:
         e = discord.Embed(title=f"{emoji} {titre}", description=desc,
                           color=color, timestamp=discord.utils.utcnow())
@@ -10533,13 +10268,11 @@ async def on_voice_state_update(member, before, after):
 
     gid = str(member.guild.id)
 
-    # ─── JOIN TO CREATE ───────────────────────────────────────────────────────
 
     jtc = _jtc_config.get(gid, {})
 
     if jtc.get("trigger_id"):
 
-        # Membre rejoint le salon déclencheur → créer un vocal temporaire
 
         if after.channel and after.channel.id == jtc["trigger_id"]:
 
@@ -10565,7 +10298,6 @@ async def on_voice_state_update(member, before, after):
 
             except: pass
 
-        # Membre quitte un vocal temporaire JTC
 
         if before.channel and before.channel.id in _jtc_channels:
 
@@ -10579,7 +10311,6 @@ async def on_voice_state_update(member, before, after):
 
                 except: pass
 
-    # ─── LOGS VOCAUX (complets : micro, casque, caméra, Go Live, sanctions) ──
 
     try:
 
@@ -10589,7 +10320,6 @@ async def on_voice_state_update(member, before, after):
 
         pass
 
-# ─── LOGS FLUX (join/leave) ───────────────────────────────────────────────────
 
 @bot.listen("on_member_join")
 
@@ -10611,13 +10341,9 @@ async def on_member_join_log(member):
 
     await send_log(member.guild, "flux", e)
 
-# MISE À JOUR DU HELP — NOUVELLES CATÉGORIES
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-# FLASK API (inchangée)
 
-# ══════════════════════════════════════════
 
 app = Flask(__name__)
 
@@ -11243,11 +10969,8 @@ def stats():
 
     return jsonify({"latence_ms": round(bot.latency*1000), "membres": sum(g.member_count for g in bot.guilds), "serveurs": len(bot.guilds)})
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-# NOUVELLES COMMANDES — INFO SERVEUR
 
-# ══════════════════════════════════════════════════════════════════════════════
 
 
 
@@ -11557,19 +11280,15 @@ async def onepage_cmd(ctx):
 
         await ctx.send(embed=e)
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-# NOUVELLES COMMANDES — UTILITAIRES SERVEUR
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-# Stockage en mémoire
 
-_autoreact_cfg = {}   # guild_id → {channel_id: [emojis]}
+_autoreact_cfg = {}
 
-_piconly_cfg   = {}   # guild_id → set of channel_id
+_piconly_cfg   = {}
 
-_defaultroles  = {}   # guild_id → [role_id]
+_defaultroles  = {}
 
 @bot.command(name="autoreact", aliases=["autoreaction","autoréaction"])
 
@@ -11687,7 +11406,6 @@ async def everping_cmd(ctx, *, message: str = None):
 
     await ctx.message.delete()
 
-    # Seule commande autorisée à notifier : c'est son but, et elle est réservée aux admins.
     await ctx.send(f"@everyone\n{msg}",
                    allowed_mentions=discord.AllowedMentions(everyone=True, roles=False, users=True))
 
@@ -11801,15 +11519,12 @@ async def ghostping_cmd(ctx):
 
     await ctx.send(embed=e)
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-# JOIN TO CREATE — système complet
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-_jtc_config  = {}  # guild_id → {"trigger_id": int, "category_id": int, "name": str}
+_jtc_config  = {}
 
-_jtc_channels = {} # channel_id → owner_id (salons temporaires actifs)
+_jtc_channels = {}
 
 class JtcModal(discord.ui.Modal, title="🔊 Configurer Join to Create"):
 
@@ -11923,15 +11638,12 @@ async def jointocreate_cmd(ctx):
 
     await ctx.send(embed=e, view=JtcView(ctx))
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-# STARBOARD — système complet
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-_starboard_cfg = {}   # guild_id → {"channel_id": int, "seuil": int, "emoji": str}
+_starboard_cfg = {}
 
-_starboard_posted = {}  # guild_id → {message_id: star_message_id}
+_starboard_posted = {}
 
 class StarboardModal(discord.ui.Modal, title="⭐ Configurer le Starboard"):
 
@@ -12029,13 +11741,10 @@ async def starboard_cmd(ctx):
 
     await ctx.send(embed=e, view=StarboardView(ctx))
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-# ROLES PICKER — système complet
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-_rolespicker_data = {}  # guild_id → {"panels": [{titre, desc, mode, roles:[{id,label,desc,emoji}]}]}
+_rolespicker_data = {}
 
 class RolesPickerCreateModal(discord.ui.Modal, title="🎭 Créer un menu de rôles"):
 
@@ -12199,13 +11908,10 @@ class RolesPickerMenuView(discord.ui.View):
 
         await interaction.response.send_modal(RolesPickerCreateModal(interaction.guild.id))
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-# SOUTIEN — système complet
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-_soutien_cfg = {}  # guild_id → {"role_id": int, "server_link": str}
+_soutien_cfg = {}
 
 class SoutienModal(discord.ui.Modal, title="💙 Configurer le Soutien"):
 
@@ -12263,13 +11969,10 @@ async def soutien_cmd(ctx):
 
     await ctx.send(embed=e, view=view)
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-# SHOWPIC — afficher avatar auto à l'arrivée
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-_showpic_cfg = {}  # guild_id → {"channel_id": int, "enabled": bool}
+_showpic_cfg = {}
 
 @bot.command(name="showpic", aliases=["showavatar","showprofile","autopfp"])
 
@@ -12337,13 +12040,10 @@ async def showpic_cmd(ctx):
 
     await ctx.send(embed=e, view=view)
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-# TAG SERVEUR
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-_tag_cfg = {}  # guild_id → role_id
+_tag_cfg = {}
 
 @bot.command(name="tag", aliases=["servertag","clantag"])
 
@@ -12369,11 +12069,8 @@ async def tag_cmd(ctx, *, role: discord.Role = None):
 
     await ctx.send(embed=embed_ok(f"✅ Rôle **{role.name}** configuré pour les membres avec le tag du serveur."))
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-# JOINSETTINGS — récapitulatif des actions à l'arrivée
 
-# ══════════════════════════════════════════════════════════════════════════════
 
 @bot.command(name="joinsettings", aliases=["joinconfig","configjoin","arrivee"])
 
@@ -12411,19 +12108,13 @@ async def joinsettings_cmd(ctx):
 
     await ctx.send(embed=e)
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-# EMBEDS — sauvegarde basique
 
-# ══════════════════════════════════════════════════════════════════════════════
 
-_saved_embeds = {}  # user_id → [{title, desc, color, ...}]
+_saved_embeds = {}
 
-# ══════════════════════════════════════════════════════════════════════════════
-# COMMANDE +embed — Builder interactif (select menu + modals)
-# ══════════════════════════════════════════════════════════════════════════════
 
-_embed_sessions = {}  # user_id → dict de config de l'embed en cours
+_embed_sessions = {}
 
 def _build_welcome_embed(extra: str = None) -> discord.Embed:
     desc = (
@@ -12459,7 +12150,6 @@ def _build_embed_preview(session: dict) -> discord.Embed:
         e.timestamp = discord.utils.utcnow()
     for f in session.get("fields", []):
         e.add_field(name=f["name"], value=f["value"], inline=f.get("inline", False))
-    # Discord rejette un embed sans contenu visible
     has_content = (
         e.title or e.description or e.fields or
         (e.author and e.author.name) or
@@ -12471,7 +12161,6 @@ def _build_embed_preview(session: dict) -> discord.Embed:
         e.description = "*Aperçu de ton embed — utilise le menu pour le personnaliser.*"
     return e
 
-# ── Modals ────────────────────────────────────────────────────────────────────
 
 class DcpEmbedTitleModal(discord.ui.Modal, title="✏️ Modifier le Titre"):
     val = discord.ui.TextInput(label="Titre", placeholder="Ex: Annonce importante", max_length=256, required=False)
@@ -12556,7 +12245,6 @@ class DcpEmbedAddFieldModal(discord.ui.Modal, title="➕ Ajouter un Field"):
         e = _build_embed_preview(session)
         await interaction.response.edit_message(embeds=[_build_welcome_embed(), e], view=DcpEmbedView(self.uid))
 
-# ── View (select menu) ────────────────────────────────────────────────────────
 
 class DcpEmbedView(discord.ui.View):
 
@@ -12682,7 +12370,6 @@ class DcpEmbedView(discord.ui.View):
 
             await interaction.response.send_modal(modal_cls(uid))
 
-# ── Commande +embed ───────────────────────────────────────────────────────────
 
 @bot.command(name="embed", aliases=["embeed","embd"])
 
@@ -12754,7 +12441,6 @@ async def sethelp_cmd(ctx, *, helptype: str = None):
 
             color=C_BLUE))
 
-    # Stocké en mémoire par serveur
 
     if not hasattr(bot, "_help_type"): bot._help_type = {}
 
@@ -12762,11 +12448,8 @@ async def sethelp_cmd(ctx, *, helptype: str = None):
 
     await ctx.send(embed=embed_ok(f"✅ Type d'aide défini sur `{helptype}`."))
 
-# ── Piconly enforcement ───────────────────────────────────────────────────────
 
-# (vérifié dans on_message)
 
-# ─── STARBOARD — reaction handler ─────────────────────────────────────────────
 
 @bot.event
 
@@ -12831,13 +12514,10 @@ async def on_raw_reaction_add(payload):
     _starboard_posted.setdefault(gid, {})[payload.message_id] = sent.id
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# BACKUP SERVEUR — +backup create / list / delete / info
-# ══════════════════════════════════════════════════════════════════════════════
 
 BACKUP_FILE        = "backups.json"
-BACKUP_LIMIT_FREE  = 10   # gratuit
-BACKUP_LIMIT_PREM  = 20   # premium
+BACKUP_LIMIT_FREE  = 10
+BACKUP_LIMIT_PREM  = 20
 
 def _backup_limit(uid):
     return BACKUP_LIMIT_PREM if is_premium(uid) else BACKUP_LIMIT_FREE
@@ -12887,7 +12567,7 @@ def _snapshot_guild(guild: discord.Guild, name: str, author_id: int) -> dict:
     channels_data = []
     for ch in guild.channels:
         if isinstance(ch, discord.CategoryChannel):
-            continue  # catégories traitées séparément
+            continue
         entry = {
             "name": ch.name,
             "type": str(ch.type),
@@ -12970,15 +12650,13 @@ async def _restore_guild(guild: discord.Guild, bk: dict) -> dict:
     Retourne un dict de stats {"roles": int, "categories": int, "channels": int, "errors": list}.
     """
     stats  = {"roles": 0, "categories": 0, "channels": 0, "errors": []}
-    cat_map = {}   # nom_catégorie → objet CategoryChannel créé
+    cat_map = {}
 
-    # Ancien ID de rôle → nom (les IDs changent d'un serveur à l'autre)
     old_id_to_name = {}
     for rd in bk.get("roles", []):
         if rd.get("id"):
             old_id_to_name[str(rd["id"])] = rd.get("name", "")
 
-    # Nom (minuscule) → rôle réel sur le serveur cible, rempli au fur et à mesure
     role_by_name = {r.name.lower(): r for r in guild.roles}
 
     def _resolve_role(entry):
@@ -13017,15 +12695,12 @@ async def _restore_guild(guild: discord.Guild, bk: dict) -> dict:
                     result[member] = ow
         return result
 
-    # ── 1. Rôles ────────────────────────────────────────────────────────────────
-    # Du plus bas au plus haut pour garder la hiérarchie d'origine
     my_top = guild.me.top_role.position if guild.me else 0
     for rd in sorted(bk.get("roles", []), key=lambda x: x.get("position", 0)):
         if rd.get("name", "").lower() in role_by_name:
-            continue  # déjà présent : on le réutilisera pour les permissions
+            continue
         try:
             perms = discord.Permissions(rd.get("permissions", 0))
-            # On ne peut pas créer un rôle avec des permissions que le bot n'a pas
             perms.value &= guild.me.guild_permissions.value
             color = discord.Color(rd.get("color", 0))
             new_role = await guild.create_role(
@@ -13041,11 +12716,9 @@ async def _restore_guild(guild: discord.Guild, bk: dict) -> dict:
         except Exception as e:
             stats["errors"].append(f"Rôle `{rd['name']}` : {e}")
 
-    # ── 2. Catégories ───────────────────────────────────────────────────────────
     existing_cat_names = {c.name.lower() for c in guild.categories}
     for cd in sorted(bk.get("categories", []), key=lambda x: x.get("position", 0)):
         if cd["name"].lower() in existing_cat_names:
-            # Récupère l'existante pour mapper les salons
             for c in guild.categories:
                 if c.name.lower() == cd["name"].lower():
                     cat_map[cd["name"]] = c
@@ -13065,17 +12738,14 @@ async def _restore_guild(guild: discord.Guild, bk: dict) -> dict:
         except Exception as e:
             stats["errors"].append(f"Catégorie `{cd['name']}` : {e}")
 
-    # ── 3. Salons ────────────────────────────────────────────────────────────────
     existing_ch_names = {c.name.lower() for c in guild.channels}
     for ch in sorted(bk.get("channels", []), key=lambda x: x.get("position", 0)):
         if ch["name"].lower() in existing_ch_names:
             continue
         cat_obj = cat_map.get(ch.get("category")) if ch.get("category") else None
         try:
-            # Construire les overwrites
             raw_ow = ch.get("overwrites", [])
             ow = _build_overwrites(raw_ow) if raw_ow else {}
-            # Si le salon est synchronisé à sa catégorie, on laisse Discord gérer
             sync_perm = ch.get("sync_permissions", False)
 
             ch_type = ch.get("type", "text")
@@ -13108,7 +12778,6 @@ async def _restore_guild(guild: discord.Guild, bk: dict) -> dict:
                     overwrites=ow if (ow and not sync_perm) else discord.utils.MISSING,
                     reason="ModeraBot • Restauration backup"
                 )
-            # Si les permissions étaient synchronisées à la catégorie, on sync
             if sync_perm and cat_obj and hasattr(new_ch, "edit"):
                 try:
                     await new_ch.edit(sync_permissions=True)
@@ -13135,7 +12804,6 @@ class _BackupRestoreConfirm(discord.ui.View):
         if interaction.user.id != self.ctx.author.id:
             return await interaction.response.send_message(embed=embed_err("Ce menu n'est pas pour toi."), ephemeral=True)
 
-        # Vérifie la perm administrateur sur le serveur cible
         if not interaction.guild.me.guild_permissions.administrator:
             return await interaction.response.send_message(
                 embed=embed_err("Le bot n'a pas la permission **Administrateur** sur ce serveur.\nDonne-lui le rôle admin et réessaie."),
@@ -13203,7 +12871,6 @@ class BackupRestoreView(discord.ui.View):
         if interaction.user.id != self.ctx.author.id:
             return await interaction.response.send_message(embed=embed_err("Ce menu n'est pas pour toi."), ephemeral=True)
 
-        # Vérifie que l'utilisateur est admin sur ce serveur
         if not interaction.user.guild_permissions.administrator and str(interaction.user.id) not in OWNER_IDS:
             return await interaction.response.send_message(
                 embed=embed_err("Tu dois être **Administrateur** sur ce serveur pour restaurer une backup."),
@@ -13217,7 +12884,6 @@ class BackupRestoreView(discord.ui.View):
         name = bk.get("snapshot_name", "Sans nom")
         srv  = bk.get("name", "?")
 
-        # Embed de détails + bouton de confirmation
         e = discord.Embed(title=f"💾 Backup — {name}", color=0x2ECC71)
         e.add_field(name="🏠 Serveur capturé",  value=srv,                              inline=True)
         e.add_field(name="📅 Date",             value=dt,                               inline=True)
@@ -13280,7 +12946,6 @@ class BackupDeleteView(discord.ui.View):
         idx  = int(interaction.data["values"][0])
         bk   = self.backups[idx]
         name = bk.get("snapshot_name", "Sans nom")
-        # Confirmation
         confirm_view = _BackupDeleteConfirm(self.ctx, idx, name)
         e = discord.Embed(
             title="⚠️ Confirmer la suppression",
@@ -13326,14 +12991,12 @@ class _BackupDeleteConfirm(discord.ui.View):
             view=None
         )
 
-# ─── COMMANDE PRINCIPALE +backup ────────────────────────────────────────────
 
 @bot.command(name="backup", aliases=["bkp","bk","backups","sauvegarde","sauvegarder","restaurer","restore","bck"])
 async def backup_cmd(ctx, action: str = None, *, nom: str = None):
     pfx = _prefix_cache.get(ctx.guild.id, DEFAULT_PREFIX) if ctx.guild else DEFAULT_PREFIX
     uid = str(ctx.author.id)
 
-    # ── Vérification Premium ─────────────────────────────────────────────────
     if not is_premium(ctx.author.id) and str(ctx.author.id) not in OWNER_IDS:
         e = discord.Embed(
             title="⭐ Commande Premium",
@@ -13349,22 +13012,17 @@ async def backup_cmd(ctx, action: str = None, *, nom: str = None):
 
     if action:
         a = action.lower().strip()
-        # create
         if a in ("create","creer","créer","cree","crée","new","nouveau","nouv","add","ajouter","faire","save","sauv","sauvegarder","snapshot","snap","cr","c"):
             action = "create"
-        # list
         elif a in ("list","liste","voir","show","afficher","ls","l","mes","mesliste","all"):
             action = "list"
-        # delete
         elif a in ("delete","supprimer","supp","del","remove","retirer","effacer","rm","d","sup"):
             action = "delete"
-        # info
         elif a in ("info","infos","detail","détail","details","détails","i","inf"):
             action = "info"
         else:
             action = None
 
-    # ── Aide si pas d'action ─────────────────────────────────────────────────
     if not action:
         e = discord.Embed(title="💾 Backup Serveur", color=0x2ECC71)
         e.description = (
@@ -13379,7 +13037,6 @@ async def backup_cmd(ctx, action: str = None, *, nom: str = None):
         e.set_footer(text="ModeraBot • Backup System")
         return await ctx.send(embed=e)
 
-    # ── CREATE ───────────────────────────────────────────────────────────────
     if action == "create":
         if not ctx.author.guild_permissions.administrator and str(ctx.author.id) not in OWNER_IDS:
             return await ctx.send(embed=embed_err("Tu dois être **Administrateur** pour créer une backup."))
@@ -13403,10 +13060,8 @@ async def backup_cmd(ctx, action: str = None, *, nom: str = None):
                     ),
                     color=C_GOLD
                 ))
-        # Nom par défaut
         snap_name = nom.strip()[:50] if nom else f"Backup-{datetime.now().strftime('%d%m%y-%H%M')}"
 
-        # Message de chargement
         msg_load = await ctx.send(embed=discord.Embed(
             description="⏳ Création de la backup en cours...",
             color=C_BLUE
@@ -13438,7 +13093,6 @@ async def backup_cmd(ctx, action: str = None, *, nom: str = None):
         e.set_footer(text=f"Créée par {ctx.author.display_name} • {datetime.now().strftime('%d/%m/%Y %H:%M')}")
         await ctx.send(embed=e)
 
-    # ── LIST ─────────────────────────────────────────────────────────────────
     elif action == "list":
         data = _load_backups()
         bks  = data.get(uid, [])
@@ -13448,7 +13102,6 @@ async def backup_cmd(ctx, action: str = None, *, nom: str = None):
         view = BackupRestoreView(ctx, bks)
         await ctx.send(embed=embed, view=view)
 
-    # ── DELETE ───────────────────────────────────────────────────────────────
     elif action == "delete":
         data = _load_backups()
         bks  = data.get(uid, [])
@@ -13462,13 +13115,11 @@ async def backup_cmd(ctx, action: str = None, *, nom: str = None):
         view = BackupDeleteView(ctx, bks)
         await ctx.send(embed=e, view=view)
 
-    # ── INFO ─────────────────────────────────────────────────────────────────
     elif action == "info":
         data = _load_backups()
         bks  = data.get(uid, [])
         if not bks:
             return await ctx.send(embed=embed_err("Tu n'as aucune backup."))
-        # Récupérer le numéro (depuis 'nom' ou depuis la commande)
         try:
             num = int(nom.strip()) if nom else None
         except:
@@ -13512,9 +13163,6 @@ async def backup_cmd(ctx, action: str = None, *, nom: str = None):
 
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# SYSTÈME CAPTCHA / VÉRIFICATION — +captcha
-# ══════════════════════════════════════════════════════════════════════════════
 
 CAPTCHA_FILE = "captcha_config.json"
 
@@ -13529,7 +13177,6 @@ def _save_captcha(data):
     with open(CAPTCHA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
-# Stocke les codes captcha en attente : member_id → {"code": str, "guild_id": int, "channel_id": int}
 _captcha_pending = {}
 
 def _gen_captcha_code(length=6):
@@ -13589,7 +13236,6 @@ def _build_captcha_status_embed(guild_id):
     e.set_footer(text="ModeraBot • Captcha System")
     return e
 
-# ─── Modals ──────────────────────────────────────────────────────────────────
 
 class CaptchaConfigModal(discord.ui.Modal, title="🔐 Configurer le Captcha"):
     channel_id   = discord.ui.TextInput(label="ID du salon de vérification", placeholder="Ex: 123456789", max_length=20)
@@ -13675,7 +13321,6 @@ class CaptchaStyleModal(discord.ui.Modal, title="🎨 Style du Captcha"):
         _save_captcha(data)
         await interaction.response.send_message(embed=embed_ok(f"Style : `{s}` | Longueur code : `{cfg['code_length']}`"), ephemeral=True)
 
-# ─── View principale captcha ──────────────────────────────────────────────────
 
 class CaptchaView(discord.ui.View):
     def __init__(self, ctx):
@@ -13760,7 +13405,6 @@ class CaptchaView(discord.ui.View):
         _save_captcha(data)
         await interaction.response.send_message(embed=embed_ok("Configuration captcha réinitialisée."), ephemeral=True)
 
-# ─── Panel public : bouton "Obtenir mon code" ─────────────────────────────────
 
 class CaptchaStartView(discord.ui.View):
     """Panel posté dans le salon de vérif — bouton pour obtenir son code."""
@@ -13776,12 +13420,10 @@ class CaptchaStartView(discord.ui.View):
             return await interaction.response.send_message(embed=embed_err("Le système de vérification est désactivé."), ephemeral=True)
 
         member = interaction.user
-        # Vérifier si déjà vérifié
         verified_role = interaction.guild.get_role(cfg.get("verified_role", 0))
         if verified_role and verified_role in member.roles:
             return await interaction.response.send_message(embed=discord.Embed(description="✅ Tu es déjà vérifié !", color=C_GREEN), ephemeral=True)
 
-        # Générer le code
         length = cfg.get("code_length", 6)
         code   = _gen_captcha_code(length)
         _captcha_pending[member.id] = {
@@ -13792,7 +13434,6 @@ class CaptchaStartView(discord.ui.View):
             "max_tries":  cfg.get("max_tries", 3),
         }
 
-        # Envoyer le code en MP
         style = cfg.get("style", "embed")
         try:
             if style == "embed":
@@ -13827,7 +13468,6 @@ class CaptchaStartView(discord.ui.View):
             ephemeral=True
         )
 
-# ─── Event : vérification du code tapé dans le salon ─────────────────────────
 
 async def _handle_captcha_check(message: discord.Message):
     """Appelé dans on_message pour vérifier si un message est un code captcha."""
@@ -13843,7 +13483,6 @@ async def _handle_captcha_check(message: discord.Message):
     gid = str(message.guild.id)
     cfg = _load_captcha().get(gid, {})
 
-    # Supprimer le message (garder le salon propre)
     try: await message.delete()
     except: pass
 
@@ -13851,17 +13490,14 @@ async def _handle_captcha_check(message: discord.Message):
     code_correct = pending["code"].upper()
 
     if code_entered == code_correct:
-        # ✅ Code correct
         del _captcha_pending[uid]
         member = message.author
 
-        # Donner le rôle vérifié
         verified_role = message.guild.get_role(cfg.get("verified_role", 0))
         if verified_role:
             try: await member.add_roles(verified_role, reason="Captcha ModeraBot ✅")
             except: pass
 
-        # Retirer le rôle non vérifié
         unverified_role = message.guild.get_role(cfg.get("unverified_role", 0))
         if unverified_role and unverified_role in member.roles:
             try: await member.remove_roles(unverified_role, reason="Captcha ModeraBot ✅")
@@ -13881,7 +13517,6 @@ async def _handle_captcha_check(message: discord.Message):
         return True
 
     else:
-        # ❌ Mauvais code
         pending["tries"] += 1
         remaining = pending["max_tries"] - pending["tries"]
 
@@ -13893,7 +13528,6 @@ async def _handle_captcha_check(message: discord.Message):
                 color=C_RED
             )
             msg = await message.channel.send(embed=e)
-            # Kick si configuré
             if cfg.get("kick_on_fail"):
                 await asyncio.sleep(3)
                 try:
@@ -13912,7 +13546,6 @@ async def _handle_captcha_check(message: discord.Message):
 
         return True
 
-# ─── Event : envoyer le captcha à l'arrivée automatiquement ──────────────────
 
 async def _handle_captcha_join(member: discord.Member):
     """Appelé dans on_member_join pour gérer le captcha automatique."""
@@ -13922,13 +13555,11 @@ async def _handle_captcha_join(member: discord.Member):
     if not cfg.get("enabled"): return
     if not cfg.get("channel_id"): return
 
-    # Donner le rôle non vérifié si configuré
     unverified_role = member.guild.get_role(cfg.get("unverified_role", 0))
     if unverified_role:
         try: await member.add_roles(unverified_role, reason="Captcha — en attente de vérification")
         except: pass
 
-    # Envoyer un MP au nouveau membre
     try:
         e_mp = discord.Embed(
             title=f"👋 Bienvenue sur {member.guild.name} !",
@@ -13943,7 +13574,6 @@ async def _handle_captcha_join(member: discord.Member):
         await member.send(embed=e_mp)
     except: pass
 
-# ─── Commande +captcha ────────────────────────────────────────────────────────
 
 @bot.command(name="captcha", aliases=["verif","verification","vérification","secu","securite","sécurité","captch","capt"])
 async def captcha_cmd(ctx):
@@ -13962,9 +13592,6 @@ async def captcha_cmd(ctx):
 
 import json
 
-# ══════════════════════════════════════════
-# INVITE TRACKER
-# ══════════════════════════════════════════
 
 INVITES_FILE = "invites_data.json"
 
@@ -13979,7 +13606,7 @@ def invites_save(data):
     with open(INVITES_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
-_invite_cache = {}  # guild_id -> {code: uses}
+_invite_cache = {}
 
 @bot.event
 async def on_invite_create(invite):
@@ -14021,7 +13648,6 @@ def _get_member_invites(gid, uid):
     total  = real + bonus - fake - left
     return real, bonus, fake, left, total
 
-# ─── on_member_join / on_member_remove pour tracker ─────────────────────────
 
 _original_member_join = None
 
@@ -14048,11 +13674,9 @@ async def _invite_on_member_join(member):
         data[gid][inviter_id].setdefault("invited", [])
         if str(member.id) not in data[gid][inviter_id]["invited"]:
             data[gid][inviter_id]["invited"].append(str(member.id))
-        # Stocker qui a invité ce membre
         data[gid].setdefault("_who_invited", {})[str(member.id)] = inviter_id
         invites_save(data)
 
-        # ── Envoi du message invitesmess ──────────────────────────────
         cfg = invitesmess_load().get(gid, {})
         channel_id = cfg.get("channel_id")
         if channel_id:
@@ -14093,14 +13717,12 @@ async def _invite_on_member_remove(member):
         data[gid][inviter_id]["left"] = data[gid][inviter_id].get("left", 0) + 1
         invites_save(data)
 
-# Patch on_member_join / on_member_remove pour ajouter le tracking sans écraser l'existant
 _orig_join_listeners = list(bot.extra_events.get("on_member_join", []))
 _orig_remove_listeners = list(bot.extra_events.get("on_member_remove", []))
 
 @bot.listen("on_member_join")
 async def invite_track_join(member):
     await _invite_on_member_join(member)
-    # Mettre à jour le cache
     gid = str(member.guild.id)
     try:
         invs = await member.guild.invites()
@@ -14119,7 +13741,6 @@ async def invite_cache_init():
             _invite_cache[str(guild.id)] = {i.code: i.uses for i in invs}
         except: pass
 
-# ─── +invites ────────────────────────────────────────────────────────────────
 
 @bot.command(name="invites", aliases=["inv"])
 async def invites_cmd(ctx, member: discord.Member = None):
@@ -14134,7 +13755,6 @@ async def invites_cmd(ctx, member: discord.Member = None):
     e.set_thumbnail(url=member.display_avatar.url)
     await ctx.send(embed=e)
 
-# ─── +leaderboard ─────────────────────────────────────────────────────────────
 
 @bot.command(name="inviteleaderboard", aliases=["invitelb","inviteclassement","lbinvites","classementinvites"])
 async def invite_leaderboard_cmd(ctx):
@@ -14158,7 +13778,6 @@ async def invite_leaderboard_cmd(ctx):
     e.description = desc or "Aucune donnée pour ce serveur."
     await ctx.send(embed=e)
 
-# ─── +addinvites / +removeinvites ─────────────────────────────────────────────
 
 @bot.command(name="addinvites", aliases=["addInvites","add-invites","ajouterinvites","ajoutinvites"])
 async def addinvites_cmd(ctx, member: discord.Member = None, amount: int = None):
@@ -14198,7 +13817,6 @@ async def resetinvites_cmd(ctx, member: discord.Member = None):
     invites_save(data)
     await ctx.send(embed=discord.Embed(description=f"✅ Invitations de {member.mention} réinitialisées.", color=C_GREEN))
 
-# ─── +addbonus / +removebonus ─────────────────────────────────────────────────
 
 @bot.command(name="addbonus", aliases=["addBonus","add-bonus","ajouterbonus","bonusadd"])
 async def addbonus_cmd(ctx, member: discord.Member = None, amount: int = None):
@@ -14226,7 +13844,6 @@ async def removebonus_cmd(ctx, member: discord.Member = None, amount: int = None
     invites_save(data)
     await ctx.send(embed=discord.Embed(description=f"✅ **-{amount}** bonus retirés à {member.mention}.", color=C_GREEN))
 
-# ─── +addfakeinvites / +removefakeinvites ─────────────────────────────────────
 
 @bot.command(name="addfakeinvites", aliases=["addFakeInvites","add-fake-invites","fakeadd","ajouterfake"])
 async def addfakeinvites_cmd(ctx, member: discord.Member = None, amount: int = None):
@@ -14254,7 +13871,6 @@ async def removefakeinvites_cmd(ctx, member: discord.Member = None, amount: int 
     invites_save(data)
     await ctx.send(embed=discord.Embed(description=f"✅ **-{amount}** fausses invitations retirées à {member.mention}.", color=C_GREEN))
 
-# ─── +syncinvites ──────────────────────────────────────────────────────────────
 
 @bot.command(name="syncinvites", aliases=["syncInvites","sync-invites","syncinv","resyncinvites"])
 async def syncinvites_cmd(ctx):
@@ -14267,7 +13883,6 @@ async def syncinvites_cmd(ctx):
     except:
         await ctx.send(embed=embed_err("Impossible de récupérer les invitations. Vérifie les permissions."))
 
-# ─── +deleteinvite ─────────────────────────────────────────────────────────────
 
 @bot.command(name="deleteinvite", aliases=["deleteInvite","delete-invite","supprimerlien","supinvite","delinvite"])
 async def deleteinvite_cmd(ctx, code: str = None):
@@ -14285,7 +13900,6 @@ async def deleteinvite_cmd(ctx, code: str = None):
     except:
         await ctx.send(embed=embed_err("Impossible de supprimer l'invitation."))
 
-# ─── +purge-invite-codes ───────────────────────────────────────────────────────
 
 @bot.command(name="purge-invite-codes", aliases=["purgeinvites"])
 async def purgeinvitecodes_cmd(ctx):
@@ -14305,7 +13919,6 @@ async def purgeinvitecodes_cmd(ctx):
         await ctx.send(embed=embed_err("Impossible de récupérer les invitations."))
 
 
-# ─── +exportleaderboard ────────────────────────────────────────────────────────
 
 @bot.command(name="exportleaderboard", aliases=["exportLB","export-lb","exportlb"])
 async def exportleaderboard_cmd(ctx):
@@ -14334,7 +13947,6 @@ async def exportleaderboard_cmd(ctx):
         file=discord.File(buf, filename=f"leaderboard_{ctx.guild.id}.csv")
     )
 
-# ─── +exportinvitedlist ────────────────────────────────────────────────────────
 
 @bot.command(name="exportinvitedlist", aliases=["exportInvited","export-invited","listeinvites","exportinvited"])
 async def exportinvitedlist_cmd(ctx, member: discord.Member = None):
@@ -14363,11 +13975,7 @@ async def exportinvitedlist_cmd(ctx, member: discord.Member = None):
 
 
 
-# ══════════════════════════════════════════
-# INVITESMESS — Style Welcome
-# ══════════════════════════════════════════
 
-# ─── Modals ───────────────────────────────────────────────────────────────────
 
 class ModalInvitesmessChannel(discord.ui.Modal, title="🏷️ Salon du message d'invitation"):
 
@@ -14435,7 +14043,6 @@ class ModalInvitesmessMessage(discord.ui.Modal, title="💬 Message d'invitation
         await interaction.response.send_message(embed=embed_ok("Message mis à jour !"), ephemeral=True)
 
 
-# ─── Status embed ──────────────────────────────────────────────────────────────
 
 def build_invitesmess_status_embed(guild_id):
 
@@ -14478,7 +14085,6 @@ def build_invitesmess_status_embed(guild_id):
     return e
 
 
-# ─── View ──────────────────────────────────────────────────────────────────────
 
 class InvitesmessView(discord.ui.View):
 
@@ -14569,7 +14175,6 @@ class InvitesmessView(discord.ui.View):
         await interaction.response.send_message(embed=embed_ok("Configuration invitesmess réinitialisée."), ephemeral=True)
 
 
-# ─── Commande ──────────────────────────────────────────────────────────────────
 
 @bot.command(name="invitesmess", aliases=["invitemessage","invmess","invitesmessage","invites-mess","configureinvitemsg"])
 
@@ -14583,9 +14188,6 @@ async def invitesmess_cmd(ctx):
     await ctx.send(embed=build_invitesmess_status_embed(ctx.guild.id), view=InvitesmessView(ctx))
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# +synchronise — Synchronise les permissions d'un salon à sa catégorie
-# ══════════════════════════════════════════════════════════════════════════════
 
 @bot.command(
     name="synchronise",
@@ -14618,7 +14220,6 @@ async def synchronise_cmd(ctx, *, cible: str = None):
     skipped = 0
     errors = []
 
-    # ── Cas 1 : Tout synchroniser ────────────────────────────────────────────
     if cible and cible.lower() in ("tout", "all", "tous", "toute", "toutes", "*"):
         msg = await ctx.send(embed=discord.Embed(
             description="⏳ Synchronisation de tous les salons en cours...",
@@ -14633,7 +14234,7 @@ async def synchronise_cmd(ctx, *, cible: str = None):
             try:
                 await channel.edit(sync_permissions=True, reason=f"ModeraBot • +synchronise par {ctx.author}")
                 synced += 1
-                await asyncio.sleep(0.4)  # rate limit protection
+                await asyncio.sleep(0.4)
             except discord.Forbidden:
                 errors.append(f"<#{channel.id}> — Permission refusée")
             except Exception as e:
@@ -14651,7 +14252,6 @@ async def synchronise_cmd(ctx, *, cible: str = None):
         await msg.edit(embed=e)
         return
 
-    # ── Cas 2 : Salon mentionné ou par ID ────────────────────────────────────
     if cible and (ctx.message.channel_mentions or cible.isdigit()):
         channel = ctx.message.channel_mentions[0] if ctx.message.channel_mentions else guild.get_channel(int(cible))
         if not channel:
@@ -14673,11 +14273,9 @@ async def synchronise_cmd(ctx, *, cible: str = None):
             await ctx.send(embed=embed_err(f"Erreur : `{e}`"))
         return
 
-    # ── Cas 3 : Nom de catégorie ─────────────────────────────────────────────
     if cible:
         cat = discord.utils.find(lambda c: c.name.lower() == cible.lower(), guild.categories)
         if not cat:
-            # Cherche approximativement
             cat = discord.utils.find(lambda c: cible.lower() in c.name.lower(), guild.categories)
         if not cat:
             return await ctx.send(embed=embed_err(
@@ -14710,7 +14308,6 @@ async def synchronise_cmd(ctx, *, cible: str = None):
         await msg.edit(embed=e)
         return
 
-    # ── Cas 4 : Salon actuel (défaut) ────────────────────────────────────────
     channel = ctx.channel
     if channel.category is None:
         return await ctx.send(embed=embed_err("Ce salon n'est dans aucune catégorie. Impossible de synchroniser."))
@@ -14739,9 +14336,7 @@ async def synchronise_cmd(ctx, *, cible: str = None):
         await ctx.send(embed=embed_err(f"Erreur : `{e}`"))
 
 
-# ─── Dashboard web ────────────────────────────────────────────────────────────
 
-# Port d'ecoute : allocation Pterodactyl (SERVER_PORT) > config.json > 5001
 WEB_PORT = int(
     os.environ.get("DASHBOARD_PORT")
     or CONFIG.get("dashboard_port")
@@ -14749,9 +14344,7 @@ WEB_PORT = int(
     or 5001
 )
 
-# D'ou vient le port : sur Pterodactyl SEUL le port alloue (SERVER_PORT) est
 
-# ouvert vers l'exterieur. Ecouter ailleurs => nginx renvoie 502.
 
 _PORT_SRC = ("DASHBOARD_PORT (variable d'env)" if os.environ.get("DASHBOARD_PORT")
 
@@ -14783,9 +14376,6 @@ def _adresse_privee(ip):
     return a == 10 or a == 127 or (a == 172 and 16 <= b <= 31) or (a == 192 and b == 168)
 
 
-# Adresse publique affichee au demarrage.
-# Pterodactyl met parfois l'IP interne Docker dans SERVER_IP : on ne l'affiche
-# pas comme si elle etait joignable depuis l'exterieur.
 WEB_HOST = CONFIG.get("dashboard_host") or os.environ.get("SERVER_IP") or ""
 
 HOST_PRIVE = _adresse_privee(WEB_HOST)
@@ -14822,20 +14412,6 @@ except Exception as _dash_err:
     print(f"⚠️  Dashboard non chargé : {_dash_err}")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  API DASHBOARD — à coller dans app.py
-#  Emplacement : après les routes /api/guild/<guild_id>/roles existantes,
-#  et AVANT le lancement du serveur Flask.
-#
-#  Dépend de ce qui existe déjà dans app.py :
-#    app, bot, session, request, jsonify, json, os
-#    require_guild_admin, jload, jsave, FILES
-#    get_server_config, save_server_config, get_level_config, save_level_config
-#    get_logs_cfg, save_logs_cfg, LOGS_TYPES
-#    _load_captcha, _save_captcha
-#    _prefix_cache, _save_prefixes, DEFAULT_PREFIX
-#    _defaultroles, _starboard_cfg, _showpic_cfg
-# ══════════════════════════════════════════════════════════════════════════════
 
 def _i(v, default=None):
     """Convertit en int un ID venant du JSON (le bot attend des int, pas des str)."""
@@ -14911,30 +14487,21 @@ def _guild_config_payload(guild):
     }
 
 
-# ── Authentification du dashboard ─────────────────────────────────────────────
-# Deux voies acceptées :
-#   1. la session Flask classique (cookie posé par /api/oauth-exchange)
-#   2. le token Discord envoyé par la page en en-tête Authorization: Bearer …
-# La 2e évite de dépendre de /api/oauth-exchange : le dashboard fonctionne même
-# si l'échange de code côté serveur est cassé.
-_DASH_TOKEN_CACHE = {}   # token -> (expiration, user_dict, {guild_id: permissions})
-_DASH_CACHE_TTL = 300    # 5 minutes
+_DASH_TOKEN_CACHE = {}
+_DASH_CACHE_TTL = 300
 
 
 def _dash_user_from_token(token):
     """Identifie le porteur du token auprès de Discord (avec cache court)."""
     now = _time.time()
 
-    # Garde-fou : un token Discord fait ~30 caractères, jamais 10 000.
-    # Sans ça, n'importe qui pourrait faire marteler l'API Discord par le bot.
     if not token or not (10 <= len(token) <= 128):
         return None, {}
 
     hit = _DASH_TOKEN_CACHE.get(token)
     if hit and hit[0] > now:
-        return hit[1], hit[2]          # hit[1] vaut None pour un token déjà refusé
+        return hit[1], hit[2]
 
-    # cache borné : on ne laisse pas un spam de faux tokens faire gonfler la mémoire
     if len(_DASH_TOKEN_CACHE) > 500:
         for k, v in list(_DASH_TOKEN_CACHE.items()):
             if v[0] <= now:
@@ -14946,7 +14513,6 @@ def _dash_user_from_token(token):
         headers = {"Authorization": f"Bearer {token}"}
         ru = requests.get("https://discord.com/api/v10/users/@me", headers=headers, timeout=8)
         if ru.status_code != 200:
-            # cache négatif : un token invalide n'est pas revérifié avant 60 s
             _DASH_TOKEN_CACHE[token] = (now + 60, None, {})
             return None, {}
         user = ru.json()
@@ -14958,7 +14524,6 @@ def _dash_user_from_token(token):
     except Exception as err:
         print(f"[dashboard] vérification du token impossible : {err}")
         return None, {}
-    # purge des entrées expirées pour ne pas faire grossir le cache indéfiniment
     for k, v in list(_DASH_TOKEN_CACHE.items()):
         if v[0] <= now:
             _DASH_TOKEN_CACHE.pop(k, None)
@@ -14968,12 +14533,10 @@ def _dash_user_from_token(token):
 
 def _dash_auth(guild_id):
     """Renvoie (guild, member) si l'utilisateur peut configurer ce serveur, sinon (None, None)."""
-    # 1) session Flask
     guild, member = require_guild_admin(guild_id)
     if guild:
         return guild, member
 
-    # 2) token Discord porté par la page
     auth = request.headers.get("Authorization", "")
     if not auth.startswith("Bearer "):
         return None, None
@@ -14993,13 +14556,11 @@ def _dash_auth(guild_id):
 
     member = guild.get_member(uid)
     if member is not None:
-        # source de vérité : les permissions réelles vues par le bot
         p = member.guild_permissions
         if member.id == guild.owner_id or p.administrator or p.manage_guild:
             return guild, member
         return None, None
 
-    # membre non mis en cache : on se rabat sur les permissions renvoyées par OAuth
     try:
         bits = int(perms.get(str(gid), "0"))
     except (TypeError, ValueError):
@@ -15017,7 +14578,6 @@ def api_guild_dashboard(guild_id):
 
     gid = str(guild.id)
 
-    # ─────────────────────────── LECTURE ───────────────────────────
     if request.method == "GET":
         categories = [{"id": str(c.id), "name": c.name} for c in guild.categories]
         channels = [{"id": str(c.id), "name": c.name,
@@ -15048,11 +14608,9 @@ def api_guild_dashboard(guild_id):
             "config": _guild_config_payload(guild),
         })
 
-    # ─────────────────────────── ÉCRITURE ───────────────────────────
     body = request.get_json(silent=True) or {}
     saved = []
 
-    # ---- Préfixe ----
     if "prefix" in body:
         p = _s(body.get("prefix"), maxlen=5).strip()
         if p:
@@ -15060,7 +14618,6 @@ def api_guild_dashboard(guild_id):
             _save_prefixes()
             saved.append("prefix")
 
-    # ---- Tickets (ticket_select.json) ----
     if "tickets" in body:
         t = body["tickets"] or {}
         data = jload(FILES["ticket_select"])
@@ -15106,7 +14663,6 @@ def api_guild_dashboard(guild_id):
         jsave(FILES["ticket_select"], data)
         saved.append("tickets")
 
-    # ---- Bienvenue (welcome.json) ----
     if "welcome" in body:
         w = body["welcome"] or {}
         data = jload(FILES["welcome"])
@@ -15131,7 +14687,6 @@ def api_guild_dashboard(guild_id):
         jsave(FILES["welcome"], data)
         saved.append("welcome")
 
-    # ---- Départ (depart.json) ----
     if "depart" in body:
         d = body["depart"] or {}
         data = jload(FILES["depart"])
@@ -15143,7 +14698,6 @@ def api_guild_dashboard(guild_id):
         jsave(FILES["depart"], data)
         saved.append("depart")
 
-    # ---- Logs (logs_config.json) ----
     if "logs" in body:
         cfg = get_logs_cfg(guild.id)
         valid = {t[0] for t in LOGS_TYPES}
@@ -15157,7 +14711,6 @@ def api_guild_dashboard(guild_id):
         save_logs_cfg(guild.id, cfg)
         saved.append("logs")
 
-    # ---- Anti-lien (antilink_config.json) ----
     if "antilink" in body:
         a = body["antilink"] or {}
         data = jload(FILES["antilink"])
@@ -15170,7 +14723,6 @@ def api_guild_dashboard(guild_id):
         jsave(FILES["antilink"], data)
         saved.append("antilink")
 
-    # ---- Anti-raid (server_configs/<gid>.json) ----
     if "antiraid" in body:
         a = body["antiraid"] or {}
         srv = get_server_config(gid)
@@ -15193,7 +14745,6 @@ def api_guild_dashboard(guild_id):
         save_server_config(gid, srv)
         saved.append("antiraid")
 
-    # ---- Captcha / vérification (captcha_config.json) ----
     if "captcha" in body:
         c = body["captcha"] or {}
         data = _load_captcha()
@@ -15211,7 +14762,6 @@ def api_guild_dashboard(guild_id):
         _save_captcha(data)
         saved.append("captcha")
 
-    # ---- Niveaux (level_configs/<gid>.json — on préserve "members") ----
     if "levels" in body:
         l = body["levels"] or {}
         cfg = get_level_config(gid)
@@ -15223,7 +14773,6 @@ def api_guild_dashboard(guild_id):
         save_level_config(gid, cfg)
         saved.append("levels")
 
-    # ---- Giveaway (giveaway_config.json) ----
     if "giveaway" in body:
         g = body["giveaway"] or {}
         data = jload(FILES["giveaway_cfg"])
@@ -15243,7 +14792,6 @@ def api_guild_dashboard(guild_id):
         jsave(FILES["giveaway_cfg"], data)
         saved.append("giveaway")
 
-    # ---- Anti-bot (antibot_config.json — on préserve "offenders") ----
     if "antibot" in body:
         a = body["antibot"] or {}
         data = jload(FILES["antibot"])
@@ -15254,7 +14802,6 @@ def api_guild_dashboard(guild_id):
         jsave(FILES["antibot"], data)
         saved.append("antibot")
 
-    # ---- Starboard / ShowPic / Rôles par défaut (mémoire vive) ----
     if "starboard" in body:
         s = body["starboard"] or {}
         ch = _i(s.get("channel_id"))
@@ -15330,13 +14877,10 @@ def run_api():
 Thread(target=run_api, daemon=True).start()
 
 
-# ══════════════════════════════════════════
-# +botserverinfo — Owner only
-# ══════════════════════════════════════════
 
 class BotServerSelect(discord.ui.Select):
     def __init__(self, guilds_data):
-        self.guilds_data = guilds_data  # list of (guild, invite_url)
+        self.guilds_data = guilds_data
         options = []
         for i, (g, _) in enumerate(guilds_data[:25]):
             options.append(discord.SelectOption(
@@ -15351,7 +14895,6 @@ class BotServerSelect(discord.ui.Select):
         idx = int(self.values[0])
         g, invite_url = self.guilds_data[idx]
 
-        # Infos détaillées
         total    = g.member_count or 0
         bots     = sum(1 for m in g.members if m.bot) if g.members else "?"
         humans   = (total - bots) if isinstance(bots, int) else "?"
@@ -15403,16 +14946,13 @@ async def botserverinfo_cmd(ctx):
 
     guilds = sorted(bot.guilds, key=lambda g: g.member_count or 0, reverse=True)
 
-    # Générer les liens d'invitation pour chaque serveur
     guilds_data = []
     for g in guilds[:25]:
         invite_url = None
         try:
-            # Essayer vanity d'abord
             if g.vanity_url_code:
                 invite_url = f"https://discord.gg/{g.vanity_url_code}"
             else:
-                # Chercher un salon texte accessible
                 for ch in g.text_channels:
                     try:
                         inv = await ch.create_invite(max_age=0, max_uses=0, unique=False, reason="botserverinfo")
@@ -15429,7 +14969,6 @@ async def botserverinfo_cmd(ctx):
         description="Sélectionne un serveur dans le menu pour voir ses infos détaillées.",
         color=0x5865F2
     )
-    # Résumé rapide
     desc_lines = ""
     for i, (g, _) in enumerate(guilds_data[:10], 1):
         desc_lines += f"`{i}.` **{g.name}** — {g.member_count} membres\n"
