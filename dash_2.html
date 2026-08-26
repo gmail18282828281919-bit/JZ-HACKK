@@ -1297,132 +1297,42 @@ function deepMerge(base,extra){
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot);
 else boot();
 </script>
-
-<!-- ============================================================ -->
-<!--  MODERABOT — PACK MODULES PRO (ajout dashboard)               -->
-<!--  Bloc 100% additif : a coller juste avant </body>.            -->
-<!--  Rien du dashboard existant n'est modifie.                    -->
-<!-- ============================================================ -->
 <style>
-/* ---------- reflets & effets ---------- */
-@keyframes xshine{0%{transform:translateX(-120%) skewX(-18deg)}60%,100%{transform:translateX(320%) skewX(-18deg)}}
-@keyframes xfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-@keyframes xpulse{0%,100%{opacity:.55}50%{opacity:1}}
-
-.xhero{position:relative;overflow:hidden;border-radius:18px;padding:26px 28px;margin-bottom:18px;
-  border:1px solid var(--border-hi);
-  background:linear-gradient(125deg,#141f38 0%,#101a2e 45%,#0c1424 100%)}
-.xhero::before{content:'';position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,0) 42%)}
-.xhero::after{content:'';position:absolute;top:0;left:0;width:60%;height:100%;pointer-events:none;
-  background:linear-gradient(100deg,transparent,rgba(255,255,255,.13),transparent);
-  animation:xshine 5.5s ease-in-out infinite}
-.xhero .xh{position:relative;z-index:2;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-.xhero .xico{width:60px;height:60px;border-radius:17px;display:flex;align-items:center;justify-content:center;
-  font-size:27px;flex-shrink:0;position:relative;overflow:hidden;
-  background:linear-gradient(150deg,var(--accent),var(--accent2));
-  box-shadow:0 10px 26px rgba(59,130,246,.4),inset 0 1px 0 rgba(255,255,255,.45)}
-.xhero .xico::after{content:'';position:absolute;inset:0;
-  background:linear-gradient(180deg,rgba(255,255,255,.4),transparent 55%)}
-.xhero h2{font-size:22px;font-weight:700;letter-spacing:-.02em;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.xhero p{font-size:13px;font-weight:500;color:var(--muted);margin-top:5px;line-height:1.55;max-width:640px}
-.xbadge{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:3px 9px;border-radius:20px;
-  color:#fff;background:linear-gradient(135deg,var(--accent),var(--pink));box-shadow:0 0 14px rgba(34,211,238,.35)}
-.xbadge.off{background:var(--card2);color:var(--dim);box-shadow:none}
-
-/* carte vitree avec reflet */
-.xcard{position:relative;overflow:hidden;border-radius:16px;margin-bottom:14px;
-  border:1px solid var(--border);background:linear-gradient(180deg,var(--card2) 0%,var(--card) 30%);
-  transition:border-color .2s,transform .2s,box-shadow .2s}
-.xcard::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent)}
-.xcard::after{content:'';position:absolute;top:-60%;left:-30%;width:45%;height:220%;pointer-events:none;opacity:0;
-  background:linear-gradient(100deg,transparent,rgba(255,255,255,.10),transparent);transition:opacity .3s}
-.xcard:hover{border-color:var(--border-hi);box-shadow:0 12px 34px rgba(0,0,0,.35)}
-.xcard:hover::after{opacity:1;animation:xshine 1.5s ease-out}
-.xcard-h{padding:17px 21px 0;position:relative;z-index:2}
-.xcard-h h3{font-size:15px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;gap:9px}
-.xcard-h h3 .xe{font-size:16px}
-.xcard-h p{font-size:12.5px;font-weight:500;color:var(--muted);margin-top:3px;line-height:1.5}
-.xcard-b{padding:15px 21px 19px;position:relative;z-index:2}
-
-/* mini-stats reflets */
-.xstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
-.xstat{position:relative;overflow:hidden;border-radius:14px;padding:15px 17px;border:1px solid var(--border);
-  background:linear-gradient(160deg,var(--card2),var(--card))}
-.xstat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,var(--accent),var(--pink),transparent)}
-.xstat::after{content:'';position:absolute;top:-50%;right:-20%;width:120px;height:200%;
-  background:radial-gradient(circle,rgba(59,130,246,.20),transparent 68%);filter:blur(20px)}
-.xstat b{display:block;font-size:22px;font-weight:700;letter-spacing:-.02em;position:relative;z-index:2}
-.xstat span{display:block;font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;
-  letter-spacing:.08em;margin-top:4px;position:relative;z-index:2}
-
-/* grille de commandes */
-.xcmds{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px}
-.xcmd{position:relative;overflow:hidden;display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border-radius:12px;
-  border:1px solid var(--border);background:var(--card2);cursor:pointer;transition:.16s}
-.xcmd::after{content:'';position:absolute;top:-60%;left:-40%;width:40%;height:220%;opacity:0;pointer-events:none;
-  background:linear-gradient(100deg,transparent,rgba(255,255,255,.13),transparent);transition:opacity .25s}
-.xcmd:hover{border-color:var(--border-hi);transform:translateY(-2px)}
-.xcmd:hover::after{opacity:1;animation:xshine 1.1s ease-out}
-.xcmd .xk{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;font-weight:700;color:var(--blue)}
-.xcmd .xd{display:block;font-size:11.5px;font-weight:500;color:var(--muted);margin-top:3px;line-height:1.45}
-.xcmd .xp{margin-left:auto;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
-  padding:2px 6px;border-radius:5px;color:var(--orange);background:rgba(245,158,11,.14);
-  border:1px solid rgba(245,158,11,.28);flex-shrink:0}
-.xcmd.copied{border-color:var(--green)}
-.xcmd.copied .xk{color:var(--green)}
-
-/* elements de liste (articles, postes) */
-.xitem{position:relative;overflow:hidden;border:1px solid var(--border);border-radius:13px;padding:14px 16px;
-  margin-bottom:11px;background:linear-gradient(170deg,var(--card2),var(--card))}
-.xitem::before{content:'';position:absolute;top:0;left:0;width:90px;height:1px;
-  background:linear-gradient(90deg,rgba(255,255,255,.35),transparent)}
-.xitem-h{display:flex;align-items:center;gap:9px;margin-bottom:12px;flex-wrap:wrap}
-.xitem-h .xem{font-size:17px}
-.xitem-h b{font-size:14px;font-weight:600}
-.xitem-h .xn{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);
-  border:1px solid var(--border);border-radius:6px;padding:2px 7px}
-.xitem-h .xrm{margin-left:auto}
-.xgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.xgrid .full{grid-column:1/-1}
-.xgrid label{display:block;font-size:11.5px;font-weight:600;color:var(--muted);margin-bottom:5px}
-.xempty{padding:24px;text-align:center;font-size:13px;color:var(--dim);border:1px dashed var(--border);border-radius:12px}
-.xnote{font-size:11.5px;color:var(--dim);margin-top:5px;line-height:1.45}
-.xsearch{width:100%;margin-bottom:14px}
+.cmds{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px}
+.cmd{display:flex;align-items:flex-start;gap:9px;padding:11px 13px;border:1px solid var(--border);
+  border-radius:12px;background:var(--card2);cursor:pointer;transition:.16s}
+.cmd:hover{border-color:var(--border-hi)}
+.cmd b{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;font-weight:700;color:var(--blue)}
+.cmd span{display:block;font-size:11.5px;font-weight:500;color:var(--muted);margin-top:3px;line-height:1.45}
+.cmd .pill-i{margin-left:auto;flex-shrink:0}
+.cmd.copied{border-color:var(--green)}
+.cmd.copied b{color:var(--green)}
+.srch{margin-bottom:14px}
 </style>
-
 <script>
 (function(){
-/* ------------------------------------------------------------------
-   1. CONFIG PAR DEFAUT DES NOUVEAUX MODULES
------------------------------------------------------------------- */
 const XDEF={
-  economy:{enabled:false,symbole:'🪙',monnaie:'coins',start_balance:100,daily_amount:250,
+  economy:{enabled:false,symbole:'',monnaie:'coins',start_balance:100,daily_amount:250,
            work_min:50,work_max:300,work_cooldown:3600,rob_enabled:true,rob_cooldown:7200,
            rob_success:40,rob_max_percent:20,log_channel:null,shop:[]},
   automod:{enabled:false,log_channel:null,badwords:[],badword_action:'delete',anti_invite:false,
            invite_action:'delete',anti_zalgo:false,anti_spoiler:false,max_lines:0,max_attachments:0,
-           ignored_channels:[],ignored_roles:[],warn_message:'{user} ce message n\'est pas autorisé ici.'},
-  suggestions:{enabled:false,channel_id:null,log_channel:null,up_emoji:'👍',down_emoji:'👎',
+           ignored_channels:[],ignored_roles:[],warn_message:"{user} ce message n'est pas autorisé ici."},
+  suggestions:{enabled:false,channel_id:null,log_channel:null,up_emoji:'',down_emoji:'',
                anonymous:false,threads:true,auto_delete_cmd:true,min_length:10,counter:0},
   polls:{enabled:false,channel_id:null,default_duration:'1h',color:'#5865F2',allow_multi:false,
          show_voters:false,ping_role:null},
-  guard:{raidmode:false,panic:false,lock_message:'🔒 Ce salon a été verrouillé par le staff.',
-         unlock_message:'🔓 Ce salon est de nouveau ouvert.',log_channel:null,agegate:false,
+  guard:{raidmode:false,panic:false,lock_message:'Ce salon a été verrouillé par le staff.',
+         unlock_message:'Ce salon est de nouveau ouvert.',log_channel:null,agegate:false,
          agegate_days:7,agegate_action:'kick',auto_slowmode:0,locked_channels:[],immune_roles:[]},
   apply:{enabled:false,panel_channel:null,review_channel:null,accepted_role:null,log_channel:null,
-         titre:'📋 Candidatures',description:'Choisis un poste ci-dessous pour postuler.',
+         titre:'Candidatures',description:'Choisis un poste ci-dessous pour postuler.',
          couleur:'#5865F2',cooldown_hours:24,postes:[]},
 };
 
-/* ------------------------------------------------------------------
-   2. CATALOGUE DES COMMANDES (affiche dans le dashboard)
------------------------------------------------------------------- */
 const XCMDS={
   economy:[['+economy','Ouvre le panneau de configuration',1],['+balance','Voir son portefeuille'],
-    ['+daily','Récompense quotidienne'],['+work','Travailler pour gagner des coins'],
+    ['+daily','Récompense quotidienne'],['+work','Travailler pour gagner de la monnaie'],
     ['+pay @membre 100','Envoyer de l\'argent'],['+deposit all','Déposer en banque'],
     ['+withdraw 500','Retirer de la banque'],['+rob @membre','Tenter un braquage'],
     ['+shop','Afficher la boutique'],['+buy 2','Acheter un article'],
@@ -1435,214 +1345,202 @@ const XCMDS={
     ['+automodignore #salon','Ignorer un salon',1],['+automodlogs #salon','Salon des logs AutoMod',1],
     ['+automodtest texte','Tester un message contre les filtres']],
   suggestions:[['+suggestions','Ouvre le panneau suggestions',1],['+suggest idée','Proposer une idée'],
-    ['+approve <id> raison','Approuver une suggestion',1],['+deny <id> raison','Refuser une suggestion',1],
+    ['+approve id raison','Approuver une suggestion',1],['+deny id raison','Refuser une suggestion',1],
     ['+suggestinfo','Statistiques des suggestions'],['+suggestreset','Remettre le compteur à zéro',1]],
   polls:[['+pollconfig','Ouvre le panneau sondages',1],
     ['+pollpro Q | A | B','Sondage avec barres en direct',1],
-    ['+quickpoll question','Sondage rapide 👍/👎'],
-    ['+endpoll <id>','Terminer un sondage',1],['+pollresults <id>','Afficher les résultats']],
+    ['+quickpoll question','Sondage rapide à réactions'],
+    ['+endpoll id','Terminer un sondage',1],['+pollresults id','Afficher les résultats']],
   guard:[['+guard','Ouvre le panneau protection',1],['+lock','Verrouiller le salon',1],
     ['+unlock','Déverrouiller le salon',1],['+lockall','Verrouiller tout le serveur',1],
     ['+unlockall','Tout déverrouiller',1],['+slowmode 10s','Ralentir un salon',1],
-    ['+panic','Mode panique : lock + slowmode',1],['+raidmode on','Bloquer les comptes récents',1],
+    ['+panic','Mode panique : verrouillage + slowmode',1],['+raidmode on','Bloquer les comptes récents',1],
     ['+agegate 7 kick','Âge minimum du compte',1]],
   apply:[['+apply','Ouvre le panneau candidatures',1],['+applysend #salon','Publier le panneau public',1],
     ['+applyadd Poste | Q1 | Q2','Ajouter un poste',1],['+applydel Poste','Supprimer un poste',1],
     ['+applylist','Lister les postes ouverts']],
 };
 
-/* ------------------------------------------------------------------
-   3. NAVIGATION — nouvelles categories
------------------------------------------------------------------- */
-const I={
+const SVG={
   eco:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
-  am:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>',
-  sg:'<path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>',
-  pl:'<line x1="18" y1="20" x2="18" y2="4"/><line x1="12" y1="20" x2="12" y2="10"/><line x1="6" y1="20" x2="6" y2="14"/>',
-  gd:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="15" x2="12" y2="18"/>',
-  ap:'<path d="M9 2h6a2 2 0 0 1 2 2v1h1a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1V4a2 2 0 0 1 2-2z"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>',
-  bk:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  automod:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>',
+  sugg:'<path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>',
+  poll:'<line x1="18" y1="20" x2="18" y2="4"/><line x1="12" y1="20" x2="12" y2="10"/><line x1="6" y1="20" x2="6" y2="14"/>',
+  guard:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="15" x2="12" y2="18"/>',
+  apply:'<path d="M9 2h6a2 2 0 0 1 2 2v1h1a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1V4a2 2 0 0 1 2-2z"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>',
+  list:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>',
+  coins:'<circle cx="12" cy="12" r="9"/><path d="M15 9.5a3 3 0 0 0-3-1.5c-1.7 0-3 .9-3 2s1.3 2 3 2 3 .9 3 2-1.3 2-3 2a3 3 0 0 1-3-1.5"/>',
+  cart:'<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>',
+  lock:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
 };
-const XNAV=['⚡ Modules Pro',[
-  ['xeconomy','Économie','Monnaie, boutique, banque',I.eco],
-  ['xautomod','AutoMod Pro','Filtres de messages',I.am],
-  ['xsuggestions','Suggestions','Idées & votes des membres',I.sg],
-  ['xpolls','Sondages','Votes avec barres en direct',I.pl],
-  ['xguard','Protection & Lockdown','Verrouillage et mode raid',I.gd],
-  ['xapply','Candidatures','Recrutement du staff',I.ap],
-  ['xcommands','Toutes les commandes','Les 47 commandes ajoutées',I.bk],
+const ico=(k,size)=>`<svg width="${size||16}" height="${size||16}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${SVG[k]}</svg>`;
+
+const XNAV=['Modules Pro',[
+  ['xeconomy','Économie','Monnaie, boutique, banque',SVG.eco],
+  ['xautomod','AutoMod','Filtres de messages',SVG.automod],
+  ['xsuggestions','Suggestions','Idées et votes des membres',SVG.sugg],
+  ['xpolls','Sondages','Votes avec barres en direct',SVG.poll],
+  ['xguard','Protection','Verrouillage et mode raid',SVG.guard],
+  ['xapply','Candidatures','Recrutement du staff',SVG.apply],
+  ['xcommands','Toutes les commandes','Les commandes ajoutées',SVG.list],
 ]];
 
-/* ------------------------------------------------------------------
-   4. MARKUP DES PAGES
------------------------------------------------------------------- */
-const hero=(ico,titre,sous,badge)=>`
-  <div class="xhero"><div class="xh">
-    <div class="xico">${ico}</div>
+const hero=(k,titre,sous,badge)=>`
+  <div class="hero"><div class="hi">
+    <div class="hini">${ico(k,32)}</div>
     <div style="flex:1;min-width:220px">
-      <h2>${titre}${badge?`<span class="xbadge" id="xb-${badge}">—</span>`:''}</h2>
+      <h2>${titre}${badge?`<span class="tagp" id="xb-${badge}">—</span>`:''}</h2>
       <p>${sous}</p>
     </div>
   </div></div>`;
-
-const sw=k=>`<label class="sw"><input type="checkbox" data-k="${k}"><i></i></label>`;
+const stat=(id,label,k,cls)=>`
+  <div class="stat"><div><b id="${id}">—</b><span>${label}</span></div><div class="sic${cls?' '+cls:''}">${ico(k,17)}</div></div>`;
+const card=(titre,sous,body)=>`
+  <div class="card"><div class="card-h"><h3>${titre}</h3>${sous?`<p>${sous}</p>`:''}</div><div class="card-b">${body}</div></div>`;
 const row=(t,s,c)=>`<div class="row"><div class="row-t"><strong>${t}</strong>${s?`<span>${s}</span>`:''}</div><div class="row-c">${c}</div></div>`;
-const card=(emoji,titre,sous,body)=>`
-  <div class="xcard"><div class="xcard-h"><h3><span class="xe">${emoji}</span>${titre}</h3>${sous?`<p>${sous}</p>`:''}</div>
-  <div class="xcard-b">${body}</div></div>`;
+const sw=k=>`<label class="sw"><input type="checkbox" data-k="${k}"><i></i></label>`;
 const chan=k=>`<span data-select="channel" data-sk="${k}" class="w-md"></span>`;
+const role=k=>`<span data-select="role" data-sk="${k}" class="w-md"></span>`;
 const num=(k,min,max)=>`<input type="number" data-k="${k}" min="${min}" max="${max}">`;
-const txt=(k,ph,len)=>`<input type="text" data-k="${k}" placeholder="${ph||''}"${len?` maxlength="${len}"`:''}>`;
-const ACTS=[['delete','Supprimer le message'],['warn','Supprimer + avertir'],['mute','Supprimer + mute 10 min'],
-            ['kick','Supprimer + expulser'],['ban','Supprimer + bannir'],['log','Journaliser seulement']];
+const txt=(k,ph,len)=>`<input type="text" data-k="${k}"${ph?` placeholder="${ph}"`:''}${len?` maxlength="${len}"`:''}>`;
 const sel=(k,opts)=>`<select data-k="${k}">${opts.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>`;
+const ACTS=[['delete','Supprimer le message'],['warn','Supprimer et avertir'],['mute','Supprimer et mute 10 min'],
+            ['kick','Supprimer et expulser'],['ban','Supprimer et bannir'],['log','Journaliser seulement']];
 
 const PAGES_HTML={
 
-xeconomy: hero('💰','Économie',
-  'Une monnaie complète : salaire, banque, braquages et boutique d\'articles pouvant donner des rôles. Panneau in-game : <code>+economy</code>.','eco')
- +`<div class="xstats">
-     <div class="xstat"><b id="xs-comptes">—</b><span>Comptes ouverts</span></div>
-     <div class="xstat"><b id="xs-argent">—</b><span>Argent en circulation</span></div>
-     <div class="xstat"><b id="xs-articles">—</b><span>Articles en boutique</span></div>
-   </div>`
- +card('⚙️','Réglages généraux','',
-    row('Activer l\'économie','Sans ça, toutes les commandes d\'économie répondent une erreur.',sw('extras.economy.enabled'))
-   +`<div class="xgrid">
-      <div><label>Symbole / emoji</label>${txt('extras.economy.symbole','🪙',8)}</div>
+xeconomy: hero('eco','Économie',
+  'Une monnaie complète : salaire, banque, braquages et boutique d\'articles pouvant donner des rôles. Panneau Discord : <code>+economy</code>.','eco')
+ +`<div class="stats">${stat('xs-comptes','Comptes ouverts','users')}${stat('xs-argent','Argent en circulation','coins','g')}${stat('xs-articles','Articles en boutique','cart','b')}</div>`
+ +card('Réglages généraux','La monnaie utilisée par toutes les commandes d\'économie.',
+    row('Activer l\'économie','Sans ça, les commandes d\'économie répondent une erreur.',sw('extras.economy.enabled'))
+   +`<div class="tk-grid">
+      <div><label>Symbole affiché devant les montants</label>${txt('extras.economy.symbole','',8)}</div>
       <div><label>Nom de la monnaie</label>${txt('extras.economy.monnaie','coins',20)}</div>
       <div><label>Solde de départ</label>${num('extras.economy.start_balance',0,1000000)}</div>
-      <div class="full"><label>Salon des logs (achats & transferts)</label>${chan('extras.economy.log_channel')}</div>
-     </div>`)
- +card('💼','Gains','Ce que rapportent <code>+daily</code> et <code>+work</code>.',
-   `<div class="xgrid">
+     </div>
+     <div class="field"><label>Salon des logs</label><div class="hint">Achats et transferts y sont journalisés.</div>${chan('extras.economy.log_channel')}</div>`)
+ +card('Gains','Ce que rapportent <code>+daily</code> et <code>+work</code>.',
+   `<div class="tk-grid">
       <div><label>Montant du daily</label>${num('extras.economy.daily_amount',0,1000000)}</div>
       <div><label>Cooldown de +work (secondes)</label>${num('extras.economy.work_cooldown',0,604800)}</div>
       <div><label>Gain minimum de +work</label>${num('extras.economy.work_min',0,1000000)}</div>
       <div><label>Gain maximum de +work</label>${num('extras.economy.work_max',0,1000000)}</div>
     </div>`)
- +card('🔫','Braquages','La commande <code>+rob</code> permet de voler un autre membre.',
+ +card('Braquages','La commande <code>+rob</code> permet de voler un autre membre.',
     row('Autoriser les vols','',sw('extras.economy.rob_enabled'))
-   +`<div class="xgrid">
+   +`<div class="tk-grid">
       <div><label>Chance de réussite (%)</label>${num('extras.economy.rob_success',0,100)}</div>
       <div><label>Part volée maximum (%)</label>${num('extras.economy.rob_max_percent',1,100)}</div>
-      <div><label>Cooldown (secondes)</label>${num('extras.economy.rob_cooldown',0,604800)}</div>
+      <div class="full"><label>Cooldown (secondes)</label>${num('extras.economy.rob_cooldown',0,604800)}</div>
     </div>`)
- +card('🛒','Boutique','25 articles maximum. Un article peut donner un rôle à l\'achat.',
+ +card('Boutique','Chaque article peut donner un rôle à l\'achat. 25 maximum.',
    `<div id="xShop"></div><div style="margin-top:14px"><button class="btn p" id="xShopAdd">+ Ajouter un article</button></div>`)
- +card('⌨️','Commandes de la catégorie','',`<div class="xcmds" data-cmds="economy"></div>`),
+ +card('Commandes de la catégorie','',`<div class="cmds" data-cmds="economy"></div>`),
 
-xautomod: hero('🛡️','AutoMod Pro',
-  'Filtres de contenu appliqués à chaque message : mots interdits, pubs, zalgo, spam de lignes ou de fichiers. Complémentaire de l\'anti-raid. Panneau : <code>+automod</code>.','am')
- +card('⚙️','Activation','',
-    row('Activer l\'AutoMod','Le staff (permissions de modération) est toujours ignoré.',sw('extras.automod.enabled'))
+xautomod: hero('automod','AutoMod',
+  'Filtres appliqués à chaque message : mots interdits, publicités, textes déformés, pavés et pièces jointes. Panneau Discord : <code>+automod</code>.','am')
+ +card('Activation','Le staff est toujours ignoré par les filtres.',
+    row('Activer l\'AutoMod','',sw('extras.automod.enabled'))
    +`<div class="field"><label>Salon des logs AutoMod</label>${chan('extras.automod.log_channel')}</div>`)
- +card('🤬','Mots interdits','Détection sur le message en minuscules, accents compris.',
-   `<div id="xBwChips" class="chips" style="margin-bottom:10px"></div>
-    <div class="add"><input type="text" id="xBwIn" placeholder="Un mot ou plusieurs séparés par des virgules"><button class="btn" id="xBwAdd">Ajouter</button></div>
-    <div class="field" style="margin-top:14px"><label>Sanction appliquée</label>${sel('extras.automod.badword_action',ACTS)}</div>`)
- +card('🔗','Anti-pub','Bloque discord.gg / discord.com/invite et leurs raccourcis.',
+ +card('Mots interdits','Détection sur le contenu du message en minuscules.',
+   `<div class="chips" id="xBwChips"></div>
+    <div class="add"><input type="text" id="xBwIn" placeholder="Un mot, ou plusieurs séparés par des virgules"><button class="btn" id="xBwAdd">Ajouter</button></div>
+    <div class="field"><label>Sanction appliquée</label>${sel('extras.automod.badword_action',ACTS)}</div>`)
+ +card('Anti-publicité','Bloque discord.gg, discord.com/invite et leurs raccourcis.',
     row('Bloquer les invitations Discord','',sw('extras.automod.anti_invite'))
    +`<div class="field"><label>Sanction appliquée</label>${sel('extras.automod.invite_action',ACTS)}</div>`)
- +card('📏','Autres filtres','',
+ +card('Autres filtres','',
     row('Anti-zalgo','Supprime les textes déformés par des caractères combinants.',sw('extras.automod.anti_zalgo'))
-   +row('Anti-spam de spoilers','Supprime les messages remplis de ||balises||.',sw('extras.automod.anti_spoiler'))
-   +row('Lignes maximum','0 = illimité. Bloque les pavés de saut de ligne.',num('extras.automod.max_lines',0,500))
-   +row('Fichiers maximum','0 = illimité. Nombre de pièces jointes par message.',num('extras.automod.max_attachments',0,10))
+   +row('Anti-spam de spoilers','Supprime les messages remplis de balises spoiler.',sw('extras.automod.anti_spoiler'))
+   +row('Lignes maximum','0 = illimité. Bloque les pavés de sauts de ligne.',num('extras.automod.max_lines',0,500))
+   +row('Fichiers maximum','0 = illimité. Pièces jointes par message.',num('extras.automod.max_attachments',0,10))
    +`<div class="field"><label>Message d'avertissement</label>
-      <div class="hint">Variables : <code>{user}</code> <code>{motif}</code></div>
+      <div class="hint">Variables : <code>{user}</code> et <code>{motif}</code>.</div>
       <textarea data-k="extras.automod.warn_message" maxlength="300"></textarea></div>`)
- +card('🚫','Exceptions','',
+ +card('Exceptions','Salons et rôles que l\'AutoMod ignore complètement.',
    `<div class="field"><label>Salons ignorés</label><div id="xAmChans"></div></div>
     <div class="field"><label>Rôles ignorés</label><div class="rolebox" data-roles="extras.automod.ignored_roles"></div></div>`)
- +card('⌨️','Commandes de la catégorie','',`<div class="xcmds" data-cmds="automod"></div>`),
+ +card('Commandes de la catégorie','',`<div class="cmds" data-cmds="automod"></div>`),
 
-xsuggestions: hero('💡','Suggestions',
-  'Les membres proposent avec <code>+suggest</code>, le staff valide ou refuse en un clic depuis les boutons de la suggestion. Panneau : <code>+suggestions</code>.','sg')
- +`<div class="xstats"><div class="xstat"><b id="xs-sugg">—</b><span>Suggestions envoyées</span></div></div>`
- +card('⚙️','Réglages','',
+xsuggestions: hero('sugg','Suggestions',
+  'Les membres proposent avec <code>+suggest</code>, le staff valide ou refuse depuis les boutons de la suggestion. Panneau Discord : <code>+suggestions</code>.','sg')
+ +`<div class="stats">${stat('xs-sugg','Suggestions envoyées','sugg')}</div>`
+ +card('Réglages','',
     row('Activer les suggestions','',sw('extras.suggestions.enabled'))
    +`<div class="field"><label>Salon des suggestions</label>${chan('extras.suggestions.channel_id')}</div>
      <div class="field"><label>Salon des logs</label>${chan('extras.suggestions.log_channel')}</div>
-     <div class="xgrid">
-       <div><label>Emoji « pour »</label>${txt('extras.suggestions.up_emoji','👍',32)}</div>
-       <div><label>Emoji « contre »</label>${txt('extras.suggestions.down_emoji','👎',32)}</div>
-       <div><label>Longueur minimum</label>${num('extras.suggestions.min_length',1,2000)}</div>
+     <div class="tk-grid">
+       <div><label>Emoji du vote pour</label>${txt('extras.suggestions.up_emoji','',32)}</div>
+       <div><label>Emoji du vote contre</label>${txt('extras.suggestions.down_emoji','',32)}</div>
+       <div class="full"><label>Longueur minimum d'une suggestion</label>${num('extras.suggestions.min_length',1,2000)}</div>
      </div>`
-   +row('Créer un fil de discussion','Un thread est ouvert sous chaque suggestion.',sw('extras.suggestions.threads'))
-   +row('Mode anonyme','L\'auteur n\'est pas affiché sur la suggestion.',sw('extras.suggestions.anonymous'))
-   +row('Supprimer la commande','Efface le <code>+suggest</code> du membre.',sw('extras.suggestions.auto_delete_cmd')))
- +card('⌨️','Commandes de la catégorie','',`<div class="xcmds" data-cmds="suggestions"></div>`),
+   +row('Créer un fil de discussion','Un fil est ouvert sous chaque suggestion.',sw('extras.suggestions.threads'))
+   +row('Mode anonyme','L\'auteur n\'apparaît pas sur la suggestion.',sw('extras.suggestions.anonymous'))
+   +row('Supprimer la commande','Efface le message de commande du membre.',sw('extras.suggestions.auto_delete_cmd')))
+ +card('Commandes de la catégorie','',`<div class="cmds" data-cmds="suggestions"></div>`),
 
-xpolls: hero('📊','Sondages',
-  'Des sondages à barres de progression qui se mettent à jour à chaque vote, avec bouton « retirer mon vote ». Panneau : <code>+pollconfig</code>.','pl')
- +card('⚙️','Réglages','',
+xpolls: hero('poll','Sondages',
+  'Des sondages à barres de progression mis à jour à chaque vote, avec retrait du vote et fermeture par le staff. Panneau Discord : <code>+pollconfig</code>.','pl')
+ +card('Réglages','',
     row('Activer les sondages','',sw('extras.polls.enabled'))
    +`<div class="field"><label>Salon par défaut</label><div class="hint">Vide = le sondage est publié dans le salon de la commande.</div>${chan('extras.polls.channel_id')}</div>
-     <div class="xgrid">
+     <div class="tk-grid">
        <div><label>Durée par défaut</label>${txt('extras.polls.default_duration','1h',10)}</div>
        <div><label>Couleur de l'embed</label>${txt('extras.polls.color','#5865F2',7)}</div>
      </div>
-     <div class="field"><label>Rôle mentionné à chaque sondage</label>
-       <div class="hint">Vide = aucune mention.</div>
-       <span data-select="role" data-sk="extras.polls.ping_role" class="w-md"></span></div>`
+     <div class="field"><label>Rôle mentionné à chaque sondage</label><div class="hint">Vide = aucune mention.</div>${role('extras.polls.ping_role')}</div>`
    +row('Afficher les votants','',sw('extras.polls.show_voters')))
- +card('⌨️','Commandes de la catégorie','',`<div class="xcmds" data-cmds="polls"></div>`),
+ +card('Commandes de la catégorie','',`<div class="cmds" data-cmds="polls"></div>`),
 
-xguard: hero('🔒','Protection & Lockdown',
-  'Le bouton rouge du serveur : verrouillage total, slowmode global, mode raid et filtre des comptes trop récents. Panneau : <code>+guard</code>.','gd')
- +`<div class="xstats"><div class="xstat"><b id="xs-locked">—</b><span>Salons verrouillés</span></div></div>`
- +card('🚨','Mode raid','Quand il est actif, tout compte plus récent que la limite ci-dessous est bloqué à l\'arrivée.',
+xguard: hero('guard','Protection',
+  'Verrouillage express du serveur, slowmode global, mode raid et filtre des comptes trop récents. Panneau Discord : <code>+guard</code>.','gd')
+ +`<div class="stats">${stat('xs-locked','Salons verrouillés','lock','r')}</div>`
+ +card('Mode raid','Quand il est actif, tout compte plus récent que la limite est bloqué à l\'arrivée.',
     row('Activer le mode raid','',sw('extras.guard.raidmode'))
    +row('Slowmode automatique (secondes)','Appliqué à tous les salons quand le mode raid s\'active.',num('extras.guard.auto_slowmode',0,21600)))
- +card('👶','Filtre des comptes récents','',
+ +card('Filtre des comptes récents','',
     row('Activer le filtre','',sw('extras.guard.agegate'))
-   +`<div class="xgrid">
+   +`<div class="tk-grid">
       <div><label>Âge minimum du compte (jours)</label>${num('extras.guard.agegate_days',0,3650)}</div>
       <div><label>Action</label>${sel('extras.guard.agegate_action',[['kick','Expulser'],['ban','Bannir'],['log','Journaliser seulement']])}</div>
      </div>`)
- +card('💬','Messages & logs','',
+ +card('Messages et logs','',
    `<div class="field"><label>Message de verrouillage</label><textarea data-k="extras.guard.lock_message" maxlength="300"></textarea></div>
     <div class="field"><label>Message de déverrouillage</label><textarea data-k="extras.guard.unlock_message" maxlength="300"></textarea></div>
     <div class="field"><label>Salon des logs de protection</label>${chan('extras.guard.log_channel')}</div>
     <div class="field"><label>Rôles immunisés</label><div class="rolebox" data-roles="extras.guard.immune_roles"></div></div>`)
- +card('⌨️','Commandes de la catégorie','',`<div class="xcmds" data-cmds="guard"></div>`),
+ +card('Commandes de la catégorie','',`<div class="cmds" data-cmds="guard"></div>`),
 
-xapply: hero('📋','Candidatures',
-  'Un panneau public façon ticket : le membre clique, choisit un poste, remplit un formulaire, et le staff accepte ou refuse en un clic. Panneau : <code>+apply</code>.','ap')
- +`<div class="xstats"><div class="xstat"><b id="xs-postes">—</b><span>Postes ouverts</span></div></div>`
- +card('⚙️','Réglages','',
+xapply: hero('apply','Candidatures',
+  'Un panneau public : le membre clique, choisit un poste, remplit un formulaire, et le staff accepte ou refuse en un clic. Panneau Discord : <code>+apply</code>.','ap')
+ +`<div class="stats">${stat('xs-postes','Postes ouverts','file','b')}</div>`
+ +card('Panneau public','L\'embed que les membres voient pour postuler.',
     row('Activer les candidatures','',sw('extras.apply.enabled'))
-   +`<div class="xgrid">
-      <div class="full"><label>Titre du panneau</label>${txt('extras.apply.titre','📋 Candidatures',100)}</div>
-      <div class="full"><label>Description du panneau</label><textarea data-k="extras.apply.description" maxlength="1000"></textarea></div>
-      <div><label>Couleur</label>${txt('extras.apply.couleur','#5865F2',7)}</div>
-      <div><label>Cooldown entre 2 candidatures (heures)</label>${num('extras.apply.cooldown_hours',0,8760)}</div>
+   +`<div class="tk-grid">
+      <div class="full"><label>Titre du panneau</label>${txt('extras.apply.titre','Candidatures',100)}</div>
+      <div class="full"><label>Description</label><textarea data-k="extras.apply.description" maxlength="1000"></textarea></div>
+      <div><label>Couleur de l'embed</label>${txt('extras.apply.couleur','#5865F2',7)}</div>
+      <div><label>Cooldown entre deux candidatures (heures)</label>${num('extras.apply.cooldown_hours',0,8760)}</div>
       <div><label>Salon du panneau public</label>${chan('extras.apply.panel_channel')}</div>
-      <div><label>Salon de réception (staff)</label>${chan('extras.apply.review_channel')}</div>
+      <div><label>Salon de réception du staff</label>${chan('extras.apply.review_channel')}</div>
       <div><label>Salon des logs</label>${chan('extras.apply.log_channel')}</div>
-      <div><label>Rôle donné si accepté</label><span data-select="role" data-sk="extras.apply.accepted_role" class="w-md"></span></div>
+      <div><label>Rôle donné si accepté</label>${role('extras.apply.accepted_role')}</div>
      </div>`)
- +card('💼','Postes ouverts','Chaque poste a son formulaire : 5 questions maximum, une par ligne.',
+ +card('Postes ouverts','Chaque poste a son formulaire. 5 questions maximum, une par ligne.',
    `<div id="xPostes"></div><div style="margin-top:14px"><button class="btn p" id="xPosteAdd">+ Ajouter un poste</button></div>`)
- +card('⌨️','Commandes de la catégorie','',`<div class="xcmds" data-cmds="apply"></div>`),
+ +card('Commandes de la catégorie','',`<div class="cmds" data-cmds="apply"></div>`),
 
-xcommands: hero('🧩','Toutes les commandes ajoutées',
-  '47 commandes réparties en 6 catégories, chacune pilotable depuis son panneau Discord ou depuis ce dashboard. Clique sur une commande pour la copier.')
- +`<input type="text" class="xsearch" id="xSearch" placeholder="🔍 Rechercher une commande…">
-   <div id="xAllCmds"></div>`,
+xcommands: hero('list','Toutes les commandes',
+  'Les commandes ajoutées par le pack, réparties en six catégories. Chacune se configure depuis son panneau Discord ou depuis ce dashboard. Clique sur une commande pour la copier.')
+ +`<input type="text" class="srch" id="xSearch" placeholder="Rechercher une commande…"><div id="xAllCmds"></div>`,
 };
 
-/* ------------------------------------------------------------------
-   5. BRANCHEMENT SUR LE DASHBOARD EXISTANT
------------------------------------------------------------------- */
 const xesc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const xget=(o,p)=>p.split('.').reduce((a,k)=>(a==null?undefined:a[k]),o);
-function xsetp(o,p,v){const ks=p.split('.');const last=ks.pop();let t=o;
-  for(const k of ks){if(typeof t[k]!=='object'||t[k]===null)t[k]={};t=t[k];}t[last]=v;}
 const xclone=o=>JSON.parse(JSON.stringify(o));
 
-/* --- injection des pages --- */
 function xinject(){
   const app=document.getElementById('app'); if(!app) return;
   const bar=document.getElementById('savebar');
@@ -1654,7 +1552,6 @@ function xinject(){
   }
 }
 
-/* --- extension de NAV / PAGES / DEFAULTS / MODULES --- */
 function xextend(){
   try{
     if(!NAV.some(g=>g[0]===XNAV[0])) NAV.push(XNAV);
@@ -1664,7 +1561,7 @@ function xextend(){
     if(!saved.extras) saved.extras=xclone(XDEF);
     const add=[
       ['xeconomy','Économie',c=>!!(c.extras&&c.extras.economy.enabled)],
-      ['xautomod','AutoMod Pro',c=>!!(c.extras&&c.extras.automod.enabled)],
+      ['xautomod','AutoMod',c=>!!(c.extras&&c.extras.automod.enabled)],
       ['xsuggestions','Suggestions',c=>!!(c.extras&&c.extras.suggestions.enabled)],
       ['xpolls','Sondages',c=>!!(c.extras&&c.extras.polls.enabled)],
       ['xguard','Protection',c=>!!(c.extras&&(c.extras.guard.raidmode||c.extras.guard.agegate))],
@@ -1672,58 +1569,66 @@ function xextend(){
     ];
     add.forEach(m=>{ if(!MODULES.some(x=>x[0]===m[0])) MODULES.push(m); });
     if(typeof buildNav==='function') buildNav();
-  }catch(e){ console.warn('[extras] extension impossible',e); }
+  }catch(e){}
 }
 
-/* --- listes dynamiques --- */
 function xBuildShop(){
   const box=document.getElementById('xShop'); if(!box) return;
   const list=(cfg.extras&&cfg.extras.economy.shop)||[];
   box.innerHTML=list.length?list.map((it,i)=>`
-    <div class="xitem">
-      <div class="xitem-h"><span class="xem">🛒</span><b>${xesc(it.nom||'Sans nom')}</b>
-        <span class="xn">Article ${i+1}</span>
-        <button class="btn sm dg xrm" data-xshoprm="${i}">Supprimer</button></div>
-      <div class="xgrid">
-        <div><label>Nom</label><input type="text" maxlength="40" data-k="extras.economy.shop.${i}.nom"></div>
+    <div class="tk">
+      <div class="tk-h">
+        <b>${xesc(it.nom||'Sans nom')}</b>
+        <span class="pill-i">Article ${i+1}</span>
+        <button class="btn sm dg" data-xshoprm="${i}">Supprimer</button>
+      </div>
+      <div class="tk-grid">
+        <div><label>Nom de l'article</label><input type="text" maxlength="40" data-k="extras.economy.shop.${i}.nom"></div>
         <div><label>Prix</label><input type="number" min="0" data-k="extras.economy.shop.${i}.prix"></div>
         <div class="full"><label>Description</label><input type="text" maxlength="100" data-k="extras.economy.shop.${i}.description"></div>
         <div><label>Rôle donné à l'achat</label><span data-select="role" data-sk="extras.economy.shop.${i}.role"></span></div>
         <div><label>Stock</label><input type="number" min="-1" data-k="extras.economy.shop.${i}.stock">
-          <div class="xnote">-1 = illimité</div></div>
+          <div class="mini">-1 = illimité</div></div>
       </div>
     </div>`).join('')
-    :`<div class="xempty">Aucun article. La commande <code>+shop</code> répondra que la boutique est vide.</div>`;
+    :`<div class="empty">Aucun article. La commande <code>+shop</code> répondra que la boutique est vide.</div>`;
 }
+
 function xBuildPostes(){
   const box=document.getElementById('xPostes'); if(!box) return;
   const list=(cfg.extras&&cfg.extras.apply.postes)||[];
   box.innerHTML=list.length?list.map((p,i)=>`
-    <div class="xitem">
-      <div class="xitem-h"><span class="xem">${xesc(p.emoji||'📄')}</span><b>${xesc(p.nom||'Sans nom')}</b>
-        <span class="xn">${(p.questions||[]).length} question(s)</span>
-        <button class="btn sm dg xrm" data-xposterm="${i}">Supprimer</button></div>
-      <div class="xgrid">
+    <div class="tk">
+      <div class="tk-h">
+        <span class="em">${xesc(p.emoji||'')}</span>
+        <b>${xesc(p.nom||'Sans nom')}</b>
+        <span class="pill-i">${(p.questions||[]).length} question(s)</span>
+        <button class="btn sm dg" data-xposterm="${i}">Supprimer</button>
+      </div>
+      <div class="tk-grid">
         <div><label>Nom du poste</label><input type="text" maxlength="40" data-k="extras.apply.postes.${i}.nom"></div>
-        <div><label>Emoji</label><input type="text" maxlength="8" data-k="extras.apply.postes.${i}.emoji"></div>
-        <div class="full"><label>Description courte</label><input type="text" maxlength="90" data-k="extras.apply.postes.${i}.description"></div>
+        <div><label>Emoji affiché dans le menu</label><input type="text" maxlength="8" data-k="extras.apply.postes.${i}.emoji"></div>
+        <div class="full"><label>Description courte</label><input type="text" maxlength="90" data-k="extras.apply.postes.${i}.description">
+          <div class="mini">Affichée sous le nom dans le menu déroulant.</div></div>
         <div class="full"><label>Questions du formulaire</label>
-          <textarea data-xq="${i}" placeholder="Ton âge ?&#10;Ton expérience ?&#10;Tes disponibilités ?"></textarea>
-          <div class="xnote">Une question par ligne, 5 maximum, 45 caractères chacune.</div></div>
+          <textarea data-xq="${i}" placeholder="Ton âge ?"></textarea>
+          <div class="mini">Une question par ligne, 5 maximum, 45 caractères chacune.</div></div>
       </div>
     </div>`).join('')
-    :`<div class="xempty">Aucun poste. Le bouton « Postuler » répondra qu'aucun poste n'est ouvert.</div>`;
+    :`<div class="empty">Aucun poste. Le bouton de candidature répondra qu'aucun poste n'est ouvert.</div>`;
   box.querySelectorAll('[data-xq]').forEach(ta=>{
     const i=Number(ta.dataset.xq);
     ta.value=((cfg.extras.apply.postes[i]||{}).questions||[]).join('\n');
   });
 }
+
 function xBuildBadwords(){
   const box=document.getElementById('xBwChips'); if(!box) return;
   const l=(cfg.extras&&cfg.extras.automod.badwords)||[];
   box.innerHTML=l.map((v,i)=>`<span class="chip"><b>${xesc(v)}</b><button type="button" data-xbwrm="${i}">×</button></span>`).join('')
     ||'<span class="mini">Aucun mot filtré.</span>';
 }
+
 function xBuildAmChannels(){
   const box=document.getElementById('xAmChans'); if(!box) return;
   const cur=((cfg.extras&&cfg.extras.automod.ignored_channels)||[]).map(String);
@@ -1736,48 +1641,47 @@ function xBuildAmChannels(){
     : `<div class="add"><input type="text" inputmode="numeric" id="xChIn" placeholder="ID du salon"><button class="btn" id="xChBtn">Ajouter</button></div>`;
   box.innerHTML=`<div class="chips" style="margin:0 0 10px">${chips||'<span class="mini">Aucun salon ignoré.</span>'}</div>${adder}`;
 }
+
 function xBuildCmds(){
+  const item=([c,d,admin])=>`
+    <div class="cmd" data-copy="${xesc(c)}" data-q="${xesc((c+' '+d).toLowerCase())}">
+      <div><b>${xesc(c)}</b><span>${xesc(d)}</span></div>
+      ${admin?'<span class="pill-i">Staff</span>':''}
+    </div>`;
   document.querySelectorAll('[data-cmds]').forEach(box=>{
-    const list=XCMDS[box.dataset.cmds]||[];
-    box.innerHTML=list.map(([c,d,admin])=>`
-      <div class="xcmd" data-copy="${xesc(c)}">
-        <div><span class="xk">${xesc(c)}</span><span class="xd">${xesc(d)}</span></div>
-        ${admin?'<span class="xp">Staff</span>':''}
-      </div>`).join('');
+    box.innerHTML=(XCMDS[box.dataset.cmds]||[]).map(item).join('');
   });
   const all=document.getElementById('xAllCmds');
-  if(all){
-    const titles={economy:['💰','Économie'],automod:['🛡️','AutoMod Pro'],suggestions:['💡','Suggestions'],
-                  polls:['📊','Sondages'],guard:['🔒','Protection & Lockdown'],apply:['📋','Candidatures']};
-    all.innerHTML=Object.entries(XCMDS).map(([k,list])=>{
-      const [e,t]=titles[k];
-      return `<div class="xcard" data-grp="${k}"><div class="xcard-h"><h3><span class="xe">${e}</span>${t}
-        </h3><p>${list.length} commande(s)</p></div><div class="xcard-b"><div class="xcmds">${
-        list.map(([c,d,a])=>`<div class="xcmd" data-copy="${xesc(c)}" data-q="${xesc((c+' '+d).toLowerCase())}">
-          <div><span class="xk">${xesc(c)}</span><span class="xd">${xesc(d)}</span></div>
-          ${a?'<span class="xp">Staff</span>':''}</div>`).join('')}</div></div></div>`;
-    }).join('');
+  if(all&&!all.dataset.built){
+    const titles={economy:'Économie',automod:'AutoMod',suggestions:'Suggestions',
+                  polls:'Sondages',guard:'Protection',apply:'Candidatures'};
+    all.innerHTML=Object.entries(XCMDS).map(([k,list])=>
+      `<div class="card" data-grp="${k}"><div class="card-h"><h3>${titles[k]}</h3><p>${list.length} commande(s)</p></div>
+       <div class="card-b"><div class="cmds">${list.map(item).join('')}</div></div></div>`).join('');
+    all.dataset.built='1';
   }
 }
+
 function xBuildBadges(){
-  const b=(id,on,txtOn,txtOff)=>{const el=document.getElementById('xb-'+id);if(!el)return;
-    el.textContent=on?(txtOn||'Actif'):(txtOff||'Inactif');el.className='xbadge'+(on?'':' off');};
   const x=cfg.extras||XDEF;
+  const b=(id,on,txtOn,txtOff)=>{const el=document.getElementById('xb-'+id);if(!el)return;
+    el.textContent=on?(txtOn||'Actif'):(txtOff||'Inactif');
+    el.style.cssText=on?'':'background:var(--card2);color:var(--dim)';};
   b('eco',x.economy.enabled); b('am',x.automod.enabled); b('sg',x.suggestions.enabled);
   b('pl',x.polls.enabled); b('gd',x.guard.raidmode||x.guard.agegate,'Protégé','Repos'); b('ap',x.apply.enabled);
-  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.textContent=v;};
   set('xs-articles',(x.economy.shop||[]).length);
   set('xs-postes',(x.apply.postes||[]).length);
   set('xs-sugg',x.suggestions.counter||0);
   set('xs-locked',(x.guard.locked_channels||[]).length);
 }
+
 function xBuildAll(){
   xBuildShop(); xBuildPostes(); xBuildBadwords(); xBuildAmChannels(); xBuildCmds(); xBuildBadges();
 }
 
-/* --- interactions --- */
 document.addEventListener('click',e=>{
-  const cp=e.target.closest('.xcmd[data-copy]');
+  const cp=e.target.closest('.cmd[data-copy]');
   if(cp){
     const v=cp.dataset.copy;
     (navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject())
@@ -1786,8 +1690,7 @@ document.addEventListener('click',e=>{
       .catch(()=>{ if(typeof toast==='function') toast('Copie impossible','err'); });
     return;
   }
-  const add=e.target.closest('#xShopAdd');
-  if(add){
+  if(e.target.closest('#xShopAdd')){
     const l=cfg.extras.economy.shop=cfg.extras.economy.shop||[];
     if(l.length>=25) return toast('25 articles maximum','err');
     l.push({nom:'Nouvel article',prix:500,description:'',role:null,stock:-1});
@@ -1799,11 +1702,10 @@ document.addEventListener('click',e=>{
     if(!confirm(`Supprimer l'article « ${cfg.extras.economy.shop[i]?.nom||''} » ?`)) return;
     cfg.extras.economy.shop.splice(i,1); render(); touch(); return;
   }
-  const addp=e.target.closest('#xPosteAdd');
-  if(addp){
+  if(e.target.closest('#xPosteAdd')){
     const l=cfg.extras.apply.postes=cfg.extras.apply.postes||[];
     if(l.length>=25) return toast('25 postes maximum','err');
-    l.push({nom:'Modérateur',emoji:'🛡️',description:'Rejoins l\'équipe de modération',
+    l.push({nom:'Modérateur',emoji:'',description:'Rejoins l\'équipe de modération',
             questions:['Ton âge ?','Ton expérience en modération ?','Tes disponibilités ?']});
     render(); touch(); toast('Poste ajouté — pense à enregistrer'); return;
   }
@@ -1813,8 +1715,7 @@ document.addEventListener('click',e=>{
     if(!confirm(`Supprimer le poste « ${cfg.extras.apply.postes[i]?.nom||''} » ?`)) return;
     cfg.extras.apply.postes.splice(i,1); render(); touch(); return;
   }
-  const bwa=e.target.closest('#xBwAdd');
-  if(bwa){
+  if(e.target.closest('#xBwAdd')){
     const inp=document.getElementById('xBwIn'); const v=(inp.value||'').trim(); if(!v) return;
     const l=cfg.extras.automod.badwords=cfg.extras.automod.badwords||[];
     v.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean).forEach(w=>{ if(!l.includes(w)) l.push(w); });
@@ -1824,14 +1725,14 @@ document.addEventListener('click',e=>{
   if(bwr){ cfg.extras.automod.badwords.splice(Number(bwr.dataset.xbwrm),1); xBuildBadwords(); touch(); return; }
   const chr=e.target.closest('[data-xchrm]');
   if(chr){ cfg.extras.automod.ignored_channels.splice(Number(chr.dataset.xchrm),1); xBuildAmChannels(); touch(); return; }
-  const chb=e.target.closest('#xChBtn');
-  if(chb){
+  if(e.target.closest('#xChBtn')){
     const inp=document.getElementById('xChIn'); const v=(inp.value||'').trim(); if(!v) return;
     const l=cfg.extras.automod.ignored_channels=cfg.extras.automod.ignored_channels||[];
     if(!l.map(String).includes(v)) l.push(v);
     inp.value=''; xBuildAmChannels(); touch();
   }
 });
+
 document.addEventListener('change',e=>{
   if(e.target.id==='xChAdd'&&e.target.value){
     const l=cfg.extras.automod.ignored_channels=cfg.extras.automod.ignored_channels||[];
@@ -1839,6 +1740,7 @@ document.addEventListener('change',e=>{
     xBuildAmChannels(); touch();
   }
 });
+
 document.addEventListener('input',e=>{
   if(e.target.matches('[data-xq]')){
     const i=Number(e.target.dataset.xq);
@@ -1848,28 +1750,26 @@ document.addEventListener('input',e=>{
   }
   if(e.target.id==='xSearch'){
     const q=e.target.value.trim().toLowerCase();
-    document.querySelectorAll('#xAllCmds .xcmd').forEach(c=>{
+    document.querySelectorAll('#xAllCmds .cmd').forEach(c=>{
       c.style.display=(!q||(c.dataset.q||'').includes(q))?'':'none';
     });
-    document.querySelectorAll('#xAllCmds .xcard').forEach(card=>{
-      const vis=[...card.querySelectorAll('.xcmd')].some(c=>c.style.display!=='none');
+    document.querySelectorAll('#xAllCmds .card').forEach(card=>{
+      const vis=[...card.querySelectorAll('.cmd')].some(c=>c.style.display!=='none');
       card.style.display=vis?'':'none';
     });
   }
 });
 
-/* --- rendu : on enveloppe render() sans le remplacer --- */
-function xhook(){
-  if(typeof render!=='function'||render.__xwrapped) return;
+function xhookRender(){
+  if(typeof render!=='function'||render.__x) return;
   const base=render;
   const wrapped=function(){ try{ xBuildAll(); }catch(e){} base(); try{ xBuildBadges(); }catch(e){} };
-  wrapped.__xwrapped=true;
+  wrapped.__x=true;
   try{ render=wrapped; }catch(e){ window.render=wrapped; }
 }
 
-/* --- sauvegarde : on ajoute un POST vers /extras --- */
 function xhookSave(){
-  if(typeof apiSave!=='function'||apiSave.__xwrapped) return;
+  if(typeof apiSave!=='function'||apiSave.__x) return;
   const base=apiSave;
   const wrapped=async function(data){
     const okBase=await base(data);
@@ -1883,51 +1783,47 @@ function xhookSave(){
     }catch{ okX=false; }
     return okBase&&okX;
   };
-  wrapped.__xwrapped=true;
+  wrapped.__x=true;
   try{ apiSave=wrapped; }catch(e){ window.apiSave=wrapped; }
 }
 
-/* --- chargement de la config des modules --- */
-async function xload(){
+async function xloadCfg(){
   try{
     const r=await fetch(apiURL(`/api/guild/${encodeURIComponent(guildId)}/extras`),
       {credentials:API_CREDS,cache:'no-store',headers:{Accept:'application/json',...authHeaders()}});
     if(!r.ok) return false;
     const j=await r.json();
     if(!j||!j.config) return false;
-    const s=j.config._stats||{};
+    const stats=j.config._stats||{};
     const clean=xclone(j.config); delete clean._stats;
     cfg.extras=deepMerge(xclone(XDEF),clean);
     saved.extras=xclone(cfg.extras);
-    const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.textContent=v;};
     const nb=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
-    set('xs-comptes',s.comptes!=null?nb(s.comptes):null);
-    set('xs-argent',s.argent_total!=null?nb(s.argent_total):null);
+    const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.textContent=nb(v);};
+    set('xs-comptes',stats.comptes); set('xs-argent',stats.argent_total);
     return true;
   }catch{ return false; }
 }
 
-/* --- demarrage : on attend que le dashboard ait fini son boot --- */
 function xstart(){
-  xinject(); xhook(); xhookSave();
+  xinject(); xhookRender(); xhookSave();
   let tries=0;
   const t=setInterval(async()=>{
     const app=document.getElementById('app');
-    tries++;
     if(app&&!app.classList.contains('hidden')){
       clearInterval(t);
       xextend();
-      await xload();
+      await xloadCfg();
       try{ render(); touch(); }catch(e){ xBuildAll(); }
       const h=(location.hash||'').replace('#','');
       if(h&&PAGES_HTML[h]&&typeof go==='function') go(h);
-    }else if(tries>400){ clearInterval(t); }
+    }else if(++tries>400){ clearInterval(t); }
   },150);
 }
+
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',xstart);
 else xstart();
 })();
 </script>
-
 </body>
 </html>
