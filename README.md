@@ -24,29 +24,34 @@ qu'**un seul port** à ouvrir. Pas de second port, pas de proxy obligatoire.
 
 ## Installation (5 minutes)
 
-### 1. Copier le dossier
+### 1. Uploader les fichiers
 
-Dépose le dossier `dashboard/` **à côté** de ton `app.py`, sur le serveur :
+**5 fichiers**, à déposer à côté de ton `app.py` (dans `/home/container/` sur
+Pterodactyl, via l'onglet *Gestionnaire de fichiers*) :
 
 ```
 /home/container/
-├── app.py
-├── config.json
-└── dashboard/
-    ├── __init__.py
-    ├── server.py
-    ├── patch_app.py
-    └── static/
-        ├── index.html      (connexion)
-        ├── servers.html    (choix du serveur)
-        ├── dash.html       (configuration)
-        └── logo.png        (ton logo, optionnel)
+├── app.py              (déjà là)
+├── config.json         (déjà là)
+├── dashboard.py        ← 1. le module
+├── patch_app.py        ← 2. à lancer une fois, puis supprimable
+└── web/                ← dossier à créer
+    ├── index.html      ← 3. connexion
+    ├── servers.html    ← 4. choix du serveur
+    └── dash.html       ← 5. configuration
 ```
+
+Ajoute aussi ton `logo.png` dans `web/` si tu en as un — les pages le
+référencent, mais elles fonctionnent sans.
+
+> Le dossier peut aussi s'appeler `static/` ou `public/`, et les pages peuvent
+> même être posées directement à côté de `dashboard.py` : le module cherche
+> `index.html` à ces différents endroits tout seul.
 
 ### 2. Patcher app.py
 
 ```bash
-python3 dashboard/patch_app.py app.py
+python3 patch_app.py app.py
 ```
 
 Le script crée un `app.py.bak`, vérifie que le résultat compile, et corrige :
@@ -65,20 +70,28 @@ Relancer le script est sans risque : il détecte ce qui est déjà fait.
 
 ### 3. Compléter config.json
 
-Voir `dashboard/config.example.json`. Le minimum :
+Ajoute ces clés à ton `config.json` existant :
 
 ```json
 {
-  "client_id": "L_APPLICATION_ID_DE_TON_BOT",
-  "client_secret": "...",
-  "secret_key": "une-longue-chaine-aleatoire",
+  "client_id":     "L_APPLICATION_ID_DE_TON_BOT",
+  "client_secret": "LE_CLIENT_SECRET_DU_PORTAIL_DISCORD",
+  "secret_key":    "une-longue-chaine-aleatoire-a-toi",
   "dashboard_port": 30121
 }
 ```
 
-> `client_secret` était écrit en clair dans `app.py`. **Régénère-le** sur le portail
-> Discord (*OAuth2 → Reset Secret*) et mets le nouveau dans `config.json`, qui ne
-> doit jamais partir sur GitHub.
+Deux clés facultatives, seulement si tu passes par un nom de domaine ou si tu
+héberges le HTML ailleurs (voir plus bas) :
+
+```json
+  "dashboard_public_url":      "",
+  "dashboard_allowed_origins": ""
+```
+
+> `client_secret` était écrit en clair dans `app.py`. **Régénère-le** sur le
+> portail Discord (*OAuth2 → Reset Secret*) et mets le nouveau dans
+> `config.json`, qui ne doit jamais partir sur GitHub.
 
 ### 4. Déclarer la Redirect URI sur Discord
 
@@ -298,7 +311,7 @@ Les routes `/api/guild/...` existantes du bot ne sont pas modifiées.
 ## Tests
 
 ```bash
-python3 dashboard/test_dashboard.py
+python3 test_dashboard.py
 ```
 
 Vérifie sans réseau ni bot réel : les pages répondent, `/api/config` ne fuite

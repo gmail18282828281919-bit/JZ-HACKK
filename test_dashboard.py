@@ -1,8 +1,8 @@
 import os, sys, json
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from flask import Flask
 from dashboard import register_dashboard
-import dashboard.server as ds
+import dashboard as ds
 
 class G:
     def __init__(s, i, n): s.id=i; s.name=n; s.member_count=120

@@ -3,7 +3,12 @@
 Applique au fichier principal du bot (app.py / app_122.py) les corrections
 necessaires pour que le dashboard fonctionne reellement.
 
-    python3 dashboard/patch_app.py app.py
+A lancer une seule fois, depuis le dossier qui contient app.py :
+
+    python3 patch_app.py app.py
+
+Ce fichier peut ensuite etre supprime : seuls dashboard.py et web/ sont
+necessaires au fonctionnement.
 
 Ce que le script corrige :
   1. WEB_PORT       : le port alloue par Pterodactyl (SERVER_PORT) devient

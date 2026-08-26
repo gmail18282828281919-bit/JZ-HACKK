@@ -1,5 +1,16 @@
 """
-Branchement du dashboard web sur l'application Flask deja presente dans le bot.
+Dashboard web du bot Discord — module unique.
+
+A placer a cote de app.py, avec le dossier web/ contenant les pages :
+
+    /home/container/
+    ├── app.py
+    ├── config.json
+    ├── dashboard.py      <- ce fichier
+    └── web/
+        ├── index.html
+        ├── servers.html
+        └── dash.html
 
 Objectif : UN SEUL PORT (celui de l'allocation Pterodactyl, 30121 par defaut).
 Les pages HTML et l'API sont servies par la meme origine, donc :
@@ -7,13 +18,13 @@ Les pages HTML et l'API sont servies par la meme origine, donc :
   - pas de blocage "mixed content" (page https qui appelle du http),
   - une seule regle de firewall.
 
-Utilisation dans app.py, juste avant `Thread(target=run_api, ...)` :
+Branchement dans app.py (fait automatiquement par patch_app.py) :
 
     from dashboard import register_dashboard
     register_dashboard(app, bot, client_id=CLIENT_ID, port=WEB_PORT)
 
 Les routes /api/guild/... existantes du bot ne sont pas touchees : ce module
-ajoute seulement ce qui manquait (pages, /api/config, /api/me, CORS de secours).
+ajoute seulement ce qui manquait (pages, /api/config, /api/status, /api/me).
 """
 
 import os
@@ -22,9 +33,21 @@ import time
 import requests
 from flask import jsonify, request, send_from_directory
 
-STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+_HERE = os.path.dirname(os.path.abspath(__file__))
 
-# pages servies telles quelles depuis dashboard/static/
+
+def _find_static():
+    """Trouve le dossier des pages, quel que soit le nom choisi a l'upload."""
+    for name in ("web", "static", "dashboard/static", "public", "html"):
+        path = os.path.join(_HERE, *name.split("/"))
+        if os.path.isfile(os.path.join(path, "index.html")):
+            return path
+    return _HERE          # pages deposees a cote de ce fichier
+
+
+STATIC_DIR = _find_static()
+
+# pages servies telles quelles depuis le dossier detecte ci-dessus
 PAGES = ("index.html", "servers.html", "dash.html", "dashboard.html")
 
 # cache des tokens Discord verifies : token -> (expiration, user, guilds)
