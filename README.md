@@ -292,6 +292,88 @@ pas être détournée pour agir au nom d'un utilisateur connecté.
 
 ---
 
+## Si le port du bot est bloqué : le tunnel inverse
+
+Beaucoup d'hébergeurs de bots bloquent les connexions **entrantes** sur les
+allocations. Le bot écoute bien, mais personne ne peut le joindre. Aucun
+réglage du panel n'y change quoi que ce soit.
+
+Le tunnel retourne le problème : **c'est le bot qui appelle ton VPS**, en
+sortant. Les connexions sortantes ne sont jamais bloquées — c'est comme ça
+que le bot parle à Discord.
+
+```
+Bot (Pterodactyl)                          Ton VPS
+      │                                        │
+      │ ── connexion SSH sortante ───────────► │  sshd
+      │                                        │
+      │                          127.0.0.1:8099 ◄── nginx
+      │                                        │
+      ◄──── le trafic redescend par le tunnel ─┘
+```
+
+Le port distant est lié à `127.0.0.1` : **seul nginx, sur ton VPS, peut
+l'atteindre**. Rien n'est exposé à Internet, et tout le trajet est chiffré
+par SSH.
+
+### Côté VPS
+
+Crée un utilisateur dédié au tunnel — pas root :
+
+```bash
+sudo adduser --disabled-password --gecos "" bottunnel
+sudo -u bottunnel mkdir -p /home/bottunnel/.ssh
+sudo -u bottunnel touch /home/bottunnel/.ssh/authorized_keys
+sudo -u bottunnel chmod 700 /home/bottunnel/.ssh
+sudo -u bottunnel chmod 600 /home/bottunnel/.ssh/authorized_keys
+```
+
+La clé publique à y coller sera affichée par le bot à son premier démarrage.
+
+### Côté bot
+
+Onglet **Startup** → **ADDITIONAL PYTHON PACKAGES** → ajoute :
+
+```
+paramiko
+```
+
+Puis dans `config.json` :
+
+```json
+"tunnel": {
+  "host": "195.95.144.228",
+  "port": 22,
+  "user": "bottunnel",
+  "remote_port": 8099
+}
+```
+
+Au premier démarrage, le bot crée sa clé et l'affiche dans la console. Tu la
+copies dans `/home/bottunnel/.ssh/authorized_keys` sur le VPS, tu redémarres,
+et la console affiche :
+
+```
+🔒 Tunnel ouvert : bottunnel@195.95.144.228:22 → 127.0.0.1:8099 → bot:30121
+```
+
+### Côté nginx
+
+Dans la config, remplace le `proxy_pass` par l'extrémité du tunnel :
+
+```nginx
+proxy_pass http://127.0.0.1:8099;
+```
+
+### Comportement
+
+Le tunnel se reconnecte tout seul si la connexion tombe, avec un délai qui
+double à chaque échec (5 s, 10 s, 20 s… plafonné à 2 minutes). Son état
+apparaît dans `/api/status` et donc dans l'indicateur du dashboard.
+
+Si `paramiko` n'est pas installé, le tunnel est simplement désactivé et le
+bot démarre normalement — il ne plante jamais pour ça.
+
 ## Comment ça marche
 
 ```

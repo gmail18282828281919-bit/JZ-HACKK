@@ -119,8 +119,172 @@ def _is_admin(guild):
     return bool(perms & 0x8) or bool(perms & 0x20)
 
 
+# =====================================================================
+#  Tunnel inverse (optionnel)
+#
+#  Quand le pare-feu de l'hebergeur du bot bloque les connexions
+#  ENTRANTES, le bot ne peut pas etre joint directement. Mais rien
+#  n'empeche le bot de SORTIR : c'est ainsi qu'il parle a Discord.
+#
+#  On inverse donc le sens : le bot ouvre une connexion SSH vers ton VPS
+#  et demande un "remote port forward". Le VPS se met alors a ecouter sur
+#  127.0.0.1:<remote_port>, et tout ce qui arrive la ressort chez le bot.
+#  nginx n'a plus qu'a transmettre /api/ vers ce port local.
+#
+#  Aucun port a ouvrir chez l'hebergeur du bot, et le port distant est
+#  lie a 127.0.0.1 : seul nginx, sur le VPS, peut l'atteindre. Le trafic
+#  est chiffre par SSH sur tout le trajet.
+# =====================================================================
+
+TUNNEL_STATE = {"connected": False, "last_error": None, "since": None, "attempts": 0}
+
+
+def _tunnel_pipe(a, b):
+    """Recopie les octets de a vers b jusqu'a la fermeture."""
+    try:
+        while True:
+            data = a.recv(32768)
+            if not data:
+                break
+            b.sendall(data)
+    except Exception:
+        pass
+    finally:
+        for sock in (a, b):
+            try:
+                sock.close()
+            except Exception:
+                pass
+
+
+def _tunnel_handler(chan, origin, server, local_port):
+    """Une connexion est arrivee sur le VPS : on la relie au serveur web local."""
+    import socket as _socket
+    import threading
+
+    try:
+        sock = _socket.create_connection(("127.0.0.1", local_port), timeout=10)
+    except Exception as err:
+        print(f"[tunnel] serveur web local injoignable : {err}")
+        try:
+            chan.close()
+        except Exception:
+            pass
+        return
+
+    threading.Thread(target=_tunnel_pipe, args=(chan, sock), daemon=True).start()
+    threading.Thread(target=_tunnel_pipe, args=(sock, chan), daemon=True).start()
+
+
+def _tunnel_key(path):
+    """Charge la cle privee, ou en cree une et affiche la cle publique."""
+    import paramiko
+
+    if os.path.exists(path):
+        for cls in (paramiko.Ed25519Key, paramiko.RSAKey, paramiko.ECDSAKey):
+            try:
+                return cls.from_private_key_file(path)
+            except Exception:
+                continue
+        raise RuntimeError(f"cle illisible : {path}")
+
+    key = paramiko.Ed25519Key.generate()
+    key.write_private_key_file(path)
+    try:
+        os.chmod(path, 0o600)
+    except Exception:
+        pass
+    pub = f"{key.get_name()} {key.get_base64()} bot-dashboard"
+    with open(path + ".pub", "w") as f:
+        f.write(pub + "\n")
+
+    print("\n" + "=" * 68)
+    print("🔑 CLE DU TUNNEL CREEE — a installer sur ton VPS")
+    print("=" * 68)
+    print("Copie la ligne ci-dessous, puis sur ton VPS lance :")
+    print("   mkdir -p ~/.ssh && nano ~/.ssh/authorized_keys")
+    print("et colle-la dedans.\n")
+    print(pub)
+    print("=" * 68 + "\n")
+    return key
+
+
+def _tunnel_loop(cfg, local_port):
+    """Maintient le tunnel ouvert, avec reconnexion automatique."""
+    import time as _t
+
+    try:
+        import paramiko
+    except ImportError:
+        print("[tunnel] paramiko n'est pas installe — tunnel desactive.")
+        print("[tunnel] Sur Pterodactyl : onglet Startup -> ADDITIONAL PYTHON PACKAGES -> paramiko")
+        TUNNEL_STATE["last_error"] = "paramiko manquant"
+        return
+
+    host = cfg.get("host")
+    port = int(cfg.get("port") or 22)
+    user = cfg.get("user") or "bottunnel"
+    remote_port = int(cfg.get("remote_port") or 8099)
+    key_path = cfg.get("key_file") or os.path.join(_HERE, "tunnel_key")
+
+    if not host:
+        print("[tunnel] aucun 'host' dans la config du tunnel — desactive.")
+        return
+
+    delay = 5
+    while True:
+        client = None
+        TUNNEL_STATE["attempts"] += 1
+        try:
+            key = _tunnel_key(key_path)
+            client = paramiko.SSHClient()
+            client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            client.connect(hostname=host, port=port, username=user, pkey=key,
+                           look_for_keys=False, allow_agent=False, timeout=20)
+
+            transport = client.get_transport()
+            transport.set_keepalive(15)
+            transport.request_port_forward(
+                "127.0.0.1", remote_port,
+                handler=lambda c, o, s: _tunnel_handler(c, o, s, local_port))
+
+            TUNNEL_STATE.update({"connected": True, "last_error": None, "since": _t.time()})
+            print(f"🔒 Tunnel ouvert : {user}@{host}:{port} → 127.0.0.1:{remote_port} → bot:{local_port}")
+            delay = 5
+
+            # La boucle dort tant que le transport tient ; le trafic est
+            # traite par les threads lances dans le handler.
+            while transport.is_active():
+                _t.sleep(2)
+            raise ConnectionError("transport SSH ferme")
+
+        except Exception as err:
+            TUNNEL_STATE.update({"connected": False, "last_error": str(err), "since": None})
+            print(f"[tunnel] deconnecte ({err}) — nouvelle tentative dans {delay} s")
+        finally:
+            if client is not None:
+                try:
+                    client.close()
+                except Exception:
+                    pass
+
+        _t.sleep(delay)
+        delay = min(delay * 2, 120)      # 5, 10, 20... plafonne a 2 min
+
+
+def start_tunnel(cfg, local_port):
+    """Demarre le tunnel dans un thread de fond. Sans effet si non configure."""
+    import threading
+
+    if not cfg or not cfg.get("enabled", True) or not cfg.get("host"):
+        return False
+    threading.Thread(target=_tunnel_loop, args=(cfg, local_port), daemon=True).start()
+    return True
+
+
 def register_dashboard(app, bot, client_id="", port=None, public_url="",
-                       allowed_origins=None, invite_permissions=8, start_time=None):
+                       allowed_origins=None, invite_permissions=8, start_time=None,
+                       tunnel=None):
     """Ajoute les pages du dashboard et les routes d'appoint a l'app Flask du bot.
 
     app                : l'instance Flask deja creee dans le bot
@@ -133,6 +297,7 @@ def register_dashboard(app, bot, client_id="", port=None, public_url="",
                          Liste ou chaine separee par des virgules, "*" pour tout autoriser.
     invite_permissions : permissions du lien d'invitation du bot
     start_time         : timestamp de demarrage du bot, pour l'uptime affiche
+    tunnel             : config du tunnel inverse (voir start_tunnel), ou None
     """
     started = float(start_time or time.time())
     client_id = str(client_id or os.environ.get("DISCORD_CLIENT_ID") or "")
@@ -242,6 +407,10 @@ def register_dashboard(app, bot, client_id="", port=None, public_url="",
             "ws_latency_ms": latency,
             "uptime_seconds": int(time.time() - started),
             "server_time": int(time.time()),
+            "tunnel": (None if not TUNNEL_STATE["attempts"] else {
+                "connected": TUNNEL_STATE["connected"],
+                "last_error": TUNNEL_STATE["last_error"],
+            }),
         })
 
     @app.route("/api/me")
@@ -282,6 +451,9 @@ def register_dashboard(app, bot, client_id="", port=None, public_url="",
             "guilds": out,
             "bot_ready": bool(getattr(bot, "is_ready", lambda: False)()),
         })
+
+    if start_tunnel(tunnel, port or 30121):
+        print("🔒 Tunnel inverse active (connexion sortante vers ton VPS)")
 
     shown = public_url or (f"http://<IP_PUBLIQUE_DU_PANEL>:{port}" if port else "")
     print("🖥️  Dashboard web branche sur l'API du bot")
