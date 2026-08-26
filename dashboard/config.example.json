@@ -1,0 +1,16 @@
+{
+  "token": "LE_TOKEN_DE_TON_BOT",
+  "owner_id": "TON_ID_DISCORD",
+
+  "client_id": "L_APPLICATION_ID_DE_TON_BOT",
+  "client_secret": "LE_CLIENT_SECRET_DU_PORTAIL_DISCORD",
+  "secret_key": "UNE_LONGUE_CHAINE_ALEATOIRE_A_TOI",
+
+  "dashboard_port": 30121,
+
+  "_dashboard_public_url": "A remplir SEULEMENT si tu passes par un nom de domaine en https (reverse proxy nginx). Sinon laisse vide : l'URL est deduite du navigateur.",
+  "dashboard_public_url": "",
+
+  "_dashboard_allowed_origins": "A remplir SEULEMENT si tu heberges le HTML sur un autre domaine que le bot. Vide = tout est servi par le bot, aucun CORS necessaire.",
+  "dashboard_allowed_origins": ""
+}

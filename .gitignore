@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+
+# fichiers du bot contenant des secrets — ne jamais commit
+config.json
+*.bak
