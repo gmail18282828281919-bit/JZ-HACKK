@@ -14842,37 +14842,6 @@ def api_guild_panel(guild_id, panel_key=None):
     return jsonify({"ok": True, "detail": detail, "channel_id": str(channel.id)})
 
 
-# ---------------------------------------------------------------
-#  Modules « extras » du dashboard (economie, automod, candidatures...)
-#  Sans cette route, le dashboard ne peut pas enregistrer ces pages.
-# ---------------------------------------------------------------
-EXTRAS_FILE = "dashboard_extras.json"
-
-
-@app.route("/api/guild/<guild_id>/extras", methods=["GET", "POST"])
-def api_guild_extras(guild_id):
-    guild, member = _dash_auth(guild_id)
-    if not guild:
-        return jsonify({"error": "forbidden"}), 403
-
-    gid = str(guild.id)
-    data = jload(EXTRAS_FILE) or {}
-
-    if request.method == "POST":
-        body = request.get_json(silent=True)
-        if not isinstance(body, dict):
-            return jsonify({"error": "JSON invalide"}), 400
-        data[gid] = body
-        jsave(EXTRAS_FILE, data)
-        return jsonify({"ok": True})
-
-    conf = dict(data.get(gid) or {})
-    conf["_meta"] = {
-        "voice": [{"id": str(c.id), "name": c.name} for c in guild.voice_channels],
-    }
-    return jsonify({"config": conf})
-
-
 def run_api():
 
 
