@@ -4,11 +4,11 @@
 #  Charge par app.py via _charger_modules_extra() : la fonction setup(bot, app)
 #  branche les commandes sur le bot et l'API des pages "extras" du dashboard.
 #
-#  Donnees (recreees vides au premier demarrage) :
-#     extras_configs.json      reglages par serveur
-#     extras_bank.json         economie : portefeuille et banque
-#     extras_birthdays.json    dates d'anniversaire
-#     extras_infractions.json  casier des membres
+#  Donnees (fichiers JSON, recreees vides si absentes) :
+#     extras_configs      reglages par serveur
+#     extras_bank         economie : portefeuille et banque
+#     extras_birthdays    dates d'anniversaire
+#     extras_infractions  casier des membres
 # ============================================================================
 
 import json
@@ -25,10 +25,10 @@ from flask import jsonify, request
 import requests
 
 DOSSIER = os.path.dirname(os.path.abspath(__file__)) or os.getcwd()
-F_CONFIGS = os.path.join(DOSSIER, "extras_configs.json")
-F_BANK = os.path.join(DOSSIER, "extras_bank.json")
-F_BIRTHDAYS = os.path.join(DOSSIER, "extras_birthdays.json")
-F_INFRACTIONS = os.path.join(DOSSIER, "extras_infractions.json")
+F_CONFIGS = os.path.join(DOSSIER, "extras_configs")
+F_BANK = os.path.join(DOSSIER, "extras_bank")
+F_BIRTHDAYS = os.path.join(DOSSIER, "extras_birthdays")
+F_INFRACTIONS = os.path.join(DOSSIER, "extras_infractions")
 
 BLEU, VERT, ROUGE, OR = 0x5865F2, 0x3BA55D, 0xED4245, 0xFAA61A
 
