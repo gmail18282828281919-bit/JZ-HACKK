@@ -9,6 +9,25 @@
 .cmd.copied{border-color:var(--green)}
 .cmd.copied b{color:var(--green)}
 .srch{margin-bottom:14px}
+.pv{margin-top:12px}
+.pv-h{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:7px}
+.pv-b{background:#2b2d31;border-radius:9px;padding:14px 16px}
+.pv-e{border-left:4px solid var(--accent);background:#1e1f22;border-radius:5px;padding:12px 14px;max-width:520px}
+.pv-e h5{font-size:14px;font-weight:700;color:#f2f3f5;margin-bottom:6px;line-height:1.35}
+.pv-e p{font-size:13px;font-weight:400;color:#dbdee1;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.pv-e .pv-f{margin-top:10px}
+.pv-e .pv-f b{display:block;font-size:12.5px;font-weight:700;color:#f2f3f5;margin-bottom:2px}
+.pv-e .pv-f span{font-size:12.5px;color:#dbdee1}
+.pv-e .pv-ft{margin-top:10px;font-size:11.5px;color:#949ba4}
+.pv-txt{font-size:13.5px;color:#dbdee1;line-height:1.5;white-space:pre-wrap}
+.pv-sel{margin-top:10px;background:#1e1f22;border:1px solid #3f4147;border-radius:6px;padding:9px 12px;
+  font-size:13px;color:#949ba4;max-width:520px}
+.pv-btns{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
+.pv-btn{font-size:12.5px;font-weight:600;color:#fff;background:#5865f2;border-radius:6px;padding:7px 14px}
+.pv-au{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.pv-au i{width:28px;height:28px;border-radius:50%;background:var(--accent2);display:block;flex-shrink:0}
+.pv-au b{font-size:13.5px;font-weight:600;color:#f2f3f5}
+.pv-au span{font-size:10px;font-weight:600;color:#fff;background:#5865f2;border-radius:4px;padding:1px 5px}
 </style>
 <script>
 (function(){
@@ -37,6 +56,12 @@ const XDEF={
   automsg:{enabled:false,messages:[]},
   birthdays:{enabled:false,channel_id:null,role_id:null,hour:10,message:'Joyeux anniversaire {user} !'},
   customcmds:{enabled:false,delete_trigger:false,commands:[]},
+  modo:{roles:[],log_channel:null},
+  jtc:{trigger_id:null,category_id:null,name:'Salon de {username}'},
+  autoreact:{salons:[]},
+  piconly:{channels:[]},
+  soutien:{role_id:null,server_link:''},
+  tag:{role_id:null},
 };
 
 const XCMDS={
@@ -86,6 +111,19 @@ const XCMDS={
     ['+birthdaylist','Toutes les dates du serveur'],
     ['+nextbirthdays','Les prochains anniversaires'],
     ['+birthdayremove','Supprimer sa date']],
+  modo:[['+modo','Ouvre le panneau de modération',1],['+ban @membre raison','Bannir un membre',1],
+    ['+unban pseudo','Débannir',1],['+kick @membre','Expulser',1],['+mute @membre 10m','Rendre muet',1],
+    ['+unmute @membre','Rendre la parole',1],['+warn @membre raison','Avertir',1],
+    ['+clear 50','Supprimer des messages',1]],
+  jtc:[['+jointocreate','Ouvre le panneau des vocaux temporaires',1]],
+  autoreact:[['+autoreact','Voir les auto-réactions'],
+    ['+autoreact add #salon 👍 👎','Ajouter des réactions',1],
+    ['+autoreact remove #salon','Retirer les réactions',1],
+    ['+autoreact clear','Tout supprimer',1]],
+  piconly:[['+piconly','Voir les salons photo seulement'],
+    ['+piconly add #salon','Autoriser seulement les images',1],
+    ['+piconly remove #salon','Revenir à la normale',1]],
+  soutien:[['+soutien','Ouvre le panneau du soutien',1],['+tag','Ouvre le panneau du tag serveur',1]],
   customcmds:[['+customcmd','Ouvre le panneau des commandes',1],
     ['+ccadd nom réponse','Créer une commande',1],
     ['+ccdel nom','Supprimer une commande',1],
@@ -99,6 +137,11 @@ const SVG={
   poll:'<line x1="18" y1="20" x2="18" y2="4"/><line x1="12" y1="20" x2="12" y2="10"/><line x1="6" y1="20" x2="6" y2="14"/>',
   guard:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="15" x2="12" y2="18"/>',
   apply:'<path d="M9 2h6a2 2 0 0 1 2 2v1h1a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1V4a2 2 0 0 1 2-2z"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>',
+  hammer:'<path d="M14 7l6 6"/><path d="M8.5 3.5l12 12a2.1 2.1 0 0 1-3 3l-12-12"/><path d="M6 10l-4 4 4 4 4-4"/>',
+  mic:'<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/>',
+  bolt:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  image:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
+  heart:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1L12 21l7.7-7.6 1.1-1a5.5 5.5 0 0 0 0-7.8z"/>',
   nuke:'<path d="M12 2v6"/><circle cx="12" cy="14" r="6"/><path d="M8.5 10.5l7 7"/><path d="M15.5 10.5l-7 7"/>',
   file2:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/>',
   repeat:'<polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>',
@@ -114,26 +157,29 @@ const SVG={
 const ico=(k,size)=>`<svg width="${size||16}" height="${size||16}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${SVG[k]}</svg>`;
 
 const XNAV=[
-  ['Sécurité avancée',[
+  ['Support',[
+    ['xapply','Candidatures','Recrutement du staff',SVG.apply],
+  ]],
+  ['Sécurité',[
     ['xautomod','AutoMod','Filtres de messages',SVG.automod],
     ['xantinuke','Anti-nuke','Protection contre la destruction',SVG.nuke],
     ['xguard','Protection','Verrouillage et mode raid',SVG.guard],
+    ['xmodo','Modération','Rôles staff et sanctions',SVG.hammer],
     ['xinfractions','Infractions','Casier des membres',SVG.file2],
   ]],
-  ['Communauté +',[
+  ['Communauté',[
     ['xsuggestions','Suggestions','Idées et votes des membres',SVG.sugg],
     ['xpolls','Sondages','Votes avec barres en direct',SVG.poll],
+    ['xeconomy','Économie','Monnaie, boutique, banque',SVG.eco],
     ['xautomsg','Messages automatiques','Publications récurrentes',SVG.repeat],
     ['xbirthdays','Anniversaires','Souhaits automatiques',SVG.cake],
+    ['xjtc','Salons vocaux temporaires','Join to create',SVG.mic],
+    ['xautoreact','Auto-réactions','Réactions automatiques',SVG.bolt],
+    ['xpiconly','Photos seulement','Salons réservés aux images',SVG.image],
+    ['xsoutien','Soutien & tag','Rôles de soutien et tag du serveur',SVG.heart],
   ]],
-  ['Engagement',[
-    ['xeconomy','Économie','Monnaie, boutique, banque',SVG.eco],
-    ['xapply','Candidatures','Recrutement du staff',SVG.apply],
-  ]],
-  ['Personnalisation',[
+  ['Avancé',[
     ['xcustomcmds','Commandes personnalisées','Tes propres commandes',SVG.term],
-  ]],
-  ['Aide',[
     ['xcommands','Toutes les commandes','Les commandes ajoutées',SVG.list],
   ]],
 ];
@@ -157,6 +203,8 @@ const role=k=>`<span data-select="role" data-sk="${k}" class="w-md"></span>`;
 const num=(k,min,max)=>`<input type="number" data-k="${k}" min="${min}" max="${max}">`;
 const txt=(k,ph,len)=>`<input type="text" data-k="${k}"${ph?` placeholder="${ph}"`:''}${len?` maxlength="${len}"`:''}>`;
 const sel=(k,opts)=>`<select data-k="${k}">${opts.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>`;
+const preview=id=>`<div class="pv"><div class="pv-h">Aperçu — voilà ce que verront tes membres</div>
+  <div class="pv-b" id="pv-${id}"></div></div>`;
 const ACTS=[['delete','Supprimer le message'],['warn','Supprimer et avertir'],['mute','Supprimer et mute 10 min'],
             ['kick','Supprimer et expulser'],['ban','Supprimer et bannir'],['log','Journaliser seulement']];
 
@@ -230,7 +278,8 @@ xsuggestions: hero('sugg','Suggestions',
      </div>`
    +row('Créer un fil de discussion','Un fil est ouvert sous chaque suggestion.',sw('extras.suggestions.threads'))
    +row('Mode anonyme','L\'auteur n\'apparaît pas sur la suggestion.',sw('extras.suggestions.anonymous'))
-   +row('Supprimer la commande','Efface le message de commande du membre.',sw('extras.suggestions.auto_delete_cmd')))
+   +row('Supprimer la commande','Efface le message de commande du membre.',sw('extras.suggestions.auto_delete_cmd'))
+   +preview('sugg'))
  +card('Commandes de la catégorie','',`<div class="cmds" data-cmds="suggestions"></div>`),
 
 xpolls: hero('poll','Sondages',
@@ -279,7 +328,8 @@ xapply: hero('apply','Candidatures',
       <div><label>Salon de réception du staff</label>${chan('extras.apply.review_channel')}</div>
       <div><label>Salon des logs</label>${chan('extras.apply.log_channel')}</div>
       <div><label>Rôle donné si accepté</label>${role('extras.apply.accepted_role')}</div>
-     </div>`)
+     </div>`
+   +preview('apply'))
  +card('Postes ouverts','Chaque poste a son formulaire. 5 questions maximum, une par ligne.',
    `<div id="xPostes"></div><div style="margin-top:14px"><button class="btn p" id="xPosteAdd">+ Ajouter un poste</button></div>`)
  +card('Commandes de la catégorie','',`<div class="cmds" data-cmds="apply"></div>`),
@@ -343,7 +393,8 @@ xbirthdays: hero('cake','Anniversaires',
      </div>
      <div class="field"><label>Message d'anniversaire</label>
        <div class="hint">Variables : <code>{user}</code> <code>{username}</code> <code>{server}</code></div>
-       <textarea data-k="extras.birthdays.message" maxlength="500"></textarea></div>`)
+       <textarea data-k="extras.birthdays.message" maxlength="500"></textarea></div>`
+   +preview('bday'))
  +card('Commandes de la catégorie','',`<div class="cmds" data-cmds="birthdays"></div>`),
 
 xcustomcmds: hero('term','Commandes personnalisées',
@@ -356,11 +407,54 @@ xcustomcmds: hero('term','Commandes personnalisées',
    `<div id="xCcList"></div><div style="margin-top:14px"><button class="btn p" id="xCcAdd">+ Créer une commande</button></div>`)
  +card('Commandes de la catégorie','',`<div class="cmds" data-cmds="customcmds"></div>`),
 
+xmodo: hero('hammer','Modération',
+  'Les rôles qui peuvent sanctionner, et le salon où chaque sanction est journalisée. Panneau Discord : <code>+modo</code>.','mo')
+ +card('Équipe de modération','Ces rôles peuvent utiliser les commandes de sanction sans être administrateurs.',
+   `<div class="field"><label>Rôles modérateurs</label><div class="rolebox" data-roles="extras.modo.roles"></div></div>
+    <div class="field"><label>Salon des logs de modération</label>${chan('extras.modo.log_channel')}</div>`)
+ +card('Commandes de la catégorie','',`<div class="cmds" data-cmds="modo"></div>`),
+
+xjtc: hero('mic','Salons vocaux temporaires',
+  'Un membre rejoint le salon déclencheur, le bot lui crée son propre vocal, supprimé quand il est vide. Panneau Discord : <code>+jointocreate</code>.','jt')
+ +card('Configuration','',
+   `<div class="field"><label>Salon vocal déclencheur</label>
+      <div class="hint">Vide = système désactivé.</div>
+      <span data-select="voice" data-sk="extras.jtc.trigger_id" class="w-md"></span></div>
+    <div class="field"><label>Catégorie où créer les salons</label>
+      <span data-select="category" data-sk="extras.jtc.category_id" class="w-md"></span></div>
+    <div class="field"><label>Nom du salon créé</label>
+      <div class="hint">Variables : <code>{username}</code> <code>{userid}</code></div>
+      <input type="text" maxlength="60" data-k="extras.jtc.name" placeholder="Salon de {username}"></div>`)
+ +card('Commandes de la catégorie','',`<div class="cmds" data-cmds="jtc"></div>`),
+
+xautoreact: hero('bolt','Auto-réactions',
+  'Le bot ajoute automatiquement des réactions à chaque message d\'un salon. Commande Discord : <code>+autoreact</code>.','ar')
+ +card('Salons configurés','5 emojis maximum par salon, séparés par une espace.',
+   `<div id="xArList"></div><div style="margin-top:14px"><button class="btn p" id="xArAdd">+ Ajouter un salon</button></div>`)
+ +card('Commandes de la catégorie','',`<div class="cmds" data-cmds="autoreact"></div>`),
+
+xpiconly: hero('image','Photos seulement',
+  'Dans ces salons, les messages sans image sont supprimés. Idéal pour les galeries et les présentations. Commande Discord : <code>+piconly</code>.','pi')
+ +card('Salons concernés','',`<div class="field"><label>Salons réservés aux images</label><div id="xPicChans"></div></div>`)
+ +card('Commandes de la catégorie','',`<div class="cmds" data-cmds="piconly"></div>`),
+
+xsoutien: hero('heart','Soutien & tag',
+  'Récompense les membres qui affichent ton serveur dans leur statut ou qui portent le tag du serveur. Panneaux Discord : <code>+soutien</code> et <code>+tag</code>.','so')
+ +card('Système de soutien','Le rôle est donné aux membres qui mettent le lien du serveur dans leur statut.',
+   `<div class="field"><label>Rôle donné aux soutiens</label>${role('extras.soutien.role_id')}</div>
+    <div class="field"><label>Lien du serveur à détecter</label>
+      <input type="text" maxlength="100" data-k="extras.soutien.server_link" placeholder="https://discord.gg/..."></div>`)
+ +card('Tag du serveur','Rôle donné aux membres qui portent le tag du serveur sur leur profil.',
+   `<div class="field"><label>Rôle du tag</label>${role('extras.tag.role_id')}</div>`)
+ +card('Commandes de la catégorie','',`<div class="cmds" data-cmds="soutien"></div>`),
+
 xcommands: hero('list','Toutes les commandes',
   'Les commandes ajoutées par le pack, réparties en six catégories. Chacune se configure depuis son panneau Discord ou depuis ce dashboard. Clique sur une commande pour la copier.')
  +`<input type="text" class="srch" id="xSearch" placeholder="Rechercher une commande…"><div id="xAllCmds"></div>`,
 };
 
+let XMETA={voice:[]};
+const xgetp=(o,p)=>p.split('.').reduce((a,k)=>(a==null?undefined:a[k]),o);
 const xesc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const xclone=o=>JSON.parse(JSON.stringify(o));
 
@@ -377,7 +471,11 @@ function xinject(){
 
 function xextend(){
   try{
-    XNAV.forEach(g=>{ if(!NAV.some(x=>x[0]===g[0])) NAV.push(g); });
+    XNAV.forEach(([grp,items])=>{
+      let g=NAV.find(x=>x[0]===grp);
+      if(!g){ g=[grp,[]]; NAV.push(g); }
+      items.forEach(it=>{ if(!g[1].some(x=>x[0]===it[0])) g[1].push(it); });
+    });
     XNAV.forEach(g=>g[1].forEach(([k,t,s])=>{PAGES[k]=[t,s];}));
     DEFAULTS.extras=xclone(XDEF);
     if(!cfg.extras) cfg.extras=xclone(XDEF);
@@ -394,6 +492,11 @@ function xextend(){
       ['xautomsg','Messages automatiques',c=>!!(c.extras&&c.extras.automsg.enabled)],
       ['xbirthdays','Anniversaires',c=>!!(c.extras&&c.extras.birthdays.enabled)],
       ['xcustomcmds','Commandes personnalisées',c=>!!(c.extras&&c.extras.customcmds.enabled)],
+      ['xjtc','Vocaux temporaires',c=>!!(c.extras&&c.extras.jtc&&c.extras.jtc.trigger_id)],
+      ['xautoreact','Auto-réactions',c=>!!(c.extras&&c.extras.autoreact&&(c.extras.autoreact.salons||[]).length)],
+      ['xpiconly','Photos seulement',c=>!!(c.extras&&c.extras.piconly&&(c.extras.piconly.channels||[]).length)],
+      ['xsoutien','Soutien',c=>!!(c.extras&&c.extras.soutien&&c.extras.soutien.role_id)],
+      ['xmodo','Modération',c=>!!(c.extras&&c.extras.modo&&(c.extras.modo.roles||[]).length)],
     ];
     add.forEach(m=>{ if(!MODULES.some(x=>x[0]===m[0])) MODULES.push(m); });
     if(typeof buildNav==='function') buildNav();
@@ -470,6 +573,108 @@ function xBuildAmChannels(){
   box.innerHTML=`<div class="chips" style="margin:0 0 10px">${chips||'<span class="mini">Aucun salon ignoré.</span>'}</div>${adder}`;
 }
 
+const pvEsc=s=>xesc(s);
+const pvVars=t=>String(t||'')
+  .replace(/\{user\}/g,'@Membre').replace(/\{username\}/g,'Membre')
+  .replace(/\{server\}/g,(guild&&guild.name)||'Ton serveur')
+  .replace(/\{membercount\}/g,'128').replace(/\{tag\}/g,'Membre#0001')
+  .replace(/\{id\}/g,'123456789').replace(/\{created\}/g,'01/01/2024');
+const pvColor=v=>/^#?[0-9a-f]{6}$/i.test(String(v||'').replace('#',''))
+  ? '#'+String(v).replace('#','') : '#5865F2';
+
+function pvEmbed({titre,desc,couleur,fields,footer,auteur}){
+  return `<div class="pv-e" style="border-left-color:${pvColor(couleur)}">`
+    +(auteur?`<div class="pv-au"><i></i><b>${pvEsc(auteur)}</b><span>BOT</span></div>`:'')
+    +(titre?`<h5>${pvEsc(pvVars(titre))}</h5>`:'')
+    +(desc?`<p>${pvEsc(pvVars(desc))}</p>`:'')
+    +((fields||[]).map(([n,v])=>`<div class="pv-f"><b>${pvEsc(n)}</b><span>${pvEsc(pvVars(v))}</span></div>`).join(''))
+    +(footer?`<div class="pv-ft">${pvEsc(pvVars(footer))}</div>`:'')
+    +`</div>`;
+}
+
+function xPreviews(){
+  const x=cfg.extras||XDEF;
+  const set=(id,html)=>{const el=document.getElementById('pv-'+id);if(el)el.innerHTML=html;};
+
+  const postes=(x.apply.postes||[]);
+  set('apply', pvEmbed({
+      titre:x.apply.titre||'Candidatures',
+      desc:x.apply.description||'',
+      couleur:x.apply.couleur,
+      fields: postes.length?[['Postes ouverts',
+        postes.slice(0,6).map(p=>`${p.emoji||''} ${p.nom||'Sans nom'}${p.description?' — '+p.description:''}`).join('\n')]]:[],
+      footer:((guild&&guild.name)||'Ton serveur')+' • Candidature confidentielle'})
+    +`<div class="pv-btns"><span class="pv-btn">Postuler</span></div>`);
+
+  set('sugg', pvEmbed({
+      titre:'Suggestion #'+((x.suggestions.counter||0)+1),
+      desc:'Ajouter un salon pour les memes.',
+      couleur:'#22d3ee',
+      fields:[['Auteur',x.suggestions.anonymous?'Anonyme':'@Membre'],['Statut','En attente']],
+      footer:((guild&&guild.name)||'Ton serveur')+' • Vote ci-dessous',
+      auteur:x.suggestions.anonymous?null:'Membre'})
+    +`<div class="pv-btns"><span class="pv-btn" style="background:#248046">Approuver</span>`
+    +`<span class="pv-btn" style="background:#da373c">Refuser</span></div>`
+    +`<div class="pv-ft" style="margin-top:8px">${pvEsc(x.suggestions.up_emoji||'')} 12 · ${pvEsc(x.suggestions.down_emoji||'')} 3</div>`);
+
+  set('bday', pvEmbed({
+      titre:'Joyeux anniversaire !',
+      desc:x.birthdays.message||'',
+      couleur:'#9b59b6'}));
+
+  document.querySelectorAll('[data-pvam]').forEach(el=>{
+    const m=(x.automsg.messages||[])[Number(el.dataset.pvam)]||{};
+    el.innerHTML=m.titre
+      ? pvEmbed({titre:m.titre,desc:m.content,couleur:m.couleur})
+      : `<div class="pv-txt">${pvEsc(pvVars(m.content))||'<span style="color:#949ba4">Message vide</span>'}</div>`;
+  });
+  document.querySelectorAll('[data-pvcc]').forEach(el=>{
+    const c2=(x.customcmds.commands||[])[Number(el.dataset.pvcc)]||{};
+    el.innerHTML=c2.titre
+      ? pvEmbed({titre:c2.titre,desc:c2.reponse,couleur:c2.couleur})
+      : `<div class="pv-txt">${pvEsc(pvVars(c2.reponse))||'<span style="color:#949ba4">Réponse vide</span>'}</div>`;
+  });
+
+  const tk=$('pv-tickets');
+  if(tk){
+    const p=cfg.tickets.panel||{}, choix=cfg.tickets.choix||[];
+    tk.innerHTML=pvEmbed({
+        titre:p.titre||'Support',
+        desc:p.description||'',
+        couleur:p.couleur,
+        fields: choix.length?[['Choisis le motif de ta demande',
+          choix.slice(0,10).map(c2=>`${c2.emoji||''} ${c2.nom||'Sans nom'}${c2.description?' · '+c2.description:''}`).join('\n')]]:[],
+        footer:'Réponse en privé · Confidentiel'})
+      +(p.mode==='select'||!p.mode
+        ? `<div class="pv-sel">Choisissez une raison pour ouvrir un ticket…</div>`
+        : `<div class="pv-btns">${choix.slice(0,5).map(c2=>
+            `<span class="pv-btn">${pvEsc((c2.emoji||'')+' '+(c2.nom||''))}</span>`).join('')||'<span class="pv-btn">Ouvrir un ticket</span>'}</div>`);
+  }
+
+  const wc=$('pv-welcome');
+  if(wc){
+    const w=cfg.welcome||{};
+    wc.innerHTML=w.mode==='embed'
+      ? pvEmbed({titre:(w.embed||{}).titre,desc:(w.embed||{}).desc,couleur:(w.embed||{}).color,auteur:'ModeraBot'})
+      : `<div class="pv-au"><i></i><b>ModeraBot</b><span>BOT</span></div>`
+        +`<div class="pv-txt">${pvEsc(pvVars(w.message))||'<span style="color:#949ba4">Message vide</span>'}</div>`;
+  }
+}
+
+function xInjectPreviews(){
+  const add=(pageId,cardTitle,pvId)=>{
+    const page=document.getElementById(pageId);
+    if(!page||document.getElementById('pv-'+pvId)) return;
+    const card=document.createElement('div');
+    card.className='card';
+    card.innerHTML=`<div class="card-h"><h3>${cardTitle}</h3><p>Se met à jour pendant que tu modifies les réglages.</p></div>
+      <div class="card-b"><div class="pv" style="margin-top:0"><div class="pv-b" id="pv-${pvId}"></div></div></div>`;
+    page.appendChild(card);
+  };
+  add('pg-tickets','Aperçu du panneau','tickets');
+  add('pg-welcome','Aperçu du message de bienvenue','welcome');
+}
+
 function xBuildAmList(){
   const box=document.getElementById('xAmList'); if(!box) return;
   const list=(cfg.extras&&cfg.extras.automsg.messages)||[];
@@ -488,6 +693,7 @@ function xBuildAmList(){
         <div><label>Titre de l'embed</label><input type="text" maxlength="100" data-k="extras.automsg.messages.${i}.titre">
           <div class="mini">Vide = message texte simple.</div></div>
         <div><label>Couleur de l'embed</label><input type="text" maxlength="7" data-k="extras.automsg.messages.${i}.couleur"></div>
+        <div class="full"><div class="pv"><div class="pv-h">Aperçu</div><div class="pv-b" data-pvam="${i}"></div></div></div>
       </div>
     </div>`).join('')
     :`<div class="empty">Aucun message automatique configuré.</div>`;
@@ -513,6 +719,7 @@ function xBuildCcList(){
         <div><label>Couleur de l'embed</label><input type="text" maxlength="7" data-k="extras.customcmds.commands.${i}.couleur"></div>
         <div class="full"><label>Rôles autorisés</label><div class="rolebox" data-roles="extras.customcmds.commands.${i}.roles"></div>
           <div class="mini">Vide = tout le monde peut l'utiliser.</div></div>
+        <div class="full"><div class="pv"><div class="pv-h">Aperçu</div><div class="pv-b" data-pvcc="${i}"></div></div></div>
       </div>
     </div>`).join('')
     :`<div class="empty">Aucune commande personnalisée.</div>`;
@@ -524,6 +731,56 @@ function xBuildAnUsers(){
   const chips=cur.map((id,i)=>`<span class="chip"><b>ID ${xesc(id)}</b><button type="button" data-xanrm="${i}">×</button></span>`).join('');
   box.innerHTML=`<div class="rolebox"><div class="chips" style="margin:0 0 10px">${chips||'<span class="mini">Aucun membre autorisé.</span>'}</div>
     <div class="add"><input type="text" inputmode="numeric" id="xAnIn" placeholder="ID du membre"><button class="btn" id="xAnAddBtn">Ajouter</button></div></div>`;
+}
+
+function xBuildVoice(){
+  document.querySelectorAll('[data-select="voice"]').forEach(host=>{
+    const key=host.dataset.sk, val=xgetp(cfg,key), cur=val==null?'':String(val);
+    const list=XMETA.voice||[];
+    if(list.length){
+      let html=`<option value="">— Aucun —</option>`, found=false;
+      for(const c of list){
+        const sel=String(c.id)===cur?' selected':''; if(sel) found=true;
+        html+=`<option value="${xesc(c.id)}"${sel}>🔊 ${xesc(c.name)}</option>`;
+      }
+      if(cur&&!found) html+=`<option value="${xesc(cur)}" selected>ID ${xesc(cur)} (introuvable)</option>`;
+      host.innerHTML=`<select data-k="${xesc(key)}">${html}</select>`;
+    }else{
+      host.innerHTML=`<input type="text" inputmode="numeric" data-k="${xesc(key)}" placeholder="ID du salon vocal" value="${xesc(cur)}">`;
+    }
+  });
+}
+
+function xBuildArList(){
+  const box=document.getElementById('xArList'); if(!box) return;
+  const list=(cfg.extras&&cfg.extras.autoreact&&cfg.extras.autoreact.salons)||[];
+  box.innerHTML=list.length?list.map((r,i)=>`
+    <div class="tk">
+      <div class="tk-h">
+        <span class="em">${xesc((r.emojis||'').split(' ')[0]||'')}</span>
+        <b>Salon ${i+1}</b>
+        <button class="btn sm dg" data-xarrm="${i}">Supprimer</button>
+      </div>
+      <div class="tk-grid">
+        <div><label>Salon</label><span data-select="channel" data-sk="extras.autoreact.salons.${i}.channel"></span></div>
+        <div><label>Emojis</label><input type="text" maxlength="120" data-k="extras.autoreact.salons.${i}.emojis" placeholder="👍 👎">
+          <div class="mini">5 maximum, séparés par une espace.</div></div>
+      </div>
+    </div>`).join('')
+    :`<div class="empty">Aucune auto-réaction configurée.</div>`;
+}
+
+function xBuildPicChans(){
+  const box=document.getElementById('xPicChans'); if(!box) return;
+  const cur=((cfg.extras&&cfg.extras.piconly&&cfg.extras.piconly.channels)||[]).map(String);
+  const name=id=>{const c=(META.channels||[]).find(c=>String(c.id)===String(id));return c?'#'+c.name:'ID '+id;};
+  const chips=cur.map((id,i)=>`<span class="chip"><b>${xesc(name(id))}</b><button type="button" data-xpicrm="${i}">×</button></span>`).join('');
+  const adder=(META.channels||[]).length
+    ? `<select id="xPicAdd"><option value="">+ Ajouter un salon…</option>${(META.channels||[])
+        .filter(c=>!cur.includes(String(c.id)))
+        .map(c=>`<option value="${xesc(c.id)}">#${xesc(c.name)}</option>`).join('')}</select>`
+    : `<div class="add"><input type="text" inputmode="numeric" id="xPicIn" placeholder="ID du salon"><button class="btn" id="xPicBtn">Ajouter</button></div>`;
+  box.innerHTML=`<div class="rolebox"><div class="chips" style="margin:0 0 10px">${chips||'<span class="mini">Aucun salon.</span>'}</div>${adder}</div>`;
 }
 
 function xBuildCmds(){
@@ -567,7 +824,8 @@ function xBuildBadges(){
 function xBuildAll(){
   xBuildShop(); xBuildPostes(); xBuildBadwords(); xBuildAmChannels();
   xBuildAmList(); xBuildCcList(); xBuildAnUsers();
-  xBuildCmds(); xBuildBadges();
+  xBuildArList(); xBuildPicChans(); xBuildVoice();
+  xBuildCmds(); xBuildBadges(); xPreviews();
 }
 
 document.addEventListener('click',e=>{
@@ -636,6 +894,23 @@ document.addEventListener('click',e=>{
     if(!confirm(`Supprimer la commande « +${cfg.extras.customcmds.commands[i]?.nom||''} » ?`)) return;
     cfg.extras.customcmds.commands.splice(i,1); render(); touch(); return;
   }
+  if(e.target.closest('#xArAdd')){
+    const l=(cfg.extras.autoreact=cfg.extras.autoreact||{salons:[]});
+    l.salons=l.salons||[];
+    if(l.salons.length>=25) return toast('25 salons maximum','err');
+    l.salons.push({channel:null,emojis:''});
+    render(); touch(); return;
+  }
+  const arrm=e.target.closest('[data-xarrm]');
+  if(arrm){ cfg.extras.autoreact.salons.splice(Number(arrm.dataset.xarrm),1); render(); touch(); return; }
+  const picrm=e.target.closest('[data-xpicrm]');
+  if(picrm){ cfg.extras.piconly.channels.splice(Number(picrm.dataset.xpicrm),1); xBuildPicChans(); touch(); return; }
+  if(e.target.closest('#xPicBtn')){
+    const inp=document.getElementById('xPicIn'); const v=(inp.value||'').trim(); if(!v) return;
+    const l=cfg.extras.piconly.channels=cfg.extras.piconly.channels||[];
+    if(!l.map(String).includes(v)) l.push(v);
+    inp.value=''; xBuildPicChans(); touch(); return;
+  }
   if(e.target.closest('#xAnAddBtn')){
     const inp=document.getElementById('xAnIn'); const v=(inp.value||'').trim();
     if(!/^\d{5,25}$/.test(v)) return toast('Entre un identifiant valide','err');
@@ -658,6 +933,12 @@ document.addEventListener('click',e=>{
 });
 
 document.addEventListener('change',e=>{
+  if(e.target.id==='xPicAdd'&&e.target.value){
+    const l=cfg.extras.piconly.channels=cfg.extras.piconly.channels||[];
+    if(!l.map(String).includes(e.target.value)) l.push(e.target.value);
+    xBuildPicChans(); touch(); return;
+  }
+  if(e.target.matches('[data-k]')) setTimeout(()=>{ try{ xPreviews(); }catch(err){} },0);
   if(e.target.id==='xChAdd'&&e.target.value){
     const l=cfg.extras.automod.ignored_channels=cfg.extras.automod.ignored_channels||[];
     if(!l.map(String).includes(e.target.value)) l.push(e.target.value);
@@ -672,6 +953,7 @@ document.addEventListener('input',e=>{
     if(cfg.extras.apply.postes[i]) cfg.extras.apply.postes[i].questions=qs;
     touch(); return;
   }
+  if(e.target.matches('[data-k]')) setTimeout(()=>{ try{ xPreviews(); }catch(err){} },0);
   if(e.target.id==='xSearch'){
     const q=e.target.value.trim().toLowerCase();
     document.querySelectorAll('#xAllCmds .cmd').forEach(c=>{
@@ -719,7 +1001,8 @@ async function xloadCfg(){
     const j=await r.json();
     if(!j||!j.config) return false;
     const stats=j.config._stats||{};
-    const clean=xclone(j.config); delete clean._stats;
+    XMETA=j.config._meta||XMETA;
+    const clean=xclone(j.config); delete clean._stats; delete clean._meta;
     cfg.extras=deepMerge(xclone(XDEF),clean);
     saved.extras=xclone(cfg.extras);
     const nb=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
@@ -731,7 +1014,7 @@ async function xloadCfg(){
 }
 
 function xstart(){
-  xinject(); xhookRender(); xhookSave(); xextend();
+  xinject(); xInjectPreviews(); xhookRender(); xhookSave(); xextend();
   let tries=0;
   const t=setInterval(async()=>{
     const app=document.getElementById('app');

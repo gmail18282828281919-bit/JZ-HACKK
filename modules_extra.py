@@ -3881,6 +3881,171 @@ def register_listeners(bot):
 
 
 # ===========================================================================
+#   PONT VERS LES REGLAGES DEJA GERES PAR APP.PY
+#   (modo, join to create, autoreact, piconly, soutien, tag)
+#   Ces reglages vivent dans app.py : on lit et on ecrit ses propres
+#   structures, sans rien modifier dans son code.
+# ===========================================================================
+
+def _main():
+    import sys
+    return sys.modules.get("__main__")
+
+
+def _mfile(key):
+    m = _main()
+    files = getattr(m, "FILES", {}) if m else {}
+    return files.get(key)
+
+
+def _mload(key):
+    m = _main()
+    path = _mfile(key)
+    if not m or not path:
+        return {}
+    try:
+        return m.jload(path)
+    except Exception:
+        return {}
+
+
+def _msave(key, data):
+    m = _main()
+    path = _mfile(key)
+    if not m or not path:
+        return
+    try:
+        m.jsave(path, data)
+    except Exception:
+        pass
+
+
+def _mdict(name):
+    m = _main()
+    d = getattr(m, name, None) if m else None
+    return d if isinstance(d, dict) else None
+
+
+def bridge_read(gid):
+    gid = str(gid)
+    out = {}
+
+    modo = _mload("modo").get(gid, {})
+    out["modo"] = {
+        "roles": [str(r) for r in modo.get("modo_roles", [])],
+        "log_channel": str(modo["log_channel"]) if modo.get("log_channel") else None,
+    }
+
+    jtc = (_mdict("_jtc_config") or {}).get(gid, {})
+    out["jtc"] = {
+        "trigger_id": str(jtc["trigger_id"]) if jtc.get("trigger_id") else None,
+        "category_id": str(jtc["category_id"]) if jtc.get("category_id") else None,
+        "name": jtc.get("name", "Salon de {username}"),
+    }
+
+    ar = (_mdict("_autoreact_cfg") or {}).get(gid, {})
+    out["autoreact"] = {"salons": [{"channel": str(cid), "emojis": " ".join(ems)}
+                                   for cid, ems in ar.items()]}
+
+    po = (_mdict("_piconly_cfg") or {}).get(gid, set())
+    out["piconly"] = {"channels": [str(c) for c in po]}
+
+    so = (_mdict("_soutien_cfg") or {}).get(gid, {})
+    out["soutien"] = {
+        "role_id": str(so["role_id"]) if so.get("role_id") else None,
+        "server_link": so.get("server_link", ""),
+    }
+
+    tag = (_mdict("_tag_cfg") or {}).get(gid)
+    out["tag"] = {"role_id": str(tag) if tag else None}
+    return out
+
+
+def bridge_write(gid, body):
+    gid = str(gid)
+    saved = []
+
+    if "modo" in body:
+        b = body["modo"] or {}
+        data = _mload("modo")
+        conf = data.setdefault(gid, {})
+        conf["modo_roles"] = _ids(b.get("roles"), 25)
+        ch = _i(b.get("log_channel"))
+        if ch:
+            conf["log_channel"] = ch
+        else:
+            conf.pop("log_channel", None)
+        _msave("modo", data)
+        saved.append("modo")
+
+    if "jtc" in body:
+        b = body["jtc"] or {}
+        d = _mdict("_jtc_config")
+        if d is not None:
+            trigger = _i(b.get("trigger_id"))
+            if trigger:
+                d[gid] = {
+                    "trigger_id": trigger,
+                    "category_id": _i(b.get("category_id")),
+                    "name": _s(b.get("name"), "Salon de {username}", 60) or "Salon de {username}",
+                }
+            else:
+                d.pop(gid, None)
+            saved.append("jtc")
+
+    if "autoreact" in body:
+        b = body["autoreact"] or {}
+        d = _mdict("_autoreact_cfg")
+        if d is not None:
+            entry = {}
+            for row in (b.get("salons") or [])[:25]:
+                ch = _i((row or {}).get("channel"))
+                ems = [e for e in _s(row.get("emojis"), "", 120).split() if e][:5]
+                if ch and ems:
+                    entry[str(ch)] = ems
+            if entry:
+                d[gid] = entry
+            else:
+                d.pop(gid, None)
+            saved.append("autoreact")
+
+    if "piconly" in body:
+        b = body["piconly"] or {}
+        d = _mdict("_piconly_cfg")
+        if d is not None:
+            ids = set(_ids(b.get("channels"), 50))
+            if ids:
+                d[gid] = ids
+            else:
+                d.pop(gid, None)
+            saved.append("piconly")
+
+    if "soutien" in body:
+        b = body["soutien"] or {}
+        d = _mdict("_soutien_cfg")
+        if d is not None:
+            rid = _i(b.get("role_id"))
+            if rid:
+                d[gid] = {"role_id": rid, "server_link": _s(b.get("server_link"), "", 100)}
+            else:
+                d.pop(gid, None)
+            saved.append("soutien")
+
+    if "tag" in body:
+        b = body["tag"] or {}
+        d = _mdict("_tag_cfg")
+        if d is not None:
+            rid = _i(b.get("role_id"))
+            if rid:
+                d[gid] = rid
+            else:
+                d.pop(gid, None)
+            saved.append("tag")
+
+    return saved
+
+
+# ===========================================================================
 #   API DASHBOARD — /api/guild/<gid>/extras
 # ===========================================================================
 
@@ -3949,6 +4114,10 @@ def register_api(app):
 
         if request.method == "GET":
             cfg = xload(gid)
+            try:
+                cfg.update(bridge_read(gid))
+            except Exception:
+                pass
             bank = bank_load(gid)
             inf = inf_load(gid)
             cfg["_stats"] = {
@@ -3964,6 +4133,9 @@ def register_api(app):
                 "badwords": len(cfg.get("automod", {}).get("badwords", [])),
                 "suggestions": cfg.get("suggestions", {}).get("counter", 0),
                 "salons_verrouilles": len(cfg.get("guard", {}).get("locked_channels", [])),
+            }
+            cfg["_meta"] = {
+                "voice": [{"id": str(c.id), "name": c.name} for c in guild.voice_channels],
             }
             return jsonify({"ok": True, "config": cfg})
 
@@ -4173,6 +4345,11 @@ def register_api(app):
                 })
             c["commands"] = cmds
             saved.append("customcmds")
+
+        try:
+            saved += bridge_write(gid, body)
+        except Exception:
+            pass
 
         xsave(gid, cfg)
         return jsonify({"ok": True, "saved": saved})

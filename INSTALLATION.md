@@ -61,3 +61,20 @@ persistantes : ils continuent de marcher après un redémarrage du bot.
 - `extras_birthdays/<guild_id>.json` — dates d'anniversaire
 
 Rien n'écrase tes fichiers existants.
+
+## 5. Pages branchées sur des réglages déjà gérés par app.py
+
+Ces pages du dashboard ne créent pas de nouveau module : elles lisent et écrivent
+les réglages que `app.py` gère déjà, sans modifier son code.
+
+| Page | Réglage d'app.py |
+|---|---|
+| Modération | `modo_config.json` (rôles modérateurs, salon de logs) |
+| Salons vocaux temporaires | `_jtc_config` (`+jointocreate`) |
+| Auto-réactions | `_autoreact_cfg` (`+autoreact`) |
+| Photos seulement | `_piconly_cfg` (`+piconly`) |
+| Soutien & tag | `_soutien_cfg` et `_tag_cfg` (`+soutien`, `+tag`) |
+
+Les réglages en mémoire (vocaux temporaires, auto-réactions, photos seulement,
+soutien, tag) suivent le comportement de ton `app.py` : ils sont perdus au
+redémarrage du bot, exactement comme quand tu les configures dans Discord.
