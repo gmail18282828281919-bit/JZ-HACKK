@@ -101,8 +101,6 @@ nav{position:sticky;top:0;z-index:100;height:56px;border-bottom:1px solid var(--
 .err-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
 .btn{padding:9px 18px;border-radius:10px;font-size:13px;font-weight:800;text-decoration:none;cursor:pointer;border:1px solid var(--border-hi);color:var(--text);background:var(--surface2);font-family:'Nunito',sans-serif}
 .btn.primary{background:linear-gradient(135deg,var(--accent2),var(--accent));border-color:transparent;color:#fff}
-.note{grid-column:1/-1;display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-left:3px solid #faa61a;border-radius:12px;padding:12px 15px;font-size:12.5px;font-weight:600;color:var(--muted);line-height:1.55}
-.note b{color:var(--text);font-weight:800}
 
 footer{position:relative;z-index:10;border-top:1px solid var(--border);padding:13px 28px;display:flex;justify-content:space-between;align-items:center;background:rgba(17,21,34,.8);backdrop-filter:blur(12px);font-size:12px;font-weight:600;color:var(--muted)}
 footer a{color:var(--muted);text-decoration:none}
@@ -345,11 +343,10 @@ function setUser(u){
   $('uTag').textContent = u.username ? '@' + u.username : ('ID ' + (u.id || ''));
 }
 
-/* Où le bot est-il présent ?
-   Le backend peut répondre de plusieurs formes, et une réponse mal comprise
-   affichait « bot absent » partout. On distingue donc trois résultats :
-     - un Set   : liste fiable des serveurs du bot
-     - null     : on ne sait pas -> on n'affiche JAMAIS « bot absent »
+/* Où le bot est-il présent ? Le backend peut répondre de plusieurs formes ;
+   une réponse mal comprise marquait « bot absent » partout. Trois résultats :
+     - un Set : liste fiable des serveurs du bot
+     - null   : présence inconnue -> on n'affiche JAMAIS « bot absent »
    Une liste vide n'est retenue que si le bot déclare lui-même 0 serveur. */
 
 const BOT_FLAGS = ['bot_present','bot_in','bot_in_guild','has_bot','bot','present','mutual',
@@ -358,11 +355,10 @@ const idOf = x => String(x && typeof x === 'object' ? (x.id ?? x.guild_id ?? x.g
 function flagOf(g){
   if(!g || typeof g !== 'object') return undefined;
   for(const k of BOT_FLAGS) if(k in g) return !!g[k];
-  return undefined;                       // aucun indicateur : on ne peut rien conclure
+  return undefined;                     // aucun indicateur : on ne peut rien conclure
 }
 
-/* Extrait une liste d'identifiants d'une réponse JSON, quelle que soit sa forme.
-   scope 'bot'  : tout ce qui est listé appartient au bot.
+/* scope 'bot'  : tout ce qui est listé appartient au bot.
    scope 'user' : ce sont MES serveurs, il faut un indicateur pour trancher. */
 function extractIds(j, scope){
   if(!j) return null;
@@ -370,16 +366,16 @@ function extractIds(j, scope){
   if(Array.isArray(direct)) return direct.map(idOf).filter(Boolean);
 
   const list = Array.isArray(j) ? j
-             : Array.isArray(j.guilds) ? j.guilds
+             : Array.isArray(j.guilds)  ? j.guilds
              : Array.isArray(j.servers) ? j.servers
-             : Array.isArray(j.data) ? j.data : null;
+             : Array.isArray(j.data)    ? j.data : null;
   if(!Array.isArray(list)) return null;
   if(!list.length) return [];
 
   const flagged = list.some(g => flagOf(g) !== undefined);
   if(flagged) return list.filter(g => flagOf(g) === true).map(idOf).filter(Boolean);
   if(scope === 'bot') return list.map(idOf).filter(Boolean);
-  return null;                            // mes serveurs sans indicateur : inexploitable
+  return null;                          // mes serveurs sans indicateur : inexploitable
 }
 
 async function getJSON(url){
@@ -395,7 +391,7 @@ async function getJSON(url){
 /* Dernier recours : on interroge le bot serveur par serveur. Une réponse OK sur
    /api/guild/<id>/stats prouve que le bot est bien dans ce serveur. */
 async function probeGuilds(guilds){
-  const targets = guilds.filter(hasAdmin).slice(0, 20);
+  const targets = (guilds || []).filter(hasAdmin).slice(0, 20);
   if(!targets.length) return null;
   const found = new Set();
   let answered = 0, reachable = false;
@@ -413,47 +409,46 @@ async function probeGuilds(guilds){
     }
   };
 
-  // 4 requêtes à la fois pour ne pas saturer l'API du bot
-  const queue = [...targets];
+  const queue = [...targets];            // 4 requêtes à la fois
   await Promise.all(Array.from({ length: Math.min(4, queue.length) }, async () => {
     while(queue.length) await probe(queue.shift());
   }));
 
-  if(!reachable || !answered) return null;      // API muette : on ne conclut rien
+  if(!reachable || !answered) return null;   // API muette : on ne conclut rien
   return found;
 }
 
 async function fetchBotGuilds(guilds){
-  const debug = [];
+  const tried = [];
 
-  // 1) Les routes dédiées au bot, puis celles liées à mon compte
+  // 1) routes dédiées au bot, puis celles liées à mon compte
   for(const [url, scope] of [['/api/bot-guilds','bot'], ['/api/guilds','bot'],
                              ['/api/me','user'], ['/api/my-guilds','user']]){
     const j = await getJSON(url);
     if(!j) continue;
     const ids = extractIds(j, scope);
-    debug.push({ url, ids: ids ? ids.length : 'illisible' });
+    tried.push({ url, ids: ids ? ids.length : 'illisible' });
     if(Array.isArray(ids) && ids.length){
-      window.MB_BOT_DETECT = { source: url, tried: debug };
+      window.MB_BOT_DETECT = { source: url, tried };
       return new Set(ids.map(String));
     }
   }
 
-  // 2) Une liste vide n'est crédible que si le bot dit lui-même être dans 0 serveur
+  // 2) une liste vide n'est crédible que si le bot dit être dans 0 serveur
   if(BOT_STATUS && BOT_STATUS.bot_ready && Number(BOT_STATUS.guild_count) === 0){
-    window.MB_BOT_DETECT = { source: '/api/status (0 serveur)', tried: debug };
+    window.MB_BOT_DETECT = { source: '/api/status (0 serveur)', tried };
     return new Set();
   }
 
-  // 3) Vérification directe, serveur par serveur
-  const probed = await probeGuilds(guilds || []);
+  // 3) vérification directe, serveur par serveur
+  const probed = await probeGuilds(guilds);
   if(probed){
-    window.MB_BOT_DETECT = { source: '/api/guild/<id>/stats', tried: debug, probed: probed.size };
+    window.MB_BOT_DETECT = { source: '/api/guild/<id>/stats', tried, probed: probed.size };
     return probed;
   }
 
-  window.MB_BOT_DETECT = { source: 'inconnu', tried: debug };
-  console.info('[ModeraBot] présence du bot indéterminée :', debug);
+  window.MB_BOT_DETECT = { source: 'inconnu', tried };
+  console.info('[ModeraBot] présence du bot indéterminée :', tried);
   return null;   // inconnu : on n'affiche jamais « bot absent » à tort
 }
 
@@ -466,7 +461,7 @@ function setFooter(state, text){
   dot.style.background = state === 'ok' ? '#3ba55d' : state === 'warn' ? '#faa61a' : '#ed4245';
   dot.style.animation  = state === 'ok' ? '' : 'none';
 }
-let BOT_STATUS = null;          // dernière réponse de /api/status, utile à la détection
+let BOT_STATUS = null;
 async function checkBotStatus(){
   try{
     const r = await fetch(apiURL('/api/status'), { cache: 'no-store' });
@@ -485,7 +480,7 @@ async function checkBotStatus(){
 
 /* ---------------- boot ---------------- */
 async function boot(){
-  await checkBotStatus();          // attendu : /api/status sert aussi à la détection
+  await checkBotStatus();
   setInterval(() => { if(!document.hidden) checkBotStatus(); }, 20000);
 
   // client_id / redirect_uri fournis par le bot
@@ -585,15 +580,6 @@ function render(guilds, botIds){
 
   const unknownBot = botIds === null;   // on ignore où le bot est présent
   const botIn = g => unknownBot ? null : botIds.has(String(g.id));
-
-  if(unknownBot){
-    const note = document.createElement('div');
-    note.className = 'note';
-    note.innerHTML = `<div><b>Présence du bot indéterminée.</b> L'API du bot n'a pas renvoyé la liste
-      de ses serveurs, donc aucun serveur n'est marqué « bot absent ». Tous tes serveurs administrés
-      restent ouvrables : le dashboard te proposera d'ajouter le bot s'il y manque vraiment.</div>`;
-    grid.appendChild(note);
-  }
 
   let cBot = 0, cAdm = 0;
 
