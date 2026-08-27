@@ -206,7 +206,7 @@ footer .cp{font-size:12.5px;font-weight:500;color:var(--dim);width:100%;margin-t
       <a href="#faq">FAQ</a>
     </nav>
     <div class="tacts">
-      <a class="btn" href="/servers.html">Dashboard</a>
+      <a class="btn" href="#" data-dash>Dashboard</a>
       <a class="btn p" id="inviteTop" href="#" target="_blank" rel="noopener">Ajouter le bot</a>
     </div>
   </div>
@@ -221,7 +221,7 @@ footer .cp{font-size:12.5px;font-weight:500;color:var(--dim);width:100%;margin-t
        Tout se configure depuis un dashboard clair, sans toucher à une seule ligne de code.</p>
     <div class="cta">
       <a class="btn p lg" id="inviteHero" href="#" target="_blank" rel="noopener">Ajouter à mon serveur</a>
-      <a class="btn lg" href="/servers.html">Ouvrir le dashboard</a>
+      <a class="btn lg" href="#" data-dash>Ouvrir le dashboard</a>
     </div>
     <div class="sub">Gratuit — configuration en moins de deux minutes</div>
 
@@ -369,7 +369,7 @@ footer .cp{font-size:12.5px;font-weight:500;color:var(--dim);width:100%;margin-t
           <div class="check"><span class="cc"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span><b>Import et export</b> — copie la configuration d'un serveur vers un autre.</span></div>
           <div class="check"><span class="cc"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span><b>État du bot en temps réel</b> — latence, disponibilité et nombre de serveurs.</span></div>
         </div>
-        <div style="margin-top:26px"><a class="btn p" href="/servers.html">Ouvrir le dashboard</a></div>
+        <div style="margin-top:26px"><a class="btn p" href="#" data-dash>Ouvrir le dashboard</a></div>
       </div>
       <div class="panel">
         <div class="ph"><img class="av" src="logo.png" alt="" onerror="this.outerHTML='&lt;div class=\'av\'&gt;M&lt;/div&gt;'"><div><b>ModeraBot</b></div><span class="bt">Bot</span></div>
@@ -448,7 +448,7 @@ footer .cp{font-size:12.5px;font-weight:500;color:var(--dim);width:100%;margin-t
          Tu actives les modules quand tu en as besoin.</p>
       <div class="cta">
         <a class="btn p lg" id="inviteFinal" href="#" target="_blank" rel="noopener">Ajouter à mon serveur</a>
-        <a class="btn lg" href="/servers.html">Voir le dashboard</a>
+        <a class="btn lg" href="#" data-dash>Voir le dashboard</a>
       </div>
     </div>
   </section>
@@ -460,7 +460,7 @@ footer .cp{font-size:12.5px;font-weight:500;color:var(--dim);width:100%;margin-t
     <a href="#" class="brand"><img class="logo" src="logo.png" alt="" onerror="this.outerHTML='&lt;span class=\'logo\'&gt;M&lt;/span&gt;'">ModeraBot</a>
     <div class="lk">
       <a href="#modules">Modules</a>
-      <a href="/servers.html">Dashboard</a>
+      <a href="#" data-dash>Dashboard</a>
       <a href="#commandes">Commandes</a>
       <a href="#faq">FAQ</a>
       <a id="inviteFoot" href="#" target="_blank" rel="noopener">Ajouter le bot</a>
@@ -470,18 +470,26 @@ footer .cp{font-size:12.5px;font-weight:500;color:var(--dim);width:100%;margin-t
 </footer>
 
 <script>
+const DASHBOARD_URL='https://dashboard.moderabot.xyz';
+const INVITE_URL='';
+const SUPPORT_URL='';
+
 const API_BASE=(window.MB_API_BASE||'').replace(/\/+$/,'');
 const apiURL=p=>API_BASE+p;
 const $=id=>document.getElementById(id);
 const nb=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
-const INVITE_FALLBACK='https://discord.com/oauth2/authorize?client_id=&scope=bot%20applications.commands&permissions=8';
 
 function setInvite(url){
   ['inviteTop','inviteHero','inviteFinal','inviteFoot'].forEach(id=>{ const el=$(id); if(el) el.href=url; });
 }
-setInvite(INVITE_FALLBACK);
+function setDashboard(url){
+  document.querySelectorAll('[data-dash]').forEach(el=>{ el.href=url; });
+}
+setDashboard(DASHBOARD_URL);
+if(INVITE_URL) setInvite(INVITE_URL);
 
 async function loadConfig(){
+  if(INVITE_URL) return;
   try{
     const r=await fetch(apiURL('/api/config'),{cache:'no-store'});
     if(!r.ok) return;
