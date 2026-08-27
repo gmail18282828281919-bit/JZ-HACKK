@@ -2333,198 +2333,125 @@ else xstart();
 })();
 </script>
 <style>
-/* ── Publication des panneaux ─────────────────────────────────────── */
 .pnl{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
 .pnl .pnl-c{flex:1;min-width:230px}
 .pnl .pnl-c label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:6px}
-.pnl .pnl-a{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
-.pnl-s{margin-top:11px;font-size:12px;font-weight:500;color:var(--dim);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.pnl-s{margin-top:11px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:7px;flex-wrap:wrap;color:var(--muted)}
 .pnl-s b{font-weight:600;color:var(--muted)}
 .pnl-s.ok b{color:var(--green)}
 .pnl-s.warn b{color:var(--orange)}
 .pnl-dot{width:7px;height:7px;border-radius:50%;background:var(--dim);flex-shrink:0}
 .pnl-s.ok .pnl-dot{background:var(--green)}
 .pnl-s.warn .pnl-dot{background:var(--orange)}
-.pnl-r{margin-top:12px;font-size:12px;color:var(--muted);line-height:1.6}
-.pnl-r code{font-size:11.5px}
 </style>
 <script>
-/* Publication des panneaux : choisir un salon puis envoyer le panneau au bot. */
+/* Envoi des panneaux : choisir un salon, puis publier le panneau. */
 (function(){
 
 const PANELS=[
-  {key:'tickets',page:'pg-tickets',
+  {key:'tickets',page:'pg-tickets',cmd:'+ticket',
    titre:'Envoyer le panneau des tickets',
-   sous:'Choisis le salon, puis publie le panneau que les membres utiliseront pour ouvrir un ticket. Équivaut à la commande <code>+ticket</code>.',
-   chan:'tickets.panel.salon',
-   btn:'Envoyer le panneau',
+   sous:'Choisis le salon, puis publie le panneau que les membres utiliseront pour ouvrir un ticket.',
+   chan:'tickets.panel.salon',btn:'Envoyer le panneau',
    ready:c=>(c.tickets.choix||[]).length>0,
-   warn:'Ajoute au moins un type de ticket avant de publier le panneau.',
-   recap:c=>['Titre : '+((c.tickets.panel||{}).titre||'Support'),
-             'Mode : '+({select:'menu déroulant',bouton:'boutons',container_v2:'container V2'}[(c.tickets.panel||{}).mode]||'menu déroulant'),
-             (c.tickets.choix||[]).length+' type(s) de ticket']},
+   warn:'Ajoute au moins un type de ticket avant de publier le panneau.'},
 
-  {key:'captcha',page:'pg-captcha',
+  {key:'captcha',page:'pg-captcha',cmd:'+captcha',
    titre:'Envoyer le panneau de vérification',
-   sous:'Publie l\'embed de vérification dans le salon choisi. Les nouveaux membres y saisissent leur code.',
-   chan:'captcha.channel_id',
-   btn:'Envoyer le panneau',
+   sous:'Publie l\'embed de vérification : les nouveaux membres y saisissent leur code.',
+   chan:'captcha.channel_id',btn:'Envoyer le panneau',
    ready:c=>!!c.captcha.enabled,
-   warn:'Active la vérification avant de publier le panneau.',
-   recap:c=>['Code de '+(c.captcha.code_length||6)+' caractères',
-             (c.captcha.max_tries||3)+' tentative(s)',
-             c.captcha.kick_on_fail?'Expulsion après échec':'Pas d\'expulsion']},
+   warn:'Active la vérification avant de publier le panneau.'},
 
-  {key:'giveaway',page:'pg-giveaway',
+  {key:'giveaway',page:'pg-giveaway',cmd:'+giveaway',
    titre:'Lancer un giveaway',
    sous:'Publie un concours dans le salon choisi avec les valeurs par défaut ci-dessus.',
-   chan:'giveaway.salon_id',
-   btn:'Lancer le giveaway',
-   ready:c=>!!(c.giveaway.duree||'').trim(),
-   warn:'Renseigne une durée par défaut avant de lancer un giveaway.',
-   recap:c=>['Durée : '+(c.giveaway.duree||'—'),
-             (c.giveaway.gagnants||1)+' gagnant(s)',
-             'Bouton : '+(c.giveaway.btn_text||'Participer')]},
+   chan:'giveaway.salon_id',btn:'Lancer le giveaway',
+   ready:c=>!!String(c.giveaway.duree||'').trim(),
+   warn:'Renseigne une durée par défaut avant de lancer un giveaway.'},
 
-  {key:'apply',page:'pg-xapply',
+  {key:'apply',page:'pg-xapply',cmd:'+applysend',
    titre:'Envoyer le panneau de candidatures',
-   sous:'Publie l\'embed public de recrutement. Équivaut à la commande <code>+applysend</code>.',
-   chan:'extras.apply.panel_channel',
-   btn:'Envoyer le panneau',
+   sous:'Publie l\'embed public de recrutement dans le salon choisi.',
+   chan:'extras.apply.panel_channel',btn:'Envoyer le panneau',
    ready:c=>!!(c.extras&&c.extras.apply.enabled&&(c.extras.apply.postes||[]).length),
-   warn:'Active les candidatures et ajoute au moins un poste avant de publier.',
-   recap:c=>['Titre : '+(((c.extras||{}).apply||{}).titre||'Candidatures'),
-             (((c.extras||{}).apply||{}).postes||[]).length+' poste(s) ouvert(s)',
-             'Cooldown : '+(((c.extras||{}).apply||{}).cooldown_hours||0)+' h']},
+   warn:'Active les candidatures et ajoute au moins un poste avant de publier.'},
 
-  {key:'suggestions',page:'pg-xsuggestions',
+  {key:'suggestions',page:'pg-xsuggestions',cmd:'+suggestions',
    titre:'Envoyer le panneau des suggestions',
-   sous:'Publie l\'embed qui explique comment proposer une idée, dans le salon des suggestions.',
-   chan:'extras.suggestions.channel_id',
-   btn:'Envoyer le panneau',
+   sous:'Publie l\'embed qui explique comment proposer une idée.',
+   chan:'extras.suggestions.channel_id',btn:'Envoyer le panneau',
    ready:c=>!!(c.extras&&c.extras.suggestions.enabled),
-   warn:'Active les suggestions avant de publier le panneau.',
-   recap:c=>['Longueur minimale : '+(((c.extras||{}).suggestions||{}).min_length||0)+' caractères',
-             (((c.extras||{}).suggestions||{}).anonymous)?'Suggestions anonymes':'Auteur affiché']},
+   warn:'Active les suggestions avant de publier le panneau.'},
 
-  {key:'polls',page:'pg-xpolls',
+  {key:'polls',page:'pg-xpolls',cmd:'+pollconfig',
    titre:'Envoyer le panneau des sondages',
-   sous:'Publie l\'embed qui rappelle comment voter, dans le salon des sondages.',
-   chan:'extras.polls.channel_id',
-   btn:'Envoyer le panneau',
+   sous:'Publie l\'embed qui rappelle comment voter.',
+   chan:'extras.polls.channel_id',btn:'Envoyer le panneau',
    ready:c=>!!(c.extras&&c.extras.polls.enabled),
-   warn:'Active les sondages avant de publier le panneau.',
-   recap:c=>['Durée par défaut : '+(((c.extras||{}).polls||{}).default_duration||'1h'),
-             (((c.extras||{}).polls||{}).allow_multi)?'Plusieurs choix autorisés':'Un seul choix']},
+   warn:'Active les sondages avant de publier le panneau.'},
 
-  {key:'birthdays',page:'pg-xbirthdays',
+  {key:'birthdays',page:'pg-xbirthdays',cmd:'+birthdays',
    titre:'Envoyer le panneau des anniversaires',
-   sous:'Publie l\'embed où les membres enregistrent leur date d\'anniversaire.',
-   chan:'extras.birthdays.channel_id',
-   btn:'Envoyer le panneau',
+   sous:'Publie l\'embed où les membres enregistrent leur date.',
+   chan:'extras.birthdays.channel_id',btn:'Envoyer le panneau',
    ready:c=>!!(c.extras&&c.extras.birthdays.enabled),
-   warn:'Active les anniversaires avant de publier le panneau.',
-   recap:c=>['Annonce à '+(((c.extras||{}).birthdays||{}).hour||0)+' h']},
-
-  {key:'shop',page:'pg-xeconomy',
-   titre:'Envoyer le panneau de la boutique',
-   sous:'Publie la boutique dans le salon choisi : les membres achètent directement depuis l\'embed.',
-   chan:'panels.shop.channel',
-   btn:'Envoyer la boutique',
-   ready:c=>!!(c.extras&&c.extras.economy.enabled&&(c.extras.economy.shop||[]).length),
-   warn:'Active l\'économie et ajoute au moins un article avant de publier la boutique.',
-   recap:c=>[(((c.extras||{}).economy||{}).shop||[]).length+' article(s)',
-             'Monnaie : '+(((c.extras||{}).economy||{}).monnaie||'coins')]},
-
-  {key:'soutien',page:'pg-xsoutien',
-   titre:'Envoyer le panneau du soutien',
-   sous:'Publie l\'embed qui explique comment obtenir le rôle de soutien et le rôle du tag.',
-   chan:'panels.soutien.channel',
-   btn:'Envoyer le panneau',
-   ready:c=>!!(c.extras&&c.extras.soutien&&(c.extras.soutien.role_id||c.extras.tag.role_id)),
-   warn:'Choisis d\'abord un rôle de soutien ou un rôle de tag.',
-   recap:c=>['Lien détecté : '+((((c.extras||{}).soutien||{}).server_link)||'—')]},
+   warn:'Active les anniversaires avant de publier le panneau.'},
 ];
 
-const PSTAMP=()=>'mb_panels_'+guildId;
-function pstampAll(){ try{ return JSON.parse(localStorage.getItem(PSTAMP())||'{}')||{}; }catch{ return {}; } }
-function pstampSet(k,v){ const o=pstampAll(); o[k]=v; try{ localStorage.setItem(PSTAMP(),JSON.stringify(o)); }catch{} }
+const PKEY=()=>'mb_panels_'+guildId;
+const pall=()=>{ try{ return JSON.parse(localStorage.getItem(PKEY())||'{}')||{}; }catch{ return {}; } };
+const pset=(k,v)=>{ const o=pall(); o[k]=v; try{ localStorage.setItem(PKEY(),JSON.stringify(o)); }catch{} };
 const pfmt=ts=>{ try{ return new Date(ts).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }catch{ return ''; } };
+const pname=id=>{ const c=(META.channels||[]).find(c=>String(c.id)===String(id)); return c?'#'+c.name:(id?'le salon choisi':''); };
 
-/* Les clés propres à la publication n'existent pas dans la config d'origine :
-   on les ajoute des deux côtés pour ne pas déclencher la barre d'enregistrement. */
+/* Le salon d'envoi des tickets n'existe pas dans la config d'origine : on
+   l'ajoute des deux côtés pour ne pas déclencher la barre d'enregistrement. */
 function pdefaults(){
-  const seed=o=>{
-    if(!o) return;
-    if(o.tickets&&o.tickets.panel&&!('salon' in o.tickets.panel)) o.tickets.panel.salon=null;
-    o.panels=o.panels||{};
-    PANELS.forEach(p=>{
-      const m=p.chan.match(/^panels\.([^.]+)\.channel$/);
-      if(m&&!o.panels[m[1]]) o.panels[m[1]]={channel:null};
-    });
-  };
-  seed(DEFAULTS); seed(cfg); seed(saved);
-}
-
-function pcard(p){
-  return `<div class="card" data-pnl="${esc(p.key)}">
-    <div class="card-h"><h3>${p.titre}</h3><p>${p.sous}</p></div>
-    <div class="card-b">
-      <div class="pnl">
-        <div class="pnl-c">
-          <label>Salon où publier le panneau</label>
-          <span data-select="channel" data-sk="${esc(p.chan)}"></span>
-        </div>
-        <div class="pnl-a">
-          <button class="btn p" data-pnlsend="${esc(p.key)}">${p.btn}</button>
-        </div>
-      </div>
-      <div class="pnl-s" data-pnlstatus="${esc(p.key)}"><span class="pnl-dot"></span><span>—</span></div>
-      <div class="pnl-r" data-pnlrecap="${esc(p.key)}"></div>
-    </div>
-  </div>`;
+  [DEFAULTS,cfg,saved].forEach(o=>{
+    if(o&&o.tickets&&o.tickets.panel&&!('salon' in o.tickets.panel)) o.tickets.panel.salon=null;
+  });
 }
 
 function pinject(){
-  let added=false;
   PANELS.forEach(p=>{
     const page=document.getElementById(p.page);
     if(!page||page.querySelector(`[data-pnl="${p.key}"]`)) return;
     const d=document.createElement('div');
-    d.innerHTML=pcard(p);
+    d.innerHTML=`<div class="card" data-pnl="${esc(p.key)}">
+      <div class="card-h"><h3>${p.titre}</h3><p>${p.sous} Équivaut à la commande <code>${esc(p.cmd)}</code>.</p></div>
+      <div class="card-b">
+        <div class="pnl">
+          <div class="pnl-c"><label>Salon où publier le panneau</label>
+            <span data-select="channel" data-sk="${esc(p.chan)}"></span></div>
+          <div class="pnl-a"><button class="btn p" data-pnlsend="${esc(p.key)}">${p.btn}</button></div>
+        </div>
+        <div class="pnl-s" data-pnlstatus="${esc(p.key)}"><span class="pnl-dot"></span><b>—</b></div>
+      </div>
+    </div>`;
     page.appendChild(d.firstElementChild);
-    added=true;
   });
-  return added;
 }
 
 function pstatus(){
-  const stamps=pstampAll();
+  const st=pall();
   PANELS.forEach(p=>{
     const box=document.querySelector(`[data-pnlstatus="${p.key}"]`);
     if(box){
       const ch=getPath(cfg,p.chan);
-      const chName=(()=>{ const c=(META.channels||[]).find(c=>String(c.id)===String(ch)); return c?'#'+c.name:(ch?'ID '+ch:null); })();
-      let cls='', txt='';
+      let cls='',txt='';
       if(!p.ready(cfg)){ cls='warn'; txt=p.warn; }
       else if(!ch){ cls='warn'; txt='Choisis le salon de publication.'; }
-      else if(stamps[p.key]){ cls='ok'; txt='Publié dans '+chName+' — dernier envoi le '+pfmt(stamps[p.key])+'.'; }
-      else { cls='ok'; txt='Prêt à être publié dans '+chName+'.'; }
+      else if(st[p.key]){ cls='ok'; txt='Publié dans '+pname(ch)+' — dernier envoi le '+pfmt(st[p.key])+'.'; }
+      else { cls='ok'; txt='Prêt à être publié dans '+pname(ch)+'.'; }
       box.className='pnl-s'+(cls?' '+cls:'');
       box.innerHTML=`<span class="pnl-dot"></span><b>${esc(txt)}</b>`;
     }
-    /* le salon peut être réglé à deux endroits (fiche du module et carte de
-       publication) : on garde les deux champs synchronisés sans re-rendre. */
+    /* le salon peut se régler à deux endroits : on garde les champs alignés */
     document.querySelectorAll(`[data-k="${p.chan}"]`).forEach(el=>{
-      const v=getPath(cfg,p.chan);
-      const s2=(v==null?'':String(v));
+      const v=getPath(cfg,p.chan), s2=(v==null?'':String(v));
       if(el.value!==s2&&document.activeElement!==el) el.value=s2;
     });
-    const rec=document.querySelector(`[data-pnlrecap="${p.key}"]`);
-    if(rec){
-      let lines=[]; try{ lines=p.recap(cfg)||[]; }catch{}
-      rec.innerHTML=lines.length?'Contenu envoyé : '+lines.map(l=>esc(l)).join(' · '):'';
-    }
   });
 }
 
@@ -2535,36 +2462,38 @@ async function psend(p,btn){
 
   const old=btn.textContent;
   btn.disabled=true; btn.textContent='Envoi…';
-
-  let ok=false, err='';
+  let ok=false, missing=false, err='';
   try{
     if(dirty()){
       const okSave=await apiSave(cfg);
-      localSet(cfg);
-      saved=structuredClone(cfg); touch();
+      localSet(cfg); saved=structuredClone(cfg); touch();
       if(!okSave){ btn.disabled=false; btn.textContent=old;
         return toast('Enregistrement impossible — le bot ne répond pas','err'); }
     }
-    const headers={'Content-Type':'application/json',Accept:'application/json',...authHeaders()};
-    const body=JSON.stringify({panel:p.key,guild_id:guildId,channel_id:String(ch),config:cfg});
-    let r=await fetch(apiURL(`/api/guild/${encodeURIComponent(guildId)}/panel/${encodeURIComponent(p.key)}`),
-      {method:'POST',credentials:API_CREDS,headers,body});
-    if(r.status===404||r.status===405)
-      r=await fetch(apiURL(`/api/guild/${encodeURIComponent(guildId)}/panel`),
-        {method:'POST',credentials:API_CREDS,headers,body});
+    const r=await fetch(apiURL(`/api/guild/${encodeURIComponent(guildId)}/panel/${encodeURIComponent(p.key)}`),{
+      method:'POST',credentials:API_CREDS,
+      headers:{'Content-Type':'application/json',Accept:'application/json',...authHeaders()},
+      body:JSON.stringify({panel:p.key,guild_id:guildId,channel_id:String(ch),config:cfg})});
     ok=r.ok;
-    if(!ok){ try{ const j=await r.json(); err=j.error||j.message||('HTTP '+r.status); }catch{ err='HTTP '+r.status; } }
+    if(r.status===404||r.status===405) missing=true;
+    else if(!ok){ try{ const j=await r.json(); err=j.error||j.message||('HTTP '+r.status); }catch{ err='HTTP '+r.status; } }
   }catch(e){ err='API du bot injoignable'; }
 
   btn.disabled=false; btn.textContent=old;
-  if(ok){ pstampSet(p.key,Date.now()); pstatus(); toast('Panneau envoyé dans le salon ✓'); }
-  else toast('Envoi impossible — '+(err||'API du bot injoignable'),'err');
+  if(ok){ pset(p.key,Date.now()); pstatus(); return toast('Panneau envoyé dans le salon ✓'); }
+  if(missing){
+    /* Le bot n'a pas encore la route d'envoi : la config est enregistrée,
+       il reste la commande Discord pour publier le panneau. */
+    const cmd=p.key==='apply'?`${p.cmd} #${(pname(ch)||'').replace(/^#/,'')}`:p.cmd;
+    try{ await navigator.clipboard.writeText(cmd); }catch{}
+    return toast('Réglages enregistrés. Ton bot n\'a pas la route d\'envoi : tape '+cmd+' sur Discord (commande copiée)','err');
+  }
+  toast('Envoi impossible — '+(err||'API du bot injoignable'),'err');
 }
 
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-pnlsend]'); if(!b) return;
-  const p=PANELS.find(x=>x.key===b.dataset.pnlsend); if(!p) return;
-  psend(p,b);
+  const p=PANELS.find(x=>x.key===b.dataset.pnlsend); if(p) psend(p,b);
 });
 ['input','change'].forEach(ev=>document.addEventListener(ev,e=>{
   if(e.target.matches('[data-k]')) setTimeout(()=>{ try{ pstatus(); }catch(err){} },0);
@@ -2582,12 +2511,8 @@ function pstart(){
   let tries=0;
   const t=setInterval(()=>{
     const app=document.getElementById('app');
-    if(app&&!app.classList.contains('hidden')&&document.getElementById('pg-xapply')){
-      clearInterval(t);
-      pdefaults(); pinject(); phookRender();
-      try{ render(); }catch(e){}
-      pstatus();
-    }else if(++tries>600){
+    const pret=app&&!app.classList.contains('hidden')&&document.getElementById('pg-xapply');
+    if(pret||++tries>600){
       clearInterval(t);
       pdefaults(); pinject(); phookRender();
       try{ render(); }catch(e){}
