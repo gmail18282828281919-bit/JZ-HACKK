@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ModeraBot — Mes Serveurs</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0b0e18;--surface:#111522;--surface2:#161a2c;--border:#1c2240;--border-hi:#2a3565;--text:#dde3f5;--muted:#5a6387;--accent:#6ab3e8;--accent2:#3e7fd4;--green:#3ba55d;--red:#ed4245}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+.orb{position:fixed;border-radius:50%;filter:blur(110px);pointer-events:none;z-index:0;opacity:.5}
+.orb1{width:500px;height:500px;background:radial-gradient(circle,rgba(62,127,212,.18) 0%,transparent 70%);top:-150px;left:-100px}
+.orb2{width:380px;height:380px;background:radial-gradient(circle,rgba(106,179,232,.12) 0%,transparent 70%);bottom:-80px;right:-80px}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;height:56px;border-bottom:1px solid var(--border);background:rgba(17,21,34,.88);backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:space-between;padding:0 28px}
+.nav-left{display:flex;align-items:center;gap:10px}
+.nav-left img{width:28px;height:28px;border-radius:8px;object-fit:cover}
+.nav-left .name{font-size:15px;font-weight:800;color:#fff}
+.nav-left .tag{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);background:rgba(106,179,232,.12);padding:2px 9px;border-radius:20px;border:1px solid rgba(106,179,232,.25)}
+
+/* PROFIL PILL */
+.user-pill{display:flex;align-items:center;gap:9px;padding:5px 14px 5px 7px;border:1px solid var(--border);border-radius:24px;background:var(--surface);cursor:pointer;position:relative;transition:border-color .2s;user-select:none}
+.user-pill:hover{border-color:var(--border-hi)}
+.user-pill img{width:28px;height:28px;border-radius:50%;object-fit:cover;background:var(--surface2)}
+.user-pill .uname{font-size:13px;font-weight:700;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-pill .chev{opacity:.55;transition:transform .2s}
+.user-pill.open .chev{transform:rotate(180deg)}
+/* le menu reste ouvert au clic ET au survol (avant : hover only -> injouable sur mobile) */
+.dropdown{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:6px;min-width:190px;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:200}
+.user-pill.open .dropdown{display:block}
+.dd{display:flex;align-items:center;gap:9px;padding:9px 12px;font-size:13px;font-weight:600;color:var(--text);border-radius:8px;cursor:pointer;text-decoration:none;transition:background .15s}
+.dd:hover{background:rgba(255,255,255,.05)}
+.dd.danger{color:var(--red)}
+.dd.danger:hover{background:rgba(237,66,69,.08)}
+.dd svg{flex-shrink:0;opacity:.7}
+.dd-sep{height:1px;background:var(--border);margin:5px 6px}
+.dd-id{padding:8px 12px 4px;font-size:11px;font-weight:700;color:var(--muted);word-break:break-all}
+
+/* PAGE */
+.page{position:relative;z-index:10;flex:1;max-width:1100px;width:100%;margin:0 auto;padding:36px 24px 60px}
+.page-head{margin-bottom:28px}
+.page-head h1{font-size:24px;font-weight:800;color:#fff;margin-bottom:4px}
+.page-head p{font-size:13px;font-weight:500;color:var(--muted)}
+
+/* STATS */
+.stats{display:flex;gap:12px;margin-bottom:32px;flex-wrap:wrap}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 20px;flex:1;min-width:120px}
+.stat-val{font-size:22px;font-weight:800;color:var(--accent)}
+.stat-lbl{font-size:12px;font-weight:600;color:var(--muted);margin-top:2px}
+
+/* SECTION LABEL */
+.section-sep{grid-column:1/-1;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);padding:10px 0 4px}
+.section-sep svg{opacity:.6}
+
+/* GRILLE */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:12px}
+
+/* CARTE */
+.srv{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:22px 14px 16px;display:flex;flex-direction:column;align-items:center;gap:9px;text-decoration:none;color:inherit;overflow:hidden;opacity:0;transform:translateY(14px);animation:fadeUp .4s ease forwards}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+
+.srv.clickable{cursor:pointer;transition:border-color .2s,box-shadow .2s,transform .18s}
+.srv.clickable:hover{border-color:var(--border-hi);box-shadow:0 0 0 1px var(--border-hi),0 8px 28px rgba(106,179,232,.12);transform:translateY(-3px)}
+
+/* PLUS DE grayscale : les icônes restent EN COULEUR partout */
+.srv.dim{cursor:default}
+.srv.dim .srv-name{color:var(--muted)}
+.srv.dim .icon-wrap{opacity:.72}
+
+.srv.invite-me{cursor:default;transition:border-color .2s}
+.srv.invite-me:hover{border-color:var(--border-hi)}
+
+.ripple{position:absolute;border-radius:50%;background:rgba(106,179,232,.22);transform:scale(0);animation:rpl .5s linear;pointer-events:none}
+@keyframes rpl{to{transform:scale(4);opacity:0}}
+
+.icon-wrap{position:relative;width:62px;height:62px;flex-shrink:0}
+.srv-icon{width:62px;height:62px;border-radius:15px;object-fit:cover;border:2px solid var(--border);display:block;background:var(--surface2)}
+.srv-initials{width:62px;height:62px;border-radius:15px;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff}
+
+.badge-lock{position:absolute;top:-5px;right:-5px;width:20px;height:20px;background:var(--surface2);border:1.5px solid var(--border-hi);border-radius:6px;display:flex;align-items:center;justify-content:center;z-index:2}
+
+.srv-overlay{display:none;position:absolute;inset:0;border-radius:18px;background:rgba(11,14,24,.86);backdrop-filter:blur(3px);flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:5}
+.srv.invite-me:hover .srv-overlay,.srv.invite-me:focus-within .srv-overlay{display:flex}
+.overlay-txt{font-size:12px;font-weight:600;color:var(--muted);text-align:center;padding:0 10px}
+.btn-add{display:flex;align-items:center;gap:7px;padding:9px 18px;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;font-size:13px;font-weight:800;border-radius:10px;text-decoration:none;border:none;cursor:pointer;font-family:'Nunito',sans-serif}
+
+.srv-name{font-size:13px;font-weight:700;color:var(--text);text-align:center;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srv-badge{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:3px 9px;border-radius:20px;display:flex;align-items:center;gap:5px}
+.badge-on{color:var(--accent);background:rgba(106,179,232,.12);border:1px solid rgba(106,179,232,.2)}
+.badge-off{color:var(--muted);background:rgba(90,99,135,.1);border:1px solid rgba(90,99,135,.2)}
+
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:60px 0;color:var(--muted);font-size:14px;font-weight:600;grid-column:1/-1;text-align:center}
+.spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err-box{grid-column:1/-1;background:var(--surface);border:1px solid rgba(237,66,69,.35);border-radius:16px;padding:26px 22px;text-align:center}
+.err-box h3{font-size:16px;font-weight:800;color:var(--red);margin-bottom:8px}
+.err-box p{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px;line-height:1.5}
+.err-box code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px 6px;display:inline-block;max-width:100%;overflow-wrap:anywhere}
+.err-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.btn{padding:9px 18px;border-radius:10px;font-size:13px;font-weight:800;text-decoration:none;cursor:pointer;border:1px solid var(--border-hi);color:var(--text);background:var(--surface2);font-family:'Nunito',sans-serif}
+.btn.primary{background:linear-gradient(135deg,var(--accent2),var(--accent));border-color:transparent;color:#fff}
+.note{grid-column:1/-1;display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-left:3px solid #faa61a;border-radius:12px;padding:12px 15px;font-size:12.5px;font-weight:600;color:var(--muted);line-height:1.55}
+.note b{color:var(--text);font-weight:800}
+
+footer{position:relative;z-index:10;border-top:1px solid var(--border);padding:13px 28px;display:flex;justify-content:space-between;align-items:center;background:rgba(17,21,34,.8);backdrop-filter:blur(12px);font-size:12px;font-weight:600;color:var(--muted)}
+footer a{color:var(--muted);text-decoration:none}
+.dot{display:inline-block;width:7px;height:7px;background:#3ba55d;border-radius:50%;margin-right:5px;animation:pulse 2.4s ease infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(59,165,93,.5)}50%{box-shadow:0 0 0 5px rgba(59,165,93,0)}}
+
+@media(max-width:600px){nav{padding:0 14px}.page{padding:20px 12px 40px}.grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}.user-pill .uname{max-width:90px}}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<nav>
+  <div class="nav-left">
+    <img src="logo.png" alt="ModeraBot" onerror="this.style.display='none'">
+    <span class="name">ModeraBot</span>
+    <span class="tag">Dashboard</span>
+  </div>
+  <div class="user-pill" id="userPill">
+    <img id="uAvatar" src="https://cdn.discordapp.com/embed/avatars/0.png" alt="" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+    <span class="uname" id="uName">Chargement…</span>
+    <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    <div class="dropdown" id="userMenu">
+      <div class="dd-id" id="uTag"></div>
+      <div class="dd-sep"></div>
+      <a class="dd" href="/index.html">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Accueil
+      </a>
+      <a class="dd" href="/servers.html">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/></svg>
+        Mes serveurs
+      </a>
+      <div class="dd danger" id="btnLogout">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Déconnexion
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-head">
+    <h1>Mes Serveurs</h1>
+    <p>Sélectionne un serveur pour le configurer avec ModeraBot.</p>
+  </div>
+  <div class="stats" id="stats" style="display:none">
+    <div class="stat"><div class="stat-val" id="sTot">0</div><div class="stat-lbl">Serveurs</div></div>
+    <div class="stat"><div class="stat-val" id="sBot">0</div><div class="stat-lbl">Avec le bot</div></div>
+    <div class="stat"><div class="stat-val" id="sAdm">0</div><div class="stat-lbl">Admin</div></div>
+  </div>
+  <div class="grid" id="grid">
+    <div class="loading"><div class="spinner"></div>Chargement de tes serveurs…</div>
+  </div>
+</div>
+
+<footer>
+  <span><span class="dot"></span><span id="botState">Vérification…</span></span>
+  <span>ModeraBot © 2026 · <a href="#">Support</a></span>
+</footer>
+
+<script>
+/* =============================================================
+   ModeraBot — Mes Serveurs
+   Mode SANS BACKEND : OAuth implicite Discord (response_type=token).
+   Le navigateur parle directement à discord.com/api → aucun /api/
+   côté serveur n'est requis, donc plus aucune erreur HTTP 5xx.
+   Le backend reste utilisé s'il répond (pour savoir où le bot est
+   présent), mais son échec ne casse plus jamais la page.
+   ============================================================= */
+
+/* Origine de l'API du bot — voir dash.html. Laisse vide si l'API est servie
+   par la même origine que cette page. Doit être en https://. */
+const API_BASE   = (window.MB_API_BASE || '').replace(/\/+$/, '');
+const API_CREDS  = API_BASE ? 'omit' : 'same-origin';
+const apiURL     = p => API_BASE + p;
+/* Recupere depuis /api/config au demarrage : plus rien a coder en dur. */
+let CLIENT_ID    = '';
+const SCOPES     = 'identify guilds';
+const DASH_PATH  = '/dash.html';                 // redirection quand on clique un serveur
+const LOGIN_PAGE = '/index.html';
+let REDIRECT     = location.origin + '/servers.html';   // doit être déclaré dans le portail Discord
+const TOKEN_KEY  = 'mb_discord_token';
+
+const SVG = {
+  bot:    `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="3"/><line x1="12" y1="8" x2="12" y2="11"/><line x1="8" y1="15" x2="8" y2="17"/><line x1="16" y1="15" x2="16" y2="17"/></svg>`,
+  star:   `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+  user:   `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+  lock:   `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+  plus:   `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+  cirOn:  `<svg width="7" height="7" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg>`,
+  cirOff: `<svg width="7" height="7" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>`,
+};
+
+/* ---------------- utils ---------------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function initials(n){
+  const parts = String(n || '?').trim().split(/\s+/).filter(Boolean);
+  return parts.length ? parts.map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?';
+}
+
+function authorizeURL(prompt){
+  return 'https://discord.com/oauth2/authorize'
+    + '?client_id=' + encodeURIComponent(CLIENT_ID)
+    + '&response_type=token'
+    + '&scope=' + encodeURIComponent(SCOPES)
+    + '&redirect_uri=' + encodeURIComponent(REDIRECT)
+    + (prompt ? '&prompt=' + prompt : '');
+}
+
+function saveToken(tok, expiresIn){
+  try{
+    sessionStorage.setItem(TOKEN_KEY, JSON.stringify({
+      t: tok,
+      exp: Date.now() + (Number(expiresIn || 604800) * 1000) - 60000
+    }));
+  }catch{}
+}
+function loadToken(){
+  try{
+    const raw = sessionStorage.getItem(TOKEN_KEY);
+    if(!raw) return null;
+    const o = JSON.parse(raw);
+    if(!o.t || Date.now() > o.exp){ sessionStorage.removeItem(TOKEN_KEY); return null; }
+    return o.t;
+  }catch{ return null; }
+}
+function clearToken(){ try{ sessionStorage.removeItem(TOKEN_KEY); }catch{} }
+/* Le token Discord permet à l'API du bot de nous authentifier sans cookie
+   (indispensable en cross-origin, où le cookie de session n'est pas envoyé). */
+function authHeaders(){ const t = loadToken(); return t ? { Authorization: 'Bearer ' + t } : {}; }
+
+/* Appel direct à l'API Discord (CORS autorisé sur ces routes) */
+async function discord(path, token){
+  for(let i = 0; i < 4; i++){
+    let res;
+    try{
+      res = await fetch('https://discord.com/api/v10' + path, {
+        headers: { Authorization: 'Bearer ' + token },
+        cache: 'no-store'
+      });
+    }catch(e){
+      throw new Error('Discord injoignable — vérifie ta connexion / ton bloqueur de pub (' + (e.message || e) + ')');
+    }
+
+    if(res.status === 429){                       // rate limit : on patiente
+      let wait = 1200;
+      try{ const j = await res.json(); if(j.retry_after) wait = Math.ceil(j.retry_after * 1000) + 250; }catch{}
+      await sleep(Math.min(wait, 6000));
+      continue;
+    }
+    if(res.status === 401){ const e = new Error('token_invalide'); e.code = 401; throw e; }
+    if(!res.ok){
+      let msg = 'HTTP ' + res.status;
+      try{ const j = await res.json(); if(j.message) msg = j.message + ' (' + res.status + ')'; }catch{}
+      if(res.status >= 500 && i < 3){ await sleep(700 * (i + 1)); continue; }
+      throw new Error('Discord : ' + msg);
+    }
+    return res.json();
+  }
+  throw new Error('Discord : trop de requêtes, réessaie dans quelques secondes');
+}
+
+function avatarURL(u){
+  if(!u) return 'https://cdn.discordapp.com/embed/avatars/0.png';
+  if(u.avatar){
+    const ext = String(u.avatar).startsWith('a_') ? 'gif' : 'png';
+    return `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.${ext}?size=64`;
+  }
+  let idx = 0;
+  try{
+    idx = (u.discriminator && u.discriminator !== '0')
+      ? Number(u.discriminator) % 5
+      : Number((BigInt(u.id) >> BigInt(22)) % BigInt(6));
+  }catch{}
+  return `https://cdn.discordapp.com/embed/avatars/${idx}.png`;
+}
+
+function hasAdmin(g){
+  if(!g) return false;
+  if(g.owner === true) return true;
+  try{
+    const p = BigInt(g.permissions_new ?? g.permissions ?? '0');
+    return (p & BigInt(0x8)) !== BigInt(0) || (p & BigInt(0x20)) !== BigInt(0);
+  }catch{ return false; }
+}
+
+function addRipple(el, e){
+  const r = document.createElement('span');
+  r.className = 'ripple';
+  const rect = el.getBoundingClientRect();
+  const s = Math.max(rect.width, rect.height);
+  r.style.cssText = `width:${s}px;height:${s}px;left:${(e.clientX ?? rect.left + rect.width / 2) - rect.left - s / 2}px;top:${(e.clientY ?? rect.top + rect.height / 2) - rect.top - s / 2}px`;
+  el.appendChild(r);
+  setTimeout(() => r.remove(), 600);
+}
+
+function showError(title, detail, hint){
+  $('grid').innerHTML = `
+    <div class="err-box">
+      <h3>${esc(title)}</h3>
+      <p>${esc(detail)}</p>
+      ${hint ? `<p>${hint}</p>` : ''}
+      <div class="err-actions">
+        <a class="btn primary" href="${authorizeURL('consent')}">Se connecter avec Discord</a>
+        <button class="btn" onclick="location.reload()">Réessayer</button>
+        <a class="btn" href="${LOGIN_PAGE}">Accueil</a>
+      </div>
+    </div>`;
+}
+
+function showLoading(txt){
+  $('grid').innerHTML = `<div class="loading"><div class="spinner"></div>${esc(txt)}</div>`;
+}
+
+/* ---------------- menu profil ---------------- */
+const pill = $('userPill');
+pill.addEventListener('click', e => {
+  if(e.target.closest('a') || e.target.closest('#btnLogout')) return;
+  pill.classList.toggle('open');
+});
+pill.addEventListener('mouseenter', () => pill.classList.add('open'));
+pill.addEventListener('mouseleave', () => pill.classList.remove('open'));
+document.addEventListener('click', e => { if(!pill.contains(e.target)) pill.classList.remove('open'); });
+
+$('btnLogout').addEventListener('click', async () => {
+  clearToken();
+  try{ await fetch(apiURL('/api/logout'), { method: 'POST', credentials: API_CREDS, headers: authHeaders() }); }catch{}
+  location.href = LOGIN_PAGE;
+});
+
+function setUser(u){
+  if(!u) return;
+  $('uName').textContent = u.global_name || u.display_name || u.username || 'Utilisateur';
+  $('uAvatar').src = avatarURL(u);
+  $('uTag').textContent = u.username ? '@' + u.username : ('ID ' + (u.id || ''));
+}
+
+/* Où le bot est-il présent ?
+   Le backend peut répondre de plusieurs formes, et une réponse mal comprise
+   affichait « bot absent » partout. On distingue donc trois résultats :
+     - un Set   : liste fiable des serveurs du bot
+     - null     : on ne sait pas -> on n'affiche JAMAIS « bot absent »
+   Une liste vide n'est retenue que si le bot déclare lui-même 0 serveur. */
+
+const BOT_FLAGS = ['bot_present','bot_in','bot_in_guild','has_bot','bot','present','mutual',
+                   'in_guild','bot_added','installed','is_member','joined'];
+const idOf = x => String(x && typeof x === 'object' ? (x.id ?? x.guild_id ?? x.guildId ?? '') : (x ?? ''));
+function flagOf(g){
+  if(!g || typeof g !== 'object') return undefined;
+  for(const k of BOT_FLAGS) if(k in g) return !!g[k];
+  return undefined;                       // aucun indicateur : on ne peut rien conclure
+}
+
+/* Extrait une liste d'identifiants d'une réponse JSON, quelle que soit sa forme.
+   scope 'bot'  : tout ce qui est listé appartient au bot.
+   scope 'user' : ce sont MES serveurs, il faut un indicateur pour trancher. */
+function extractIds(j, scope){
+  if(!j) return null;
+  const direct = j.bot_guild_ids || j.botGuildIds || j.bot_guilds || j.guild_ids || null;
+  if(Array.isArray(direct)) return direct.map(idOf).filter(Boolean);
+
+  const list = Array.isArray(j) ? j
+             : Array.isArray(j.guilds) ? j.guilds
+             : Array.isArray(j.servers) ? j.servers
+             : Array.isArray(j.data) ? j.data : null;
+  if(!Array.isArray(list)) return null;
+  if(!list.length) return [];
+
+  const flagged = list.some(g => flagOf(g) !== undefined);
+  if(flagged) return list.filter(g => flagOf(g) === true).map(idOf).filter(Boolean);
+  if(scope === 'bot') return list.map(idOf).filter(Boolean);
+  return null;                            // mes serveurs sans indicateur : inexploitable
+}
+
+async function getJSON(url){
+  try{
+    const res = await fetch(apiURL(url), { credentials: API_CREDS, cache: 'no-store',
+      headers: { Accept: 'application/json', ...authHeaders() } });
+    if(!res.ok) return null;
+    const txt = await res.text();
+    try{ return JSON.parse(txt); }catch{ return null; }
+  }catch{ return null; }
+}
+
+/* Dernier recours : on interroge le bot serveur par serveur. Une réponse OK sur
+   /api/guild/<id>/stats prouve que le bot est bien dans ce serveur. */
+async function probeGuilds(guilds){
+  const targets = guilds.filter(hasAdmin).slice(0, 20);
+  if(!targets.length) return null;
+  const found = new Set();
+  let answered = 0, reachable = false;
+
+  const probe = async g => {
+    for(const path of [`/api/guild/${encodeURIComponent(g.id)}/stats`,
+                       `/api/guild/${encodeURIComponent(g.id)}/dashboard`]){
+      try{
+        const r = await fetch(apiURL(path), { credentials: API_CREDS, cache: 'no-store',
+          headers: { Accept: 'application/json', ...authHeaders() } });
+        reachable = true;
+        if(r.ok){ found.add(String(g.id)); answered++; return; }
+        if(r.status === 404 || r.status === 403){ answered++; return; }   // absent, réponse nette
+      }catch{ /* réseau : on tente la route suivante */ }
+    }
+  };
+
+  // 4 requêtes à la fois pour ne pas saturer l'API du bot
+  const queue = [...targets];
+  await Promise.all(Array.from({ length: Math.min(4, queue.length) }, async () => {
+    while(queue.length) await probe(queue.shift());
+  }));
+
+  if(!reachable || !answered) return null;      // API muette : on ne conclut rien
+  return found;
+}
+
+async function fetchBotGuilds(guilds){
+  const debug = [];
+
+  // 1) Les routes dédiées au bot, puis celles liées à mon compte
+  for(const [url, scope] of [['/api/bot-guilds','bot'], ['/api/guilds','bot'],
+                             ['/api/me','user'], ['/api/my-guilds','user']]){
+    const j = await getJSON(url);
+    if(!j) continue;
+    const ids = extractIds(j, scope);
+    debug.push({ url, ids: ids ? ids.length : 'illisible' });
+    if(Array.isArray(ids) && ids.length){
+      window.MB_BOT_DETECT = { source: url, tried: debug };
+      return new Set(ids.map(String));
+    }
+  }
+
+  // 2) Une liste vide n'est crédible que si le bot dit lui-même être dans 0 serveur
+  if(BOT_STATUS && BOT_STATUS.bot_ready && Number(BOT_STATUS.guild_count) === 0){
+    window.MB_BOT_DETECT = { source: '/api/status (0 serveur)', tried: debug };
+    return new Set();
+  }
+
+  // 3) Vérification directe, serveur par serveur
+  const probed = await probeGuilds(guilds || []);
+  if(probed){
+    window.MB_BOT_DETECT = { source: '/api/guild/<id>/stats', tried: debug, probed: probed.size };
+    return probed;
+  }
+
+  window.MB_BOT_DETECT = { source: 'inconnu', tried: debug };
+  console.info('[ModeraBot] présence du bot indéterminée :', debug);
+  return null;   // inconnu : on n'affiche jamais « bot absent » à tort
+}
+
+/* ---------------- etat du bot (pied de page) ---------------- */
+function setFooter(state, text){
+  const dot = document.querySelector('footer .dot');
+  const lbl = $('botState');
+  if(lbl) lbl.textContent = text;
+  if(!dot) return;
+  dot.style.background = state === 'ok' ? '#3ba55d' : state === 'warn' ? '#faa61a' : '#ed4245';
+  dot.style.animation  = state === 'ok' ? '' : 'none';
+}
+let BOT_STATUS = null;          // dernière réponse de /api/status, utile à la détection
+async function checkBotStatus(){
+  try{
+    const r = await fetch(apiURL('/api/status'), { cache: 'no-store' });
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const st = await r.json();
+    BOT_STATUS = st;
+    setFooter(st.bot_ready ? 'ok' : 'warn',
+      st.bot_ready
+        ? `${st.bot_name ? st.bot_name.split('#')[0] : 'Bot'} en ligne · ${st.guild_count} serveur${st.guild_count > 1 ? 's' : ''}`
+        : 'Bot hors ligne');
+  }catch{
+    BOT_STATUS = null;
+    setFooter('err', 'API du bot injoignable');
+  }
+}
+
+/* ---------------- boot ---------------- */
+async function boot(){
+  await checkBotStatus();          // attendu : /api/status sert aussi à la détection
+  setInterval(() => { if(!document.hidden) checkBotStatus(); }, 20000);
+
+  // client_id / redirect_uri fournis par le bot
+  try{
+    const r = await fetch(apiURL('/api/config'), { cache: 'no-store' });
+    if(r.ok){
+      const c = await r.json();
+      if(c.client_id)    CLIENT_ID = c.client_id;
+      if(c.redirect_uri) REDIRECT  = c.redirect_uri;
+    }
+  }catch{}
+  if(!CLIENT_ID){
+    showError("L'API du bot ne répond pas",
+      "Impossible de récupérer la configuration OAuth (client_id).",
+      "Vérifie que le bot tourne et que le port du dashboard est ouvert.");
+    return;
+  }
+
+  const search = new URLSearchParams(location.search);
+  const hash   = new URLSearchParams(location.hash.replace(/^#/, ''));
+
+  // Erreur renvoyée par Discord (refus, mauvaise redirect_uri…)
+  const oerr = hash.get('error') || search.get('error');
+  if(oerr){
+    history.replaceState({}, '', '/servers.html');
+    const desc = hash.get('error_description') || search.get('error_description') || oerr;
+    showError(
+      'Connexion Discord refusée',
+      decodeURIComponent(String(desc).replace(/\+/g, ' ')),
+      oerr === 'invalid_request' || /redirect/i.test(String(desc))
+        ? `Dans le portail Discord → OAuth2 → Redirects, ajoute exactement : <code>${esc(REDIRECT)}</code>`
+        : ''
+    );
+    return;
+  }
+
+  // 1) Retour d'autorisation implicite : #access_token=…
+  let token = hash.get('access_token');
+  if(token){
+    saveToken(token, hash.get('expires_in'));
+    history.replaceState({}, '', '/servers.html');
+  } else {
+    token = loadToken();
+  }
+
+  // 2) Pas de token → on lance l'autorisation Discord (silencieuse si déjà autorisée)
+  if(!token){
+    showLoading('Connexion à Discord…');
+    location.href = authorizeURL('none');
+    return;
+  }
+
+  // 3) On charge le profil + les serveurs DIRECTEMENT depuis Discord
+  showLoading('Chargement de tes serveurs…');
+  let user, guilds;
+  try{
+    user = await discord('/users/@me', token);
+    setUser(user);
+    guilds = await discord('/users/@me/guilds', token);
+  }catch(err){
+    if(err.code === 401){
+      clearToken();
+      location.href = authorizeURL('consent');   // token expiré → on redemande
+      return;
+    }
+    showError(
+      'Impossible de charger tes serveurs',
+      err.message || String(err),
+      "Si l'erreur persiste, déconnecte-toi puis reconnecte-toi à Discord."
+    );
+    return;
+  }
+
+  if(!Array.isArray(guilds)){
+    showError('Réponse Discord inattendue', 'La liste des serveurs est illisible.', '');
+    return;
+  }
+
+  const botIds = await fetchBotGuilds(guilds);   // null si la présence est indéterminée
+  render(guilds, botIds);
+}
+
+/* On démarre dès que le DOM est prêt : ne pas attendre 'load', sinon une image
+   ou une police qui ne répond pas bloquerait la page sur « Chargement… ». */
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+else boot();
+
+/* ---------------- rendu ---------------- */
+function render(guilds, botIds){
+  const grid = $('grid');
+  grid.innerHTML = '';
+
+  if(!guilds.length){
+    grid.innerHTML = `<div class="loading">Aucun serveur trouvé sur ton compte Discord.</div>`;
+    return;
+  }
+
+  const unknownBot = botIds === null;   // on ignore où le bot est présent
+  const botIn = g => unknownBot ? null : botIds.has(String(g.id));
+
+  if(unknownBot){
+    const note = document.createElement('div');
+    note.className = 'note';
+    note.innerHTML = `<div><b>Présence du bot indéterminée.</b> L'API du bot n'a pas renvoyé la liste
+      de ses serveurs, donc aucun serveur n'est marqué « bot absent ». Tous tes serveurs administrés
+      restent ouvrables : le dashboard te proposera d'ajouter le bot s'il y manque vraiment.</div>`;
+    grid.appendChild(note);
+  }
+
+  let cBot = 0, cAdm = 0;
+
+  const score = g => {
+    const a = hasAdmin(g);
+    const b = botIn(g);
+    if(unknownBot) return a ? 0 : 3;     // 2 groupes seulement : admin / autres
+    if(b && a)  return 0;
+    if(b && !a) return 1;
+    if(!b && a) return 2;
+    return 3;
+  };
+
+  const sorted = [...guilds].sort((a, b) => score(a) - score(b) || String(a.name).localeCompare(String(b.name)));
+  let lastGroup = -1;
+
+  sorted.forEach((g, i) => {
+    const isAdmin = hasAdmin(g);
+    const hasBot  = botIn(g);
+    const grp     = score(g);
+    if(hasBot) cBot++;
+    if(isAdmin) cAdm++;
+
+    if(grp !== lastGroup){
+      lastGroup = grp;
+      const labels = unknownBot
+        ? { 0: [SVG.star, 'Serveurs que tu administres'], 3: [SVG.user, 'Autres serveurs'] }
+        : {
+            0: [SVG.bot,  'Bot actif · Administrateur'],
+            1: [SVG.bot,  'Bot actif · Membre'],
+            2: [SVG.star, 'Administrateur · Bot absent'],
+            3: [SVG.user, 'Autres serveurs'],
+          };
+      const sep = document.createElement('div');
+      sep.className = 'section-sep';
+      sep.innerHTML = labels[grp][0] + labels[grp][1];
+      grid.appendChild(sep);
+    }
+
+    // Sans backend on ne sait pas où est le bot : tout serveur administré est ouvrable,
+    // c'est /dash qui proposera l'ajout du bot si besoin.
+    const openable = isAdmin && (unknownBot || hasBot);
+
+    let cls = 'srv';
+    if(openable) cls += ' clickable';
+    else if(isAdmin && hasBot === false) cls += ' invite-me';
+    else cls += ' dim';
+
+    const el = document.createElement(openable ? 'a' : 'div');
+    el.className = cls;
+    el.style.animationDelay = Math.min(i * 0.035, 0.6) + 's';
+    if(openable) el.href = `${DASH_PATH}?guild=${encodeURIComponent(g.id)}`;
+
+    const iconHTML = g.icon
+      ? `<img class="srv-icon" src="https://cdn.discordapp.com/icons/${g.id}/${g.icon}.${String(g.icon).startsWith('a_') ? 'gif' : 'png'}?size=128" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=\\'srv-initials\\'>${esc(initials(g.name))}</div>'">`
+      : `<div class="srv-initials">${esc(initials(g.name))}</div>`;
+
+    const lock = (!isAdmin && hasBot === true)
+      ? `<div class="badge-lock" title="Tu n'es pas administrateur">${SVG.lock}</div>` : '';
+
+    const overlay = (isAdmin && hasBot === false) ? `
+      <div class="srv-overlay">
+        <div class="overlay-txt">Bot absent de ce serveur</div>
+        <a class="btn-add" href="https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&permissions=8&guild_id=${encodeURIComponent(g.id)}&scope=bot+applications.commands" onclick="event.stopPropagation()">
+          ${SVG.plus} Ajouter le bot
+        </a>
+      </div>` : '';
+
+    const badgeOn = unknownBot ? isAdmin : hasBot;
+    const badgeTxt = unknownBot ? (isAdmin ? 'Gérable' : 'Membre') : (hasBot ? 'Actif' : 'Inactif');
+
+    el.innerHTML = `
+      ${overlay}
+      <div class="icon-wrap">${iconHTML}${lock}</div>
+      <div class="srv-name" title="${esc(g.name)}">${esc(g.name)}</div>
+      <span class="srv-badge ${badgeOn ? 'badge-on' : 'badge-off'}">${badgeOn ? SVG.cirOn : SVG.cirOff}${badgeTxt}</span>
+    `;
+
+    if(openable){
+      el.addEventListener('click', e => {
+        addRipple(el, e);
+        e.preventDefault();
+        setTimeout(() => { location.href = `${DASH_PATH}?guild=${encodeURIComponent(g.id)}`; }, 120);
+      });
+    }
+
+    grid.appendChild(el);
+  });
+
+  $('sTot').textContent = guilds.length;
+  $('sBot').textContent = unknownBot ? '—' : cBot;
+  $('sAdm').textContent = cAdm;
+  $('stats').style.display = 'flex';
+}
+</script>
+</body>
+</html>
