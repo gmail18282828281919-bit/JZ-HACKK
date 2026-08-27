@@ -1328,6 +1328,14 @@ const XDEF={
   apply:{enabled:false,panel_channel:null,review_channel:null,accepted_role:null,log_channel:null,
          titre:'Candidatures',description:'Choisis un poste ci-dessous pour postuler.',
          couleur:'#5865F2',cooldown_hours:24,postes:[]},
+  antinuke:{enabled:false,log_channel:null,punish:'strip',window:60,max_channel_delete:3,max_role_delete:3,
+            max_ban:3,max_kick:5,protect_channels:true,protect_roles:true,protect_bans:true,
+            protect_kicks:true,anti_bot_add:false,whitelist_roles:[],whitelist_users:[]},
+  infractions:{enabled:false,log_channel:null,dm_user:true,expire_days:0,auto_mute_at:3,
+               auto_kick_at:0,auto_ban_at:5},
+  automsg:{enabled:false,messages:[]},
+  birthdays:{enabled:false,channel_id:null,role_id:null,hour:10,message:'Joyeux anniversaire {user} !'},
+  customcmds:{enabled:false,delete_trigger:false,commands:[]},
 };
 
 const XCMDS={
@@ -1359,6 +1367,28 @@ const XCMDS={
   apply:[['+apply','Ouvre le panneau candidatures',1],['+applysend #salon','Publier le panneau public',1],
     ['+applyadd Poste | Q1 | Q2','Ajouter un poste',1],['+applydel Poste','Supprimer un poste',1],
     ['+applylist','Lister les postes ouverts']],
+  antinuke:[['+antinuke','Ouvre le panneau anti-nuke',1],
+    ['+antinukewl @role','Ajouter ou retirer de la liste blanche',1],
+    ['+antinukelogs #salon','Salon des alertes anti-nuke',1]],
+  infractions:[['+infractions','Ouvre le panneau du casier',1],
+    ['+infractions @membre','Voir le casier d\'un membre'],
+    ['+addinfraction @membre raison','Ajouter une infraction',1],
+    ['+delinfraction @membre id','Retirer une infraction',1],
+    ['+clearinfractions @membre','Vider un casier',1],
+    ['+topinfractions','Membres les plus sanctionnés',1]],
+  automsg:[['+automessage','Ouvre le panneau des messages auto',1],
+    ['+automessageadd #salon 60 texte','Ajouter un message récurrent',1],
+    ['+automessagelist','Lister les messages'],
+    ['+automessagedel 1','Supprimer un message',1]],
+  birthdays:[['+birthdays','Ouvre le panneau anniversaires',1],
+    ['+birthday 24/08','Enregistrer sa date'],
+    ['+birthdaylist','Toutes les dates du serveur'],
+    ['+nextbirthdays','Les prochains anniversaires'],
+    ['+birthdayremove','Supprimer sa date']],
+  customcmds:[['+customcmd','Ouvre le panneau des commandes',1],
+    ['+ccadd nom réponse','Créer une commande',1],
+    ['+ccdel nom','Supprimer une commande',1],
+    ['+cclist','Lister les commandes créées']],
 };
 
 const SVG={
@@ -1368,6 +1398,11 @@ const SVG={
   poll:'<line x1="18" y1="20" x2="18" y2="4"/><line x1="12" y1="20" x2="12" y2="10"/><line x1="6" y1="20" x2="6" y2="14"/>',
   guard:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="15" x2="12" y2="18"/>',
   apply:'<path d="M9 2h6a2 2 0 0 1 2 2v1h1a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1V4a2 2 0 0 1 2-2z"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>',
+  nuke:'<path d="M12 2v6"/><circle cx="12" cy="14" r="6"/><path d="M8.5 10.5l7 7"/><path d="M15.5 10.5l-7 7"/>',
+  file2:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/>',
+  repeat:'<polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>',
+  cake:'<path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M2 21h20"/><path d="M7 11V7"/><path d="M12 11V7"/><path d="M17 11V7"/><path d="M4 16c2 1.2 3.5 1.2 5.5 0s3.5-1.2 5.5 0 3.5 1.2 5-.2"/>',
+  term:'<polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>',
   list:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
   users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>',
   coins:'<circle cx="12" cy="12" r="9"/><path d="M15 9.5a3 3 0 0 0-3-1.5c-1.7 0-3 .9-3 2s1.3 2 3 2 3 .9 3 2-1.3 2-3 2a3 3 0 0 1-3-1.5"/>',
@@ -1377,15 +1412,30 @@ const SVG={
 };
 const ico=(k,size)=>`<svg width="${size||16}" height="${size||16}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${SVG[k]}</svg>`;
 
-const XNAV=['Modules Pro',[
-  ['xeconomy','Économie','Monnaie, boutique, banque',SVG.eco],
-  ['xautomod','AutoMod','Filtres de messages',SVG.automod],
-  ['xsuggestions','Suggestions','Idées et votes des membres',SVG.sugg],
-  ['xpolls','Sondages','Votes avec barres en direct',SVG.poll],
-  ['xguard','Protection','Verrouillage et mode raid',SVG.guard],
-  ['xapply','Candidatures','Recrutement du staff',SVG.apply],
-  ['xcommands','Toutes les commandes','Les commandes ajoutées',SVG.list],
-]];
+const XNAV=[
+  ['Sécurité avancée',[
+    ['xautomod','AutoMod','Filtres de messages',SVG.automod],
+    ['xantinuke','Anti-nuke','Protection contre la destruction',SVG.nuke],
+    ['xguard','Protection','Verrouillage et mode raid',SVG.guard],
+    ['xinfractions','Infractions','Casier des membres',SVG.file2],
+  ]],
+  ['Communauté +',[
+    ['xsuggestions','Suggestions','Idées et votes des membres',SVG.sugg],
+    ['xpolls','Sondages','Votes avec barres en direct',SVG.poll],
+    ['xautomsg','Messages automatiques','Publications récurrentes',SVG.repeat],
+    ['xbirthdays','Anniversaires','Souhaits automatiques',SVG.cake],
+  ]],
+  ['Engagement',[
+    ['xeconomy','Économie','Monnaie, boutique, banque',SVG.eco],
+    ['xapply','Candidatures','Recrutement du staff',SVG.apply],
+  ]],
+  ['Personnalisation',[
+    ['xcustomcmds','Commandes personnalisées','Tes propres commandes',SVG.term],
+  ]],
+  ['Aide',[
+    ['xcommands','Toutes les commandes','Les commandes ajoutées',SVG.list],
+  ]],
+];
 
 const hero=(k,titre,sous,badge)=>`
   <div class="hero"><div class="hi">
@@ -1533,6 +1583,78 @@ xapply: hero('apply','Candidatures',
    `<div id="xPostes"></div><div style="margin-top:14px"><button class="btn p" id="xPosteAdd">+ Ajouter un poste</button></div>`)
  +card('Commandes de la catégorie','',`<div class="cmds" data-cmds="apply"></div>`),
 
+xantinuke: hero('nuke','Anti-nuke',
+  'Surveille les actions destructrices d\'un administrateur ou d\'un bot compromis : suppressions de salons ou de rôles en masse, bans et kicks en rafale. Panneau Discord : <code>+antinuke</code>.','an')
+ +card('Activation','La sanction s\'applique dès que le seuil est dépassé dans la fenêtre de temps.',
+    row('Activer l\'anti-nuke','',sw('extras.antinuke.enabled'))
+   +`<div class="tk-grid">
+      <div><label>Sanction de l'auteur</label>${sel('extras.antinuke.punish',[['strip','Retirer tous ses rôles'],['kick','Expulser'],['ban','Bannir']])}</div>
+      <div><label>Fenêtre de détection (secondes)</label>${num('extras.antinuke.window',5,3600)}</div>
+     </div>
+     <div class="field"><label>Salon des alertes</label>${chan('extras.antinuke.log_channel')}</div>`)
+ +card('Actions surveillées','Nombre d\'actions tolérées avant sanction.',
+    row('Suppression de salons','',num('extras.antinuke.max_channel_delete',1,100)+' '+sw('extras.antinuke.protect_channels'))
+   +row('Suppression de rôles','',num('extras.antinuke.max_role_delete',1,100)+' '+sw('extras.antinuke.protect_roles'))
+   +row('Bannissements','',num('extras.antinuke.max_ban',1,100)+' '+sw('extras.antinuke.protect_bans'))
+   +row('Expulsions','',num('extras.antinuke.max_kick',1,100)+' '+sw('extras.antinuke.protect_kicks'))
+   +row('Bloquer l\'ajout de bots','Tout bot ajouté par une personne hors liste blanche est expulsé.',sw('extras.antinuke.anti_bot_add')))
+ +card('Liste blanche','Ces rôles et ces membres ne déclenchent jamais l\'anti-nuke. Le propriétaire du serveur est toujours exclu.',
+   `<div class="field"><label>Rôles autorisés</label><div class="rolebox" data-roles="extras.antinuke.whitelist_roles"></div></div>
+    <div class="field"><label>Membres autorisés</label><div id="xAnUsers"></div></div>`)
+ +card('Commandes de la catégorie','',`<div class="cmds" data-cmds="antinuke"></div>`),
+
+xinfractions: hero('file2','Infractions',
+  'L\'historique des sanctions de chaque membre, avec des sanctions automatiques quand le total monte trop. Panneau Discord : <code>+infractions</code>.','in')
+ +`<div class="stats">${stat('xs-inf','Infractions enregistrées','file2','r')}${stat('xs-infm','Membres au casier','users')}</div>`
+ +card('Activation','',
+    row('Activer le casier','Les actions de l\'AutoMod y sont ajoutées automatiquement.',sw('extras.infractions.enabled'))
+   +row('Prévenir le membre en message privé','',sw('extras.infractions.dm_user'))
+   +`<div class="field"><label>Salon des logs</label>${chan('extras.infractions.log_channel')}</div>`)
+ +card('Sanctions automatiques','0 = jamais. La sanction s\'applique dès que le nombre d\'infractions est atteint.',
+   `<div class="tk-grid">
+      <div><label>Mute à</label>${num('extras.infractions.auto_mute_at',0,100)}</div>
+      <div><label>Expulsion à</label>${num('extras.infractions.auto_kick_at',0,100)}</div>
+      <div><label>Bannissement à</label>${num('extras.infractions.auto_ban_at',0,100)}</div>
+      <div><label>Expiration en jours</label>${num('extras.infractions.expire_days',0,3650)}
+        <div class="mini">0 = les infractions ne s'effacent jamais.</div></div>
+    </div>`)
+ +card('Commandes de la catégorie','',`<div class="cmds" data-cmds="infractions"></div>`),
+
+xautomsg: hero('repeat','Messages automatiques',
+  'Publie des messages à intervalle régulier : règles, rappels, promotion. Panneau Discord : <code>+automessage</code>.','au')
+ +`<div class="stats">${stat('xs-am','Messages configurés','repeat','b')}</div>`
+ +card('Activation','',
+    row('Activer les messages automatiques','',sw('extras.automsg.enabled')))
+ +card('Messages','15 messages maximum, intervalle minimum de 5 minutes.',
+   `<div id="xAmList"></div><div style="margin-top:14px"><button class="btn p" id="xAmAdd">+ Ajouter un message</button></div>`)
+ +card('Commandes de la catégorie','',`<div class="cmds" data-cmds="automsg"></div>`),
+
+xbirthdays: hero('cake','Anniversaires',
+  'Les membres enregistrent leur date, le bot les souhaite automatiquement le jour venu et peut donner un rôle pour la journée. Panneau Discord : <code>+birthdays</code>.','bd')
+ +`<div class="stats">${stat('xs-bd','Dates enregistrées','cake','g')}</div>`
+ +card('Réglages','',
+    row('Activer les anniversaires','',sw('extras.birthdays.enabled'))
+   +`<div class="tk-grid">
+      <div><label>Salon d'annonce</label>${chan('extras.birthdays.channel_id')}</div>
+      <div><label>Rôle donné le jour J</label>${role('extras.birthdays.role_id')}</div>
+      <div><label>Heure d'annonce</label>${num('extras.birthdays.hour',0,23)}
+        <div class="mini">Heure du serveur qui héberge le bot.</div></div>
+     </div>
+     <div class="field"><label>Message d'anniversaire</label>
+       <div class="hint">Variables : <code>{user}</code> <code>{username}</code> <code>{server}</code></div>
+       <textarea data-k="extras.birthdays.message" maxlength="500"></textarea></div>`)
+ +card('Commandes de la catégorie','',`<div class="cmds" data-cmds="birthdays"></div>`),
+
+xcustomcmds: hero('term','Commandes personnalisées',
+  'Crée tes propres commandes : le bot répond un texte ou un embed, avec restriction par rôle si besoin. Panneau Discord : <code>+customcmd</code>.','cc')
+ +`<div class="stats">${stat('xs-cc','Commandes créées','term','b')}</div>`
+ +card('Activation','',
+    row('Activer les commandes personnalisées','',sw('extras.customcmds.enabled'))
+   +row('Supprimer le message de commande','Efface le message du membre après la réponse.',sw('extras.customcmds.delete_trigger')))
+ +card('Tes commandes','50 maximum. Le nom s\'utilise avec le préfixe du serveur, par exemple <code>+regles</code>.',
+   `<div id="xCcList"></div><div style="margin-top:14px"><button class="btn p" id="xCcAdd">+ Créer une commande</button></div>`)
+ +card('Commandes de la catégorie','',`<div class="cmds" data-cmds="customcmds"></div>`),
+
 xcommands: hero('list','Toutes les commandes',
   'Les commandes ajoutées par le pack, réparties en six catégories. Chacune se configure depuis son panneau Discord ou depuis ce dashboard. Clique sur une commande pour la copier.')
  +`<input type="text" class="srch" id="xSearch" placeholder="Rechercher une commande…"><div id="xAllCmds"></div>`,
@@ -1554,8 +1676,8 @@ function xinject(){
 
 function xextend(){
   try{
-    if(!NAV.some(g=>g[0]===XNAV[0])) NAV.push(XNAV);
-    XNAV[1].forEach(([k,t,s])=>{PAGES[k]=[t,s];});
+    XNAV.forEach(g=>{ if(!NAV.some(x=>x[0]===g[0])) NAV.push(g); });
+    XNAV.forEach(g=>g[1].forEach(([k,t,s])=>{PAGES[k]=[t,s];}));
     DEFAULTS.extras=xclone(XDEF);
     if(!cfg.extras) cfg.extras=xclone(XDEF);
     if(!saved.extras) saved.extras=xclone(XDEF);
@@ -1566,6 +1688,11 @@ function xextend(){
       ['xpolls','Sondages',c=>!!(c.extras&&c.extras.polls.enabled)],
       ['xguard','Protection',c=>!!(c.extras&&(c.extras.guard.raidmode||c.extras.guard.agegate))],
       ['xapply','Candidatures',c=>!!(c.extras&&c.extras.apply.enabled)],
+      ['xantinuke','Anti-nuke',c=>!!(c.extras&&c.extras.antinuke.enabled)],
+      ['xinfractions','Infractions',c=>!!(c.extras&&c.extras.infractions.enabled)],
+      ['xautomsg','Messages automatiques',c=>!!(c.extras&&c.extras.automsg.enabled)],
+      ['xbirthdays','Anniversaires',c=>!!(c.extras&&c.extras.birthdays.enabled)],
+      ['xcustomcmds','Commandes personnalisées',c=>!!(c.extras&&c.extras.customcmds.enabled)],
     ];
     add.forEach(m=>{ if(!MODULES.some(x=>x[0]===m[0])) MODULES.push(m); });
     if(typeof buildNav==='function') buildNav();
@@ -1642,6 +1769,62 @@ function xBuildAmChannels(){
   box.innerHTML=`<div class="chips" style="margin:0 0 10px">${chips||'<span class="mini">Aucun salon ignoré.</span>'}</div>${adder}`;
 }
 
+function xBuildAmList(){
+  const box=document.getElementById('xAmList'); if(!box) return;
+  const list=(cfg.extras&&cfg.extras.automsg.messages)||[];
+  box.innerHTML=list.length?list.map((m,i)=>`
+    <div class="tk">
+      <div class="tk-h">
+        <b>Message ${i+1}</b>
+        <span class="pill-i">toutes les ${m.interval_minutes||60} min</span>
+        <label class="sw"><input type="checkbox" data-k="extras.automsg.messages.${i}.enabled"><i></i></label>
+        <button class="btn sm dg" data-xamrm="${i}">Supprimer</button>
+      </div>
+      <div class="tk-grid">
+        <div><label>Salon</label><span data-select="channel" data-sk="extras.automsg.messages.${i}.channel"></span></div>
+        <div><label>Intervalle en minutes</label><input type="number" min="5" max="43200" data-k="extras.automsg.messages.${i}.interval_minutes"></div>
+        <div class="full"><label>Message</label><textarea maxlength="1800" data-k="extras.automsg.messages.${i}.content"></textarea></div>
+        <div><label>Titre de l'embed</label><input type="text" maxlength="100" data-k="extras.automsg.messages.${i}.titre">
+          <div class="mini">Vide = message texte simple.</div></div>
+        <div><label>Couleur de l'embed</label><input type="text" maxlength="7" data-k="extras.automsg.messages.${i}.couleur"></div>
+      </div>
+    </div>`).join('')
+    :`<div class="empty">Aucun message automatique configuré.</div>`;
+}
+
+function xBuildCcList(){
+  const box=document.getElementById('xCcList'); if(!box) return;
+  const list=(cfg.extras&&cfg.extras.customcmds.commands)||[];
+  box.innerHTML=list.length?list.map((x,i)=>`
+    <div class="tk">
+      <div class="tk-h">
+        <b>+${xesc(x.nom||'')}</b>
+        <span class="pill-i">${x.titre?'Embed':'Texte'}</span>
+        <button class="btn sm dg" data-xccrm="${i}">Supprimer</button>
+      </div>
+      <div class="tk-grid">
+        <div><label>Nom de la commande</label><input type="text" maxlength="25" data-k="extras.customcmds.commands.${i}.nom">
+          <div class="mini">Lettres, chiffres, tiret et tiret bas.</div></div>
+        <div><label>Titre de l'embed</label><input type="text" maxlength="100" data-k="extras.customcmds.commands.${i}.titre">
+          <div class="mini">Vide = réponse en texte simple.</div></div>
+        <div class="full"><label>Réponse</label><textarea maxlength="1800" data-k="extras.customcmds.commands.${i}.reponse"></textarea>
+          <div class="mini">Variables : {user} {username} {server} {membercount}</div></div>
+        <div><label>Couleur de l'embed</label><input type="text" maxlength="7" data-k="extras.customcmds.commands.${i}.couleur"></div>
+        <div class="full"><label>Rôles autorisés</label><div class="rolebox" data-roles="extras.customcmds.commands.${i}.roles"></div>
+          <div class="mini">Vide = tout le monde peut l'utiliser.</div></div>
+      </div>
+    </div>`).join('')
+    :`<div class="empty">Aucune commande personnalisée.</div>`;
+}
+
+function xBuildAnUsers(){
+  const box=document.getElementById('xAnUsers'); if(!box) return;
+  const cur=((cfg.extras&&cfg.extras.antinuke.whitelist_users)||[]).map(String);
+  const chips=cur.map((id,i)=>`<span class="chip"><b>ID ${xesc(id)}</b><button type="button" data-xanrm="${i}">×</button></span>`).join('');
+  box.innerHTML=`<div class="rolebox"><div class="chips" style="margin:0 0 10px">${chips||'<span class="mini">Aucun membre autorisé.</span>'}</div>
+    <div class="add"><input type="text" inputmode="numeric" id="xAnIn" placeholder="ID du membre"><button class="btn" id="xAnAddBtn">Ajouter</button></div></div>`;
+}
+
 function xBuildCmds(){
   const item=([c,d,admin])=>`
     <div class="cmd" data-copy="${xesc(c)}" data-q="${xesc((c+' '+d).toLowerCase())}">
@@ -1669,15 +1852,21 @@ function xBuildBadges(){
     el.style.cssText=on?'':'background:var(--card2);color:var(--dim)';};
   b('eco',x.economy.enabled); b('am',x.automod.enabled); b('sg',x.suggestions.enabled);
   b('pl',x.polls.enabled); b('gd',x.guard.raidmode||x.guard.agegate,'Protégé','Repos'); b('ap',x.apply.enabled);
+  b('an',x.antinuke.enabled); b('in',x.infractions.enabled); b('au',x.automsg.enabled);
+  b('bd',x.birthdays.enabled); b('cc',x.customcmds.enabled);
   const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.textContent=v;};
   set('xs-articles',(x.economy.shop||[]).length);
   set('xs-postes',(x.apply.postes||[]).length);
   set('xs-sugg',x.suggestions.counter||0);
   set('xs-locked',(x.guard.locked_channels||[]).length);
+  set('xs-am',(x.automsg.messages||[]).length);
+  set('xs-cc',(x.customcmds.commands||[]).length);
 }
 
 function xBuildAll(){
-  xBuildShop(); xBuildPostes(); xBuildBadwords(); xBuildAmChannels(); xBuildCmds(); xBuildBadges();
+  xBuildShop(); xBuildPostes(); xBuildBadwords(); xBuildAmChannels();
+  xBuildAmList(); xBuildCcList(); xBuildAnUsers();
+  xBuildCmds(); xBuildBadges();
 }
 
 document.addEventListener('click',e=>{
@@ -1721,6 +1910,40 @@ document.addEventListener('click',e=>{
     v.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean).forEach(w=>{ if(!l.includes(w)) l.push(w); });
     inp.value=''; xBuildBadwords(); touch(); return;
   }
+
+  if(e.target.closest('#xAmAdd')){
+    const l=cfg.extras.automsg.messages=cfg.extras.automsg.messages||[];
+    if(l.length>=15) return toast('15 messages maximum','err');
+    l.push({channel:null,interval_minutes:60,content:'',titre:'',couleur:'#5865F2',enabled:true,last:0});
+    render(); touch(); toast('Message ajouté — pense à enregistrer'); return;
+  }
+  const amrm=e.target.closest('[data-xamrm]');
+  if(amrm){
+    const i=Number(amrm.dataset.xamrm);
+    if(!confirm('Supprimer ce message automatique ?')) return;
+    cfg.extras.automsg.messages.splice(i,1); render(); touch(); return;
+  }
+  if(e.target.closest('#xCcAdd')){
+    const l=cfg.extras.customcmds.commands=cfg.extras.customcmds.commands||[];
+    if(l.length>=50) return toast('50 commandes maximum','err');
+    l.push({nom:'regles',reponse:'',titre:'',couleur:'#5865F2',roles:[]});
+    render(); touch(); toast('Commande ajoutée — pense à enregistrer'); return;
+  }
+  const ccrm=e.target.closest('[data-xccrm]');
+  if(ccrm){
+    const i=Number(ccrm.dataset.xccrm);
+    if(!confirm(`Supprimer la commande « +${cfg.extras.customcmds.commands[i]?.nom||''} » ?`)) return;
+    cfg.extras.customcmds.commands.splice(i,1); render(); touch(); return;
+  }
+  if(e.target.closest('#xAnAddBtn')){
+    const inp=document.getElementById('xAnIn'); const v=(inp.value||'').trim();
+    if(!/^\d{5,25}$/.test(v)) return toast('Entre un identifiant valide','err');
+    const l=cfg.extras.antinuke.whitelist_users=cfg.extras.antinuke.whitelist_users||[];
+    if(!l.map(String).includes(v)) l.push(v);
+    inp.value=''; xBuildAnUsers(); touch(); return;
+  }
+  const anrm=e.target.closest('[data-xanrm]');
+  if(anrm){ cfg.extras.antinuke.whitelist_users.splice(Number(anrm.dataset.xanrm),1); xBuildAnUsers(); touch(); return; }
   const bwr=e.target.closest('[data-xbwrm]');
   if(bwr){ cfg.extras.automod.badwords.splice(Number(bwr.dataset.xbwrm),1); xBuildBadwords(); touch(); return; }
   const chr=e.target.closest('[data-xchrm]');
@@ -1800,6 +2023,7 @@ async function xloadCfg(){
     saved.extras=xclone(cfg.extras);
     const nb=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
     const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.textContent=nb(v);};
+    set('xs-comptes',null);
     set('xs-comptes',stats.comptes); set('xs-argent',stats.argent_total);
     return true;
   }catch{ return false; }

@@ -30,7 +30,7 @@ avant `</body>` de ton fichier actuel — même résultat.)
 Les nouvelles pages lisent et écrivent sur `GET/POST /api/guild/<id>/extras`,
 la route ajoutée par `modules_extra.py`. Les routes existantes ne sont pas touchées.
 
-## 3. Les 6 catégories ajoutées
+## 3. Les 11 catégories ajoutées
 
 | Catégorie | Panneau | Commandes |
 |---|---|---|
@@ -40,6 +40,11 @@ la route ajoutée par `modules_extra.py`. Les routes existantes ne sont pas touc
 | 📊 Sondages | `+pollconfig` | `+pollpro` `+quickpoll` `+endpoll` `+pollresults` |
 | 🔒 Protection | `+guard` | `+lock` `+unlock` `+lockall` `+unlockall` `+slowmode` `+panic` `+raidmode` `+agegate` |
 | 📋 Candidatures | `+apply` | `+applysend` `+applyadd` `+applydel` `+applylist` |
+| 🧨 Anti-nuke | `+antinuke` | `+antinukewl` `+antinukelogs` |
+| 📒 Infractions | `+infractions` | `+addinfraction` `+delinfraction` `+clearinfractions` `+topinfractions` |
+| 🔁 Messages auto | `+automessage` | `+automessageadd` `+automessagelist` `+automessagedel` |
+| 🎂 Anniversaires | `+birthdays` | `+birthday` `+birthdaylist` `+nextbirthdays` `+birthdayremove` |
+| ⌨️ Commandes perso | `+customcmd` | `+ccadd` `+ccdel` `+cclist` |
 
 `+modules` affiche le récapitulatif dans Discord.
 
@@ -50,7 +55,9 @@ persistantes : ils continuent de marcher après un redémarrage du bot.
 
 ## 4. Fichiers de données créés
 
-- `extras_configs/<guild_id>.json` — configuration des 6 modules
+- `extras_configs/<guild_id>.json` — configuration des 11 modules
 - `extras_bank/<guild_id>.json` — soldes et inventaires de l'économie
+- `extras_infractions/<guild_id>.json` — casiers des membres
+- `extras_birthdays/<guild_id>.json` — dates d'anniversaire
 
 Rien n'écrase tes fichiers existants.

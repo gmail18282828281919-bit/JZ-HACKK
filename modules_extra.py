@@ -118,6 +118,48 @@ DEFAULT_CFG = {
         "locked_channels": [],
         "immune_roles": [],
     },
+    "antinuke": {
+        "enabled": False,
+        "log_channel": None,
+        "punish": "strip",
+        "window": 60,
+        "max_channel_delete": 3,
+        "max_role_delete": 3,
+        "max_ban": 3,
+        "max_kick": 5,
+        "protect_channels": True,
+        "protect_roles": True,
+        "protect_bans": True,
+        "protect_kicks": True,
+        "anti_bot_add": False,
+        "whitelist_roles": [],
+        "whitelist_users": [],
+    },
+    "infractions": {
+        "enabled": False,
+        "log_channel": None,
+        "dm_user": True,
+        "expire_days": 0,
+        "auto_mute_at": 3,
+        "auto_kick_at": 0,
+        "auto_ban_at": 5,
+    },
+    "automsg": {
+        "enabled": False,
+        "messages": [],
+    },
+    "birthdays": {
+        "enabled": False,
+        "channel_id": None,
+        "role_id": None,
+        "hour": 10,
+        "message": "Joyeux anniversaire {user} !",
+    },
+    "customcmds": {
+        "enabled": False,
+        "delete_trigger": False,
+        "commands": [],
+    },
     "apply": {
         "enabled": False,
         "panel_channel": None,
@@ -1082,6 +1124,12 @@ async def automod_punish(message, action, motif):
             await message.author.kick(reason=f"AutoMod : {motif}")
         elif action == "ban":
             await message.author.ban(reason=f"AutoMod : {motif}", delete_message_days=0)
+    except Exception:
+        pass
+
+    try:
+        if xget(guild.id, "infractions").get("enabled"):
+            await inf_record(guild, message.author, "automod", motif, guild.me)
     except Exception:
         pass
 
@@ -2502,6 +2550,1169 @@ def register_apply(bot):
 
 
 # ===========================================================================
+# ===========================================================================
+#   CATEGORIE 7 — ANTI-NUKE
+# ===========================================================================
+# ===========================================================================
+
+NUKE_TRACK = {}
+
+
+def an_embed(guild):
+    c = xget(guild.id, "antinuke")
+    e = discord.Embed(
+        title="🧨 Anti-nuke",
+        description="Surveille les actions destructrices d'un administrateur ou d'un bot compromis : "
+                    "suppressions en masse de salons, de roles, bans ou kicks en rafale.",
+        color=X_RED if c.get("enabled") else X_BLUE)
+    e.add_field(name="🔘 Statut", value="✅ Actif" if c.get("enabled") else "❌ Desactive", inline=True)
+    e.add_field(name="⚖️ Sanction", value=f"`{c.get('punish','strip')}`", inline=True)
+    e.add_field(name="⏱️ Fenetre", value=f"{c.get('window',60)} s", inline=True)
+    e.add_field(name="📺 Salons supprimes",
+                value=(f"Max {c.get('max_channel_delete',3)}" if c.get("protect_channels") else "❌"), inline=True)
+    e.add_field(name="🎭 Roles supprimes",
+                value=(f"Max {c.get('max_role_delete',3)}" if c.get("protect_roles") else "❌"), inline=True)
+    e.add_field(name="🔨 Bans", value=(f"Max {c.get('max_ban',3)}" if c.get("protect_bans") else "❌"), inline=True)
+    e.add_field(name="👢 Kicks", value=(f"Max {c.get('max_kick',5)}" if c.get("protect_kicks") else "❌"), inline=True)
+    e.add_field(name="🤖 Ajout de bots", value="🚫 Bloque" if c.get("anti_bot_add") else "Autorise", inline=True)
+    e.add_field(name="📋 Logs", value=chan_field(guild, c.get("log_channel")), inline=True)
+    wl = c.get("whitelist_roles", []) + c.get("whitelist_users", [])
+    e.add_field(name="✅ Liste blanche", value=f"{len(wl)} entree(s)", inline=False)
+    e.add_field(name="⌨️ Commandes", value="`+antinuke` `+antinukewl` `+antinukelogs`", inline=False)
+    e.set_footer(text="ModeraBot • Anti-nuke")
+    return e
+
+
+class ModalAnLimites(discord.ui.Modal, title="🧨 Limites de l'anti-nuke"):
+    fenetre = discord.ui.TextInput(label="Fenetre de detection (secondes)", max_length=5, placeholder="60")
+    salons = discord.ui.TextInput(label="Salons supprimes maximum", max_length=3, placeholder="3")
+    roles = discord.ui.TextInput(label="Roles supprimes maximum", max_length=3, placeholder="3")
+    bans = discord.ui.TextInput(label="Bans maximum", max_length=3, placeholder="3")
+    kicks = discord.ui.TextInput(label="Kicks maximum", max_length=3, placeholder="5")
+
+    def __init__(self, gid):
+        super().__init__()
+        self.gid = gid
+        c = xget(gid, "antinuke")
+        self.fenetre.default = str(c.get("window", 60))
+        self.salons.default = str(c.get("max_channel_delete", 3))
+        self.roles.default = str(c.get("max_role_delete", 3))
+        self.bans.default = str(c.get("max_ban", 3))
+        self.kicks.default = str(c.get("max_kick", 5))
+
+    async def on_submit(self, interaction: discord.Interaction):
+        c = xget(self.gid, "antinuke")
+        try:
+            c["window"] = max(5, int(str(self.fenetre.value).strip()))
+            c["max_channel_delete"] = max(1, int(str(self.salons.value).strip()))
+            c["max_role_delete"] = max(1, int(str(self.roles.value).strip()))
+            c["max_ban"] = max(1, int(str(self.bans.value).strip()))
+            c["max_kick"] = max(1, int(str(self.kicks.value).strip()))
+        except Exception:
+            return await interaction.response.send_message(embed=err("Entre des nombres valides."), ephemeral=True)
+        xset(self.gid, "antinuke", c)
+        await interaction.response.edit_message(embed=an_embed(interaction.guild))
+
+
+class ModalAnSanction(discord.ui.Modal, title="⚖️ Sanction et logs"):
+    punish = discord.ui.TextInput(label="Sanction : strip / kick / ban", max_length=6, placeholder="strip")
+    logs = discord.ui.TextInput(label="ID du salon de logs", required=False, max_length=25)
+
+    def __init__(self, gid):
+        super().__init__()
+        self.gid = gid
+        c = xget(gid, "antinuke")
+        self.punish.default = c.get("punish", "strip")
+        self.logs.default = str(c.get("log_channel") or "")
+
+    async def on_submit(self, interaction: discord.Interaction):
+        c = xget(self.gid, "antinuke")
+        a = str(self.punish.value).strip().lower()
+        c["punish"] = a if a in ("strip", "kick", "ban") else "strip"
+        v = str(self.logs.value or "").strip()
+        c["log_channel"] = int(v) if v.isdigit() else None
+        xset(self.gid, "antinuke", c)
+        await interaction.response.edit_message(embed=an_embed(interaction.guild))
+
+
+class ModalAnWhitelist(discord.ui.Modal, title="✅ Liste blanche"):
+    roles = discord.ui.TextInput(label="IDs de roles autorises (virgules)", required=False, max_length=500)
+    users = discord.ui.TextInput(label="IDs de membres autorises (virgules)", required=False, max_length=500)
+
+    def __init__(self, gid):
+        super().__init__()
+        self.gid = gid
+        c = xget(gid, "antinuke")
+        self.roles.default = ", ".join(str(i) for i in c.get("whitelist_roles", []))
+        self.users.default = ", ".join(str(i) for i in c.get("whitelist_users", []))
+
+    async def on_submit(self, interaction: discord.Interaction):
+        c = xget(self.gid, "antinuke")
+        c["whitelist_roles"] = [int(x) for x in re.findall(r"\d{5,25}", str(self.roles.value or ""))][:50]
+        c["whitelist_users"] = [int(x) for x in re.findall(r"\d{5,25}", str(self.users.value or ""))][:50]
+        xset(self.gid, "antinuke", c)
+        await interaction.response.edit_message(embed=an_embed(interaction.guild))
+
+
+class AntinukeView(discord.ui.View):
+    def __init__(self, ctx):
+        super().__init__(timeout=300)
+        self.ctx = ctx
+
+    async def interaction_check(self, interaction: discord.Interaction):
+        if interaction.user.id != self.ctx.author.id:
+            await interaction.response.send_message(embed=err("Ce panneau n'est pas pour toi."), ephemeral=True)
+            return False
+        return True
+
+    @discord.ui.select(placeholder="⚙️ Configurer l'anti-nuke...", options=[
+        discord.SelectOption(label="Limites de detection", emoji="🧨", value="limites"),
+        discord.SelectOption(label="Sanction et salon de logs", emoji="⚖️", value="sanction"),
+        discord.SelectOption(label="Liste blanche", emoji="✅", value="wl"),
+    ])
+    async def menu(self, interaction: discord.Interaction, select: discord.ui.Select):
+        v = select.values[0]
+        gid = interaction.guild.id
+        if v == "limites":
+            return await interaction.response.send_modal(ModalAnLimites(gid))
+        if v == "sanction":
+            return await interaction.response.send_modal(ModalAnSanction(gid))
+        return await interaction.response.send_modal(ModalAnWhitelist(gid))
+
+    @discord.ui.button(label="Activer / Desactiver", emoji="🔘", style=discord.ButtonStyle.success, row=1)
+    async def toggle(self, interaction: discord.Interaction, button: discord.ui.Button):
+        c = xget(interaction.guild.id, "antinuke")
+        c["enabled"] = not c.get("enabled")
+        xset(interaction.guild.id, "antinuke", c)
+        await interaction.response.edit_message(embed=an_embed(interaction.guild), view=self)
+
+    @discord.ui.button(label="Ajout de bots", emoji="🤖", style=discord.ButtonStyle.secondary, row=1)
+    async def bots(self, interaction: discord.Interaction, button: discord.ui.Button):
+        c = xget(interaction.guild.id, "antinuke")
+        c["anti_bot_add"] = not c.get("anti_bot_add")
+        xset(interaction.guild.id, "antinuke", c)
+        await interaction.response.edit_message(embed=an_embed(interaction.guild), view=self)
+
+    @discord.ui.button(label="Fermer", emoji="✖️", style=discord.ButtonStyle.secondary, row=1)
+    async def close(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(view=None)
+        self.stop()
+
+
+def an_whitelisted(guild, user):
+    c = xget(guild.id, "antinuke")
+    if user is None:
+        return True
+    if user.id == guild.owner_id or str(user.id) in OWNER_IDS_EXTRA:
+        return True
+    if int(user.id) in [int(x) for x in c.get("whitelist_users", [])]:
+        return True
+    member = guild.get_member(user.id)
+    if member:
+        wl = {int(x) for x in c.get("whitelist_roles", [])}
+        if wl and any(r.id in wl for r in member.roles):
+            return True
+    return False
+
+
+OWNER_IDS_EXTRA = set()
+
+
+async def an_audit_author(guild, action, target_id=None):
+    try:
+        async for entry in guild.audit_logs(limit=5, action=action):
+            if (datetime.now(timezone.utc) - entry.created_at).total_seconds() > 20:
+                continue
+            if target_id and getattr(entry.target, "id", None) != target_id:
+                continue
+            return entry.user
+    except Exception:
+        return None
+    return None
+
+
+async def an_trigger(guild, user, kind, limit):
+    c = xget(guild.id, "antinuke")
+    key = (guild.id, user.id, kind)
+    now = time.time()
+    window = int(c.get("window", 60))
+    hits = [t for t in NUKE_TRACK.get(key, []) if now - t < window]
+    hits.append(now)
+    NUKE_TRACK[key] = hits
+    if len(hits) < limit:
+        return
+    NUKE_TRACK[key] = []
+
+    punish = c.get("punish", "strip")
+    member = guild.get_member(user.id)
+    done = "aucune"
+    if member:
+        try:
+            if punish == "ban":
+                await member.ban(reason=f"Anti-nuke : {kind}")
+                done = "banni"
+            elif punish == "kick":
+                await member.kick(reason=f"Anti-nuke : {kind}")
+                done = "expulse"
+            else:
+                roles = [r for r in member.roles if r.is_assignable()]
+                if roles:
+                    await member.remove_roles(*roles, reason=f"Anti-nuke : {kind}")
+                done = "roles retires"
+        except Exception:
+            done = "echec (permissions)"
+
+    e = discord.Embed(title="🧨 Anti-nuke declenche", color=X_RED,
+                      timestamp=datetime.now(timezone.utc))
+    e.add_field(name="👤 Auteur", value=f"{user} (`{user.id}`)", inline=True)
+    e.add_field(name="⚠️ Action", value=kind, inline=True)
+    e.add_field(name="📊 Seuil", value=f"{limit} en {window}s", inline=True)
+    e.add_field(name="⚖️ Sanction", value=done, inline=False)
+    await send_log(guild, "antinuke", e)
+
+
+def register_antinuke(bot):
+
+    @bot.command(name="antinuke", aliases=["antinuk", "nukeprotection", "antidestruction"])
+    async def antinuke_cmd(ctx):
+        if not is_admin(ctx.author):
+            return await ctx.send(embed=err("Permission administrateur requise."))
+        await ctx.send(embed=an_embed(ctx.guild), view=AntinukeView(ctx))
+
+    @bot.command(name="antinukewl", aliases=["antinukewhitelist", "nukewl"])
+    async def antinukewl_cmd(ctx, cible: str = None):
+        if not is_admin(ctx.author):
+            return await ctx.send(embed=err("Permission administrateur requise."))
+        if not cible:
+            c = xget(ctx.guild.id, "antinuke")
+            r = " ".join(f"<@&{i}>" for i in c.get("whitelist_roles", [])) or "Aucun"
+            u = " ".join(f"<@{i}>" for i in c.get("whitelist_users", [])) or "Aucun"
+            return await ctx.send(embed=discord.Embed(
+                title="✅ Liste blanche anti-nuke", color=X_BLUE,
+                description=f"**Roles :** {r}\n**Membres :** {u}"))
+        ids = re.findall(r"\d{5,25}", cible)
+        if not ids:
+            return await ctx.send(embed=err("Mentionne un role ou un membre, ou donne son ID."))
+        oid = int(ids[0])
+        c = xget(ctx.guild.id, "antinuke")
+        key = "whitelist_roles" if ctx.guild.get_role(oid) else "whitelist_users"
+        lst = [int(x) for x in c.get(key, [])]
+        if oid in lst:
+            lst.remove(oid)
+            txt = "retire de la liste blanche."
+        else:
+            lst.append(oid)
+            txt = "ajoute a la liste blanche."
+        c[key] = lst
+        xset(ctx.guild.id, "antinuke", c)
+        await ctx.send(embed=ok(f"<@{'&' if key=='whitelist_roles' else ''}{oid}> {txt}"))
+
+    @bot.command(name="antinukelogs", aliases=["nukelogs"])
+    async def antinukelogs_cmd(ctx, salon: discord.TextChannel = None):
+        if not is_admin(ctx.author):
+            return await ctx.send(embed=err("Permission administrateur requise."))
+        c = xget(ctx.guild.id, "antinuke")
+        c["log_channel"] = salon.id if salon else None
+        xset(ctx.guild.id, "antinuke", c)
+        await ctx.send(embed=ok(f"Logs anti-nuke : {salon.mention if salon else 'desactives'}."))
+
+
+# ===========================================================================
+# ===========================================================================
+#   CATEGORIE 8 — INFRACTIONS
+# ===========================================================================
+# ===========================================================================
+
+INF_DIR = "extras_infractions"
+os.makedirs(INF_DIR, exist_ok=True)
+
+
+def inf_load(gid):
+    try:
+        with open(os.path.join(INF_DIR, f"{gid}.json"), "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def inf_save(gid, data):
+    try:
+        with open(os.path.join(INF_DIR, f"{gid}.json"), "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+    except Exception:
+        pass
+
+
+def inf_list(gid, uid):
+    c = xget(gid, "infractions")
+    items = inf_load(gid).get(str(uid), [])
+    days = int(c.get("expire_days", 0))
+    if days:
+        limite = time.time() - days * 86400
+        items = [i for i in items if i.get("date", 0) >= limite]
+    return items
+
+
+def inf_add(guild, member, kind, reason, moderator):
+    gid = guild.id
+    data = inf_load(gid)
+    items = data.setdefault(str(member.id), [])
+    items.append({
+        "id": int(time.time() * 1000) % 100000000,
+        "type": kind,
+        "raison": reason,
+        "mod": str(moderator),
+        "mod_id": getattr(moderator, "id", 0),
+        "date": int(time.time()),
+    })
+    inf_save(gid, data)
+    return len(inf_list(gid, member.id))
+
+
+def inf_embed(guild):
+    c = xget(guild.id, "infractions")
+    data = inf_load(guild.id)
+    total = sum(len(v) for v in data.values())
+    e = discord.Embed(
+        title="📒 Casier des membres",
+        description="Historique des sanctions, avec sanctions automatiques quand un membre "
+                    "accumule trop d'infractions.",
+        color=X_ORANGE)
+    e.add_field(name="🔘 Statut", value="✅ Actif" if c.get("enabled") else "❌ Desactive", inline=True)
+    e.add_field(name="📋 Logs", value=chan_field(guild, c.get("log_channel")), inline=True)
+    e.add_field(name="📩 Prevenir le membre", value="✅" if c.get("dm_user") else "❌", inline=True)
+    e.add_field(name="🔇 Mute automatique",
+                value=f"a {c.get('auto_mute_at')} infractions" if c.get("auto_mute_at") else "❌", inline=True)
+    e.add_field(name="👢 Kick automatique",
+                value=f"a {c.get('auto_kick_at')} infractions" if c.get("auto_kick_at") else "❌", inline=True)
+    e.add_field(name="🔨 Ban automatique",
+                value=f"a {c.get('auto_ban_at')} infractions" if c.get("auto_ban_at") else "❌", inline=True)
+    e.add_field(name="⏳ Expiration",
+                value=f"{c.get('expire_days')} jours" if c.get("expire_days") else "Jamais", inline=True)
+    e.add_field(name="📊 Total enregistre", value=f"{total} infraction(s) · {len(data)} membre(s)", inline=True)
+    e.add_field(name="⌨️ Commandes",
+                value="`+infractions` `+addinfraction` `+delinfraction` `+clearinfractions` `+casier`",
+                inline=False)
+    e.set_footer(text="ModeraBot • Infractions")
+    return e
+
+
+class ModalInfSeuils(discord.ui.Modal, title="📒 Sanctions automatiques"):
+    mute = discord.ui.TextInput(label="Mute a X infractions (0 = jamais)", max_length=3, placeholder="3")
+    kick = discord.ui.TextInput(label="Kick a X infractions (0 = jamais)", max_length=3, placeholder="0")
+    ban = discord.ui.TextInput(label="Ban a X infractions (0 = jamais)", max_length=3, placeholder="5")
+    expire = discord.ui.TextInput(label="Expiration en jours (0 = jamais)", max_length=4, placeholder="0")
+    logs = discord.ui.TextInput(label="ID du salon de logs", required=False, max_length=25)
+
+    def __init__(self, gid):
+        super().__init__()
+        self.gid = gid
+        c = xget(gid, "infractions")
+        self.mute.default = str(c.get("auto_mute_at", 3))
+        self.kick.default = str(c.get("auto_kick_at", 0))
+        self.ban.default = str(c.get("auto_ban_at", 5))
+        self.expire.default = str(c.get("expire_days", 0))
+        self.logs.default = str(c.get("log_channel") or "")
+
+    async def on_submit(self, interaction: discord.Interaction):
+        c = xget(self.gid, "infractions")
+        try:
+            c["auto_mute_at"] = max(0, int(str(self.mute.value).strip() or 0))
+            c["auto_kick_at"] = max(0, int(str(self.kick.value).strip() or 0))
+            c["auto_ban_at"] = max(0, int(str(self.ban.value).strip() or 0))
+            c["expire_days"] = max(0, int(str(self.expire.value).strip() or 0))
+        except Exception:
+            return await interaction.response.send_message(embed=err("Entre des nombres valides."), ephemeral=True)
+        v = str(self.logs.value or "").strip()
+        c["log_channel"] = int(v) if v.isdigit() else None
+        xset(self.gid, "infractions", c)
+        await interaction.response.edit_message(embed=inf_embed(interaction.guild))
+
+
+class InfractionsView(discord.ui.View):
+    def __init__(self, ctx):
+        super().__init__(timeout=300)
+        self.ctx = ctx
+
+    async def interaction_check(self, interaction: discord.Interaction):
+        if interaction.user.id != self.ctx.author.id:
+            await interaction.response.send_message(embed=err("Ce panneau n'est pas pour toi."), ephemeral=True)
+            return False
+        return True
+
+    @discord.ui.button(label="Sanctions automatiques", emoji="⚙️", style=discord.ButtonStyle.primary)
+    async def seuils(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_modal(ModalInfSeuils(interaction.guild.id))
+
+    @discord.ui.button(label="Activer / Desactiver", emoji="🔘", style=discord.ButtonStyle.success)
+    async def toggle(self, interaction: discord.Interaction, button: discord.ui.Button):
+        c = xget(interaction.guild.id, "infractions")
+        c["enabled"] = not c.get("enabled")
+        xset(interaction.guild.id, "infractions", c)
+        await interaction.response.edit_message(embed=inf_embed(interaction.guild), view=self)
+
+    @discord.ui.button(label="Prevenir en MP", emoji="📩", style=discord.ButtonStyle.secondary)
+    async def dm(self, interaction: discord.Interaction, button: discord.ui.Button):
+        c = xget(interaction.guild.id, "infractions")
+        c["dm_user"] = not c.get("dm_user")
+        xset(interaction.guild.id, "infractions", c)
+        await interaction.response.edit_message(embed=inf_embed(interaction.guild), view=self)
+
+    @discord.ui.button(label="Tout effacer", emoji="🗑️", style=discord.ButtonStyle.danger)
+    async def reset(self, interaction: discord.Interaction, button: discord.ui.Button):
+        inf_save(interaction.guild.id, {})
+        await interaction.response.send_message(embed=ok("Tous les casiers ont ete effaces."), ephemeral=True)
+
+    @discord.ui.button(label="Fermer", emoji="✖️", style=discord.ButtonStyle.secondary)
+    async def close(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(view=None)
+        self.stop()
+
+
+async def inf_apply_auto(guild, member, total):
+    c = xget(guild.id, "infractions")
+    try:
+        if c.get("auto_ban_at") and total >= int(c["auto_ban_at"]):
+            await member.ban(reason=f"{total} infractions")
+            return "ban"
+        if c.get("auto_kick_at") and total >= int(c["auto_kick_at"]):
+            await member.kick(reason=f"{total} infractions")
+            return "kick"
+        if c.get("auto_mute_at") and total >= int(c["auto_mute_at"]):
+            await member.timeout(timedelta(hours=1), reason=f"{total} infractions")
+            return "mute"
+    except Exception:
+        return None
+    return None
+
+
+async def inf_record(guild, member, kind, reason, moderator):
+    c = xget(guild.id, "infractions")
+    if not c.get("enabled"):
+        return
+    total = inf_add(guild, member, kind, reason, moderator)
+    auto = await inf_apply_auto(guild, member, total)
+    if c.get("dm_user"):
+        try:
+            await member.send(embed=discord.Embed(
+                title=f"📒 Infraction sur {guild.name}",
+                description=f"**Type :** {kind}\n**Raison :** {reason}\n**Total :** {total} infraction(s)"
+                            + (f"\n**Sanction automatique :** {auto}" if auto else ""),
+                color=X_ORANGE))
+        except Exception:
+            pass
+    e = discord.Embed(title="📒 Infraction enregistree", color=X_ORANGE,
+                      timestamp=datetime.now(timezone.utc))
+    e.add_field(name="👤 Membre", value=f"{member.mention} (`{member.id}`)", inline=True)
+    e.add_field(name="⚠️ Type", value=kind, inline=True)
+    e.add_field(name="📊 Total", value=str(total), inline=True)
+    e.add_field(name="📝 Raison", value=reason, inline=False)
+    if auto:
+        e.add_field(name="⚖️ Sanction automatique", value=f"`{auto}`", inline=False)
+    await send_log(guild, "infractions", e)
+
+
+def register_infractions(bot):
+
+    @bot.command(name="infractions", aliases=["casier", "sanctions", "historique"])
+    async def infractions_cmd(ctx, membre: discord.Member = None):
+        if membre is None:
+            if not is_admin(ctx.author):
+                return await ctx.send(embed=err("Permission administrateur requise."))
+            return await ctx.send(embed=inf_embed(ctx.guild), view=InfractionsView(ctx))
+        if not is_staff(ctx.author) and membre.id != ctx.author.id:
+            return await ctx.send(embed=err("Tu ne peux consulter que ton propre casier."))
+        items = inf_list(ctx.guild.id, membre.id)
+        if not items:
+            return await ctx.send(embed=ok(f"{membre.mention} n'a aucune infraction."))
+        e = discord.Embed(title=f"📒 Casier de {membre.display_name}",
+                          description=f"**{len(items)}** infraction(s)", color=X_ORANGE)
+        for i in items[-10:]:
+            e.add_field(
+                name=f"#{i['id']} · {i['type']}",
+                value=f"📝 {i.get('raison','Aucune raison')}\n"
+                      f"👮 {i.get('mod','?')} · <t:{int(i.get('date',0))}:R>",
+                inline=False)
+        e.set_thumbnail(url=membre.display_avatar.url)
+        await ctx.send(embed=e)
+
+    @bot.command(name="addinfraction", aliases=["ajoutinfraction", "addcasier"])
+    async def addinfraction_cmd(ctx, membre: discord.Member = None, *, raison: str = "Aucune raison"):
+        if not is_staff(ctx.author):
+            return await ctx.send(embed=err("Reserve au staff."))
+        if not membre:
+            return await ctx.send(embed=err("Usage : `+addinfraction @membre raison`"))
+        c = xget(ctx.guild.id, "infractions")
+        if not c.get("enabled"):
+            return await ctx.send(embed=err("Le module infractions est desactive (`+infractions`)."))
+        await inf_record(ctx.guild, membre, "manuelle", raison, ctx.author)
+        await ctx.send(embed=ok(f"Infraction ajoutee a {membre.mention} "
+                                f"({len(inf_list(ctx.guild.id, membre.id))} au total)."))
+
+    @bot.command(name="delinfraction", aliases=["supprinfraction", "delcasier"])
+    async def delinfraction_cmd(ctx, membre: discord.Member = None, infraction_id: int = None):
+        if not is_staff(ctx.author):
+            return await ctx.send(embed=err("Reserve au staff."))
+        if not membre or infraction_id is None:
+            return await ctx.send(embed=err("Usage : `+delinfraction @membre <id>`"))
+        data = inf_load(ctx.guild.id)
+        items = data.get(str(membre.id), [])
+        restants = [i for i in items if int(i.get("id")) != infraction_id]
+        if len(restants) == len(items):
+            return await ctx.send(embed=err("Infraction introuvable."))
+        data[str(membre.id)] = restants
+        inf_save(ctx.guild.id, data)
+        await ctx.send(embed=ok(f"Infraction `#{infraction_id}` supprimee."))
+
+    @bot.command(name="clearinfractions", aliases=["clearcasier", "resetinfractions"])
+    async def clearinfractions_cmd(ctx, membre: discord.Member = None):
+        if not is_admin(ctx.author):
+            return await ctx.send(embed=err("Permission administrateur requise."))
+        data = inf_load(ctx.guild.id)
+        if membre:
+            data.pop(str(membre.id), None)
+            inf_save(ctx.guild.id, data)
+            return await ctx.send(embed=ok(f"Casier de {membre.mention} efface."))
+        inf_save(ctx.guild.id, {})
+        await ctx.send(embed=ok("Tous les casiers ont ete effaces."))
+
+    @bot.command(name="topinfractions", aliases=["worstmembers", "topcasier"])
+    async def topinfractions_cmd(ctx):
+        if not is_staff(ctx.author):
+            return await ctx.send(embed=err("Reserve au staff."))
+        data = inf_load(ctx.guild.id)
+        rows = sorted(data.items(), key=lambda kv: len(kv[1]), reverse=True)[:10]
+        if not rows:
+            return await ctx.send(embed=ok("Aucune infraction enregistree."))
+        lignes = []
+        for uid, items in rows:
+            m = ctx.guild.get_member(int(uid))
+            lignes.append(f"**{m.display_name if m else uid}** — {len(items)} infraction(s)")
+        await ctx.send(embed=discord.Embed(title="📒 Membres les plus sanctionnes",
+                                           description="\n".join(lignes), color=X_ORANGE))
+
+
+# ===========================================================================
+# ===========================================================================
+#   CATEGORIE 9 — MESSAGES AUTOMATIQUES
+# ===========================================================================
+# ===========================================================================
+
+def am2_embed(guild):
+    c = xget(guild.id, "automsg")
+    msgs = c.get("messages", [])
+    e = discord.Embed(
+        title="🔁 Messages automatiques",
+        description="Publie des messages a intervalle regulier : regles, promotion, rappels.",
+        color=X_CYAN)
+    e.add_field(name="🔘 Statut", value="✅ Actif" if c.get("enabled") else "❌ Desactive", inline=True)
+    e.add_field(name="📨 Messages configures", value=str(len(msgs)), inline=True)
+    for i, m in enumerate(msgs[:8], 1):
+        e.add_field(
+            name=f"#{i} · toutes les {m.get('interval_minutes',60)} min "
+                 f"{'✅' if m.get('enabled', True) else '❌'}",
+            value=f"<#{m.get('channel')}> — {(m.get('content') or '')[:70]}",
+            inline=False)
+    e.add_field(name="⌨️ Commandes",
+                value="`+automessage` `+automessageadd` `+automessagelist` `+automessagedel`", inline=False)
+    e.set_footer(text="ModeraBot • Messages automatiques")
+    return e
+
+
+class ModalAm2Add(discord.ui.Modal, title="🔁 Nouveau message automatique"):
+    salon = discord.ui.TextInput(label="ID du salon", max_length=25)
+    interval = discord.ui.TextInput(label="Intervalle en minutes", max_length=6, placeholder="60")
+    contenu = discord.ui.TextInput(label="Message", style=discord.TextStyle.paragraph, max_length=1800)
+    titre = discord.ui.TextInput(label="Titre de l'embed (vide = message simple)", required=False, max_length=100)
+    couleur = discord.ui.TextInput(label="Couleur de l'embed", required=False, max_length=7, placeholder="#5865F2")
+
+    def __init__(self, gid):
+        super().__init__()
+        self.gid = gid
+
+    async def on_submit(self, interaction: discord.Interaction):
+        c = xget(self.gid, "automsg")
+        msgs = c.get("messages", [])
+        if len(msgs) >= 15:
+            return await interaction.response.send_message(embed=err("15 messages maximum."), ephemeral=True)
+        salon = str(self.salon.value).strip()
+        if not salon.isdigit():
+            return await interaction.response.send_message(embed=err("ID de salon invalide."), ephemeral=True)
+        try:
+            interval = max(5, int(str(self.interval.value).strip()))
+        except Exception:
+            return await interaction.response.send_message(embed=err("Intervalle invalide."), ephemeral=True)
+        msgs.append({
+            "channel": int(salon),
+            "interval_minutes": interval,
+            "content": str(self.contenu.value),
+            "titre": str(self.titre.value or "").strip(),
+            "couleur": str(self.couleur.value or "#5865F2").strip() or "#5865F2",
+            "enabled": True,
+            "last": 0,
+        })
+        c["messages"] = msgs
+        xset(self.gid, "automsg", c)
+        await interaction.response.edit_message(embed=am2_embed(interaction.guild))
+
+
+class Am2Remove(discord.ui.Select):
+    def __init__(self, msgs):
+        super().__init__(placeholder="Message a supprimer...",
+                         options=[discord.SelectOption(
+                             label=f"#{i+1} · {(m.get('content') or '')[:40]}"[:100], value=str(i))
+                             for i, m in enumerate(msgs[:25])])
+
+    async def callback(self, interaction: discord.Interaction):
+        c = xget(interaction.guild.id, "automsg")
+        msgs = c.get("messages", [])
+        i = int(self.values[0])
+        if 0 <= i < len(msgs):
+            msgs.pop(i)
+            c["messages"] = msgs
+            xset(interaction.guild.id, "automsg", c)
+            return await interaction.response.edit_message(embed=ok("Message supprime."), view=None)
+        await interaction.response.edit_message(embed=err("Introuvable."), view=None)
+
+
+class AutoMsgView(discord.ui.View):
+    def __init__(self, ctx):
+        super().__init__(timeout=300)
+        self.ctx = ctx
+
+    async def interaction_check(self, interaction: discord.Interaction):
+        if interaction.user.id != self.ctx.author.id:
+            await interaction.response.send_message(embed=err("Ce panneau n'est pas pour toi."), ephemeral=True)
+            return False
+        return True
+
+    @discord.ui.button(label="Ajouter un message", emoji="➕", style=discord.ButtonStyle.primary)
+    async def add(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_modal(ModalAm2Add(interaction.guild.id))
+
+    @discord.ui.button(label="Supprimer", emoji="🗑️", style=discord.ButtonStyle.danger)
+    async def rm(self, interaction: discord.Interaction, button: discord.ui.Button):
+        msgs = xget(interaction.guild.id, "automsg").get("messages", [])
+        if not msgs:
+            return await interaction.response.send_message(embed=err("Aucun message."), ephemeral=True)
+        view = discord.ui.View(timeout=120)
+        view.add_item(Am2Remove(msgs))
+        await interaction.response.send_message(embed=warn("Choisis le message a supprimer."),
+                                                view=view, ephemeral=True)
+
+    @discord.ui.button(label="Activer / Desactiver", emoji="🔘", style=discord.ButtonStyle.success)
+    async def toggle(self, interaction: discord.Interaction, button: discord.ui.Button):
+        c = xget(interaction.guild.id, "automsg")
+        c["enabled"] = not c.get("enabled")
+        xset(interaction.guild.id, "automsg", c)
+        await interaction.response.edit_message(embed=am2_embed(interaction.guild), view=self)
+
+    @discord.ui.button(label="Fermer", emoji="✖️", style=discord.ButtonStyle.secondary)
+    async def close(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(view=None)
+        self.stop()
+
+
+def register_automsg(bot):
+
+    @bot.command(name="automessage", aliases=["automessages", "messageauto", "autopost"])
+    async def automessage_cmd(ctx):
+        if not is_admin(ctx.author):
+            return await ctx.send(embed=err("Permission administrateur requise."))
+        await ctx.send(embed=am2_embed(ctx.guild), view=AutoMsgView(ctx))
+
+    @bot.command(name="automessageadd", aliases=["addautomessage", "autopostadd"])
+    async def automessageadd_cmd(ctx, salon: discord.TextChannel = None, minutes: int = None, *, texte: str = None):
+        if not is_admin(ctx.author):
+            return await ctx.send(embed=err("Permission administrateur requise."))
+        if not salon or not minutes or not texte:
+            return await ctx.send(embed=err("Usage : `+automessageadd #salon 60 Ton message`"))
+        c = xget(ctx.guild.id, "automsg")
+        msgs = c.get("messages", [])
+        if len(msgs) >= 15:
+            return await ctx.send(embed=err("15 messages maximum."))
+        msgs.append({"channel": salon.id, "interval_minutes": max(5, minutes), "content": texte,
+                     "titre": "", "couleur": "#5865F2", "enabled": True, "last": 0})
+        c["messages"] = msgs
+        xset(ctx.guild.id, "automsg", c)
+        await ctx.send(embed=ok(f"Message automatique ajoute dans {salon.mention} toutes les {max(5, minutes)} min."))
+
+    @bot.command(name="automessagelist", aliases=["listautomessages", "autopostlist"])
+    async def automessagelist_cmd(ctx):
+        await ctx.send(embed=am2_embed(ctx.guild))
+
+    @bot.command(name="automessagedel", aliases=["delautomessage", "autopostdel"])
+    async def automessagedel_cmd(ctx, numero: int = None):
+        if not is_admin(ctx.author):
+            return await ctx.send(embed=err("Permission administrateur requise."))
+        c = xget(ctx.guild.id, "automsg")
+        msgs = c.get("messages", [])
+        if numero is None or numero < 1 or numero > len(msgs):
+            return await ctx.send(embed=err("Usage : `+automessagedel <numero>` — voir `+automessagelist`."))
+        msgs.pop(numero - 1)
+        c["messages"] = msgs
+        xset(ctx.guild.id, "automsg", c)
+        await ctx.send(embed=ok(f"Message automatique `#{numero}` supprime."))
+
+
+# ===========================================================================
+# ===========================================================================
+#   CATEGORIE 10 — ANNIVERSAIRES
+# ===========================================================================
+# ===========================================================================
+
+BDAY_DIR = "extras_birthdays"
+os.makedirs(BDAY_DIR, exist_ok=True)
+
+
+def bday_load(gid):
+    try:
+        with open(os.path.join(BDAY_DIR, f"{gid}.json"), "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def bday_save(gid, data):
+    try:
+        with open(os.path.join(BDAY_DIR, f"{gid}.json"), "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+    except Exception:
+        pass
+
+
+def bd_embed(guild):
+    c = xget(guild.id, "birthdays")
+    data = bday_load(guild.id)
+    e = discord.Embed(
+        title="🎂 Anniversaires",
+        description="Les membres enregistrent leur date avec `+birthday 24/08`, "
+                    "le bot les souhaite automatiquement.",
+        color=X_PURPLE)
+    e.add_field(name="🔘 Statut", value="✅ Actif" if c.get("enabled") else "❌ Desactive", inline=True)
+    e.add_field(name="📺 Salon d'annonce", value=chan_field(guild, c.get("channel_id")), inline=True)
+    e.add_field(name="🎭 Role du jour", value=role_field(c.get("role_id")), inline=True)
+    e.add_field(name="🕙 Heure d'annonce", value=f"{c.get('hour',10)} h", inline=True)
+    e.add_field(name="👥 Dates enregistrees", value=str(len(data)), inline=True)
+    e.add_field(name="💬 Message", value=f"`{c.get('message','')[:80]}`", inline=False)
+    e.add_field(name="⌨️ Commandes",
+                value="`+birthdays` `+birthday` `+birthdaylist` `+birthdayremove` `+nextbirthdays`",
+                inline=False)
+    e.set_footer(text="ModeraBot • Anniversaires")
+    return e
+
+
+class ModalBdCfg(discord.ui.Modal, title="🎂 Reglages des anniversaires"):
+    salon = discord.ui.TextInput(label="ID du salon d'annonce", max_length=25)
+    role = discord.ui.TextInput(label="ID du role donne le jour J", required=False, max_length=25)
+    heure = discord.ui.TextInput(label="Heure d'annonce (0-23)", max_length=2, placeholder="10")
+    message = discord.ui.TextInput(label="Message", style=discord.TextStyle.paragraph, max_length=500,
+                                   placeholder="Joyeux anniversaire {user} !")
+
+    def __init__(self, gid):
+        super().__init__()
+        self.gid = gid
+        c = xget(gid, "birthdays")
+        self.salon.default = str(c.get("channel_id") or "")
+        self.role.default = str(c.get("role_id") or "")
+        self.heure.default = str(c.get("hour", 10))
+        self.message.default = c.get("message", "")
+
+    async def on_submit(self, interaction: discord.Interaction):
+        c = xget(self.gid, "birthdays")
+        v = str(self.salon.value or "").strip()
+        c["channel_id"] = int(v) if v.isdigit() else None
+        r = str(self.role.value or "").strip()
+        c["role_id"] = int(r) if r.isdigit() else None
+        try:
+            c["hour"] = min(23, max(0, int(str(self.heure.value).strip())))
+        except Exception:
+            pass
+        c["message"] = str(self.message.value).strip() or "Joyeux anniversaire {user} !"
+        xset(self.gid, "birthdays", c)
+        await interaction.response.edit_message(embed=bd_embed(interaction.guild))
+
+
+class BirthdayView(discord.ui.View):
+    def __init__(self, ctx):
+        super().__init__(timeout=300)
+        self.ctx = ctx
+
+    async def interaction_check(self, interaction: discord.Interaction):
+        if interaction.user.id != self.ctx.author.id:
+            await interaction.response.send_message(embed=err("Ce panneau n'est pas pour toi."), ephemeral=True)
+            return False
+        return True
+
+    @discord.ui.button(label="Reglages", emoji="⚙️", style=discord.ButtonStyle.primary)
+    async def cfg(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_modal(ModalBdCfg(interaction.guild.id))
+
+    @discord.ui.button(label="Activer / Desactiver", emoji="🔘", style=discord.ButtonStyle.success)
+    async def toggle(self, interaction: discord.Interaction, button: discord.ui.Button):
+        c = xget(interaction.guild.id, "birthdays")
+        c["enabled"] = not c.get("enabled")
+        xset(interaction.guild.id, "birthdays", c)
+        await interaction.response.edit_message(embed=bd_embed(interaction.guild), view=self)
+
+    @discord.ui.button(label="Fermer", emoji="✖️", style=discord.ButtonStyle.secondary)
+    async def close(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(view=None)
+        self.stop()
+
+
+def register_birthdays(bot):
+
+    @bot.command(name="birthdays", aliases=["anniversaires", "birthdayconfig", "bdayconfig"])
+    async def birthdays_cmd(ctx):
+        if not is_admin(ctx.author):
+            return await ctx.send(embed=err("Permission administrateur requise."))
+        await ctx.send(embed=bd_embed(ctx.guild), view=BirthdayView(ctx))
+
+    @bot.command(name="birthday", aliases=["anniversaire", "bday", "mondate"])
+    async def birthday_cmd(ctx, date: str = None):
+        c = xget(ctx.guild.id, "birthdays")
+        if not c.get("enabled"):
+            return await ctx.send(embed=err("Les anniversaires sont desactives (`+birthdays`)."))
+        data = bday_load(ctx.guild.id)
+        if not date:
+            mien = data.get(str(ctx.author.id))
+            if not mien:
+                return await ctx.send(embed=warn("Tu n'as pas enregistre ta date. Exemple : `+birthday 24/08`"))
+            return await ctx.send(embed=ok(f"Ta date enregistree : **{mien}**"))
+        m = re.fullmatch(r"(\d{1,2})[/\-.](\d{1,2})", date.strip())
+        if not m:
+            return await ctx.send(embed=err("Format attendu : `JJ/MM`, par exemple `+birthday 24/08`"))
+        jour, mois = int(m.group(1)), int(m.group(2))
+        if not (1 <= jour <= 31 and 1 <= mois <= 12):
+            return await ctx.send(embed=err("Date invalide."))
+        data[str(ctx.author.id)] = f"{jour:02d}/{mois:02d}"
+        bday_save(ctx.guild.id, data)
+        await ctx.send(embed=ok(f"Anniversaire enregistre : **{jour:02d}/{mois:02d}**"))
+
+    @bot.command(name="birthdaylist", aliases=["listanniversaires", "bdaylist"])
+    async def birthdaylist_cmd(ctx):
+        data = bday_load(ctx.guild.id)
+        if not data:
+            return await ctx.send(embed=warn("Aucune date enregistree."))
+        lignes = []
+        for uid, d in sorted(data.items(), key=lambda kv: (kv[1][3:], kv[1][:2])):
+            m = ctx.guild.get_member(int(uid))
+            if m:
+                lignes.append(f"**{d}** — {m.display_name}")
+        await ctx.send(embed=discord.Embed(title="🎂 Anniversaires du serveur",
+                                           description="\n".join(lignes[:40]) or "Aucun membre",
+                                           color=X_PURPLE))
+
+    @bot.command(name="nextbirthdays", aliases=["prochainsanniversaires", "nextbday"])
+    async def nextbirthdays_cmd(ctx):
+        data = bday_load(ctx.guild.id)
+        if not data:
+            return await ctx.send(embed=warn("Aucune date enregistree."))
+        today = datetime.now()
+        rows = []
+        for uid, d in data.items():
+            m = ctx.guild.get_member(int(uid))
+            if not m:
+                continue
+            try:
+                jour, mois = int(d[:2]), int(d[3:5])
+                prochain = datetime(today.year, mois, jour)
+                if prochain < today:
+                    prochain = datetime(today.year + 1, mois, jour)
+                rows.append((prochain, m, d))
+            except Exception:
+                continue
+        rows.sort(key=lambda r: r[0])
+        lignes = [f"**{d}** — {m.display_name} · dans {(p - today).days} jour(s)" for p, m, d in rows[:10]]
+        await ctx.send(embed=discord.Embed(title="🎂 Prochains anniversaires",
+                                           description="\n".join(lignes) or "Aucun", color=X_PURPLE))
+
+    @bot.command(name="birthdayremove", aliases=["supprimeranniversaire", "bdayremove"])
+    async def birthdayremove_cmd(ctx, membre: discord.Member = None):
+        cible = membre or ctx.author
+        if membre and not is_admin(ctx.author):
+            return await ctx.send(embed=err("Permission administrateur requise."))
+        data = bday_load(ctx.guild.id)
+        if data.pop(str(cible.id), None) is None:
+            return await ctx.send(embed=err("Aucune date enregistree."))
+        bday_save(ctx.guild.id, data)
+        await ctx.send(embed=ok(f"Date supprimee pour {cible.mention}."))
+
+
+# ===========================================================================
+# ===========================================================================
+#   CATEGORIE 11 — COMMANDES PERSONNALISEES
+# ===========================================================================
+# ===========================================================================
+
+def cc_embed(guild):
+    c = xget(guild.id, "customcmds")
+    cmds = c.get("commands", [])
+    e = discord.Embed(
+        title="⌨️ Commandes personnalisees",
+        description="Cree tes propres commandes : le bot repond un texte ou un embed.",
+        color=X_BLUE)
+    e.add_field(name="🔘 Statut", value="✅ Actif" if c.get("enabled") else "❌ Desactive", inline=True)
+    e.add_field(name="🧹 Supprimer la commande", value="✅" if c.get("delete_trigger") else "❌", inline=True)
+    e.add_field(name="📋 Commandes creees", value=str(len(cmds)), inline=True)
+    if cmds:
+        e.add_field(name="📝 Liste",
+                    value=" ".join(f"`+{x['nom']}`" for x in cmds[:30]), inline=False)
+    e.add_field(name="⌨️ Commandes",
+                value="`+customcmd` `+ccadd` `+ccdel` `+cclist`", inline=False)
+    e.set_footer(text="ModeraBot • Commandes personnalisees")
+    return e
+
+
+class ModalCcAdd(discord.ui.Modal, title="⌨️ Nouvelle commande"):
+    nom = discord.ui.TextInput(label="Nom (sans le prefixe)", max_length=25, placeholder="regles")
+    reponse = discord.ui.TextInput(label="Reponse", style=discord.TextStyle.paragraph, max_length=1800)
+    titre = discord.ui.TextInput(label="Titre de l'embed (vide = texte simple)", required=False, max_length=100)
+    couleur = discord.ui.TextInput(label="Couleur", required=False, max_length=7, placeholder="#5865F2")
+    roles = discord.ui.TextInput(label="IDs de roles autorises (vide = tous)", required=False, max_length=300)
+
+    def __init__(self, gid):
+        super().__init__()
+        self.gid = gid
+
+    async def on_submit(self, interaction: discord.Interaction):
+        c = xget(self.gid, "customcmds")
+        cmds = c.get("commands", [])
+        nom = re.sub(r"[^a-z0-9_-]", "", str(self.nom.value).strip().lower())
+        if not nom:
+            return await interaction.response.send_message(embed=err("Nom invalide."), ephemeral=True)
+        if any(x["nom"] == nom for x in cmds):
+            return await interaction.response.send_message(embed=err("Cette commande existe deja."), ephemeral=True)
+        if len(cmds) >= 50:
+            return await interaction.response.send_message(embed=err("50 commandes maximum."), ephemeral=True)
+        cmds.append({
+            "nom": nom,
+            "reponse": str(self.reponse.value),
+            "titre": str(self.titre.value or "").strip(),
+            "couleur": str(self.couleur.value or "#5865F2").strip() or "#5865F2",
+            "roles": [int(x) for x in re.findall(r"\d{5,25}", str(self.roles.value or ""))][:10],
+        })
+        c["commands"] = cmds
+        xset(self.gid, "customcmds", c)
+        await interaction.response.edit_message(embed=cc_embed(interaction.guild))
+
+
+class CcRemove(discord.ui.Select):
+    def __init__(self, cmds):
+        super().__init__(placeholder="Commande a supprimer...",
+                         options=[discord.SelectOption(label="+" + x["nom"][:99], value=str(i))
+                                  for i, x in enumerate(cmds[:25])])
+
+    async def callback(self, interaction: discord.Interaction):
+        c = xget(interaction.guild.id, "customcmds")
+        cmds = c.get("commands", [])
+        i = int(self.values[0])
+        if 0 <= i < len(cmds):
+            nom = cmds.pop(i)["nom"]
+            c["commands"] = cmds
+            xset(interaction.guild.id, "customcmds", c)
+            return await interaction.response.edit_message(embed=ok(f"`+{nom}` supprimee."), view=None)
+        await interaction.response.edit_message(embed=err("Introuvable."), view=None)
+
+
+class CustomCmdView(discord.ui.View):
+    def __init__(self, ctx):
+        super().__init__(timeout=300)
+        self.ctx = ctx
+
+    async def interaction_check(self, interaction: discord.Interaction):
+        if interaction.user.id != self.ctx.author.id:
+            await interaction.response.send_message(embed=err("Ce panneau n'est pas pour toi."), ephemeral=True)
+            return False
+        return True
+
+    @discord.ui.button(label="Creer une commande", emoji="➕", style=discord.ButtonStyle.primary)
+    async def add(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_modal(ModalCcAdd(interaction.guild.id))
+
+    @discord.ui.button(label="Supprimer", emoji="🗑️", style=discord.ButtonStyle.danger)
+    async def rm(self, interaction: discord.Interaction, button: discord.ui.Button):
+        cmds = xget(interaction.guild.id, "customcmds").get("commands", [])
+        if not cmds:
+            return await interaction.response.send_message(embed=err("Aucune commande."), ephemeral=True)
+        view = discord.ui.View(timeout=120)
+        view.add_item(CcRemove(cmds))
+        await interaction.response.send_message(embed=warn("Choisis la commande a supprimer."),
+                                                view=view, ephemeral=True)
+
+    @discord.ui.button(label="Activer / Desactiver", emoji="🔘", style=discord.ButtonStyle.success)
+    async def toggle(self, interaction: discord.Interaction, button: discord.ui.Button):
+        c = xget(interaction.guild.id, "customcmds")
+        c["enabled"] = not c.get("enabled")
+        xset(interaction.guild.id, "customcmds", c)
+        await interaction.response.edit_message(embed=cc_embed(interaction.guild), view=self)
+
+    @discord.ui.button(label="Fermer", emoji="✖️", style=discord.ButtonStyle.secondary)
+    async def close(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(view=None)
+        self.stop()
+
+
+def register_customcmds(bot):
+
+    @bot.command(name="customcmd", aliases=["customcommands", "cc", "commandesperso"])
+    async def customcmd_cmd(ctx):
+        if not is_admin(ctx.author):
+            return await ctx.send(embed=err("Permission administrateur requise."))
+        await ctx.send(embed=cc_embed(ctx.guild), view=CustomCmdView(ctx))
+
+    @bot.command(name="ccadd", aliases=["addcc", "addcustomcmd"])
+    async def ccadd_cmd(ctx, nom: str = None, *, reponse: str = None):
+        if not is_admin(ctx.author):
+            return await ctx.send(embed=err("Permission administrateur requise."))
+        if not nom or not reponse:
+            return await ctx.send(embed=err("Usage : `+ccadd nom Ta reponse`"))
+        c = xget(ctx.guild.id, "customcmds")
+        cmds = c.get("commands", [])
+        nom = re.sub(r"[^a-z0-9_-]", "", nom.lower())
+        if not nom:
+            return await ctx.send(embed=err("Nom invalide."))
+        if any(x["nom"] == nom for x in cmds):
+            return await ctx.send(embed=err("Cette commande existe deja."))
+        if len(cmds) >= 50:
+            return await ctx.send(embed=err("50 commandes maximum."))
+        cmds.append({"nom": nom, "reponse": reponse, "titre": "", "couleur": "#5865F2", "roles": []})
+        c["commands"] = cmds
+        xset(ctx.guild.id, "customcmds", c)
+        await ctx.send(embed=ok(f"Commande `+{nom}` creee."))
+
+    @bot.command(name="ccdel", aliases=["delcc", "delcustomcmd"])
+    async def ccdel_cmd(ctx, nom: str = None):
+        if not is_admin(ctx.author):
+            return await ctx.send(embed=err("Permission administrateur requise."))
+        if not nom:
+            return await ctx.send(embed=err("Usage : `+ccdel nom`"))
+        c = xget(ctx.guild.id, "customcmds")
+        cmds = c.get("commands", [])
+        nom = nom.lower().lstrip("+")
+        restants = [x for x in cmds if x["nom"] != nom]
+        if len(restants) == len(cmds):
+            return await ctx.send(embed=err("Commande introuvable."))
+        c["commands"] = restants
+        xset(ctx.guild.id, "customcmds", c)
+        await ctx.send(embed=ok(f"Commande `+{nom}` supprimee."))
+
+    @bot.command(name="cclist", aliases=["listcc", "listcustomcmds"])
+    async def cclist_cmd(ctx):
+        await ctx.send(embed=cc_embed(ctx.guild))
+
+
+async def cc_handle(message):
+    if not message.guild or message.author.bot:
+        return
+    c = xget(message.guild.id, "customcmds")
+    if not c.get("enabled") or not c.get("commands"):
+        return
+    try:
+        prefixes = await bot.get_prefix(message)
+    except Exception:
+        prefixes = "+"
+    if isinstance(prefixes, str):
+        prefixes = [prefixes]
+    used = next((p for p in prefixes if p and message.content.startswith(p)), None)
+    if not used:
+        return
+    nom = message.content[len(used):].split(" ")[0].lower()
+    entry = next((x for x in c["commands"] if x["nom"] == nom), None)
+    if not entry:
+        return
+    roles = [int(r) for r in entry.get("roles", [])]
+    if roles and not any(r.id in roles for r in message.author.roles) and not is_admin(message.author):
+        return
+    reponse = (entry.get("reponse") or "").replace("{user}", message.author.mention) \
+        .replace("{username}", message.author.display_name) \
+        .replace("{server}", message.guild.name) \
+        .replace("{membercount}", str(message.guild.member_count))
+    if entry.get("titre"):
+        await message.channel.send(embed=discord.Embed(
+            title=entry["titre"], description=reponse, color=color_of(entry.get("couleur", "#5865F2"))))
+    else:
+        await message.channel.send(reponse)
+    if c.get("delete_trigger"):
+        try:
+            await message.delete()
+        except Exception:
+            pass
+
+
+# ===========================================================================
+#   TACHES DE FOND
+# ===========================================================================
+
+async def extras_loop():
+    await bot.wait_until_ready()
+    while not bot.is_closed():
+        try:
+            now = time.time()
+            for guild in list(bot.guilds):
+                c = xget(guild.id, "automsg")
+                if c.get("enabled"):
+                    changed = False
+                    for m in c.get("messages", []):
+                        if not m.get("enabled", True):
+                            continue
+                        if now - float(m.get("last", 0)) < int(m.get("interval_minutes", 60)) * 60:
+                            continue
+                        ch = guild.get_channel(int(m.get("channel", 0) or 0))
+                        if not ch:
+                            continue
+                        try:
+                            if m.get("titre"):
+                                await ch.send(embed=discord.Embed(
+                                    title=m["titre"], description=m.get("content", ""),
+                                    color=color_of(m.get("couleur", "#5865F2"))))
+                            else:
+                                await ch.send(m.get("content", ""))
+                            m["last"] = now
+                            changed = True
+                        except Exception:
+                            continue
+                    if changed:
+                        xset(guild.id, "automsg", c)
+
+                b = xget(guild.id, "birthdays")
+                if b.get("enabled") and b.get("channel_id"):
+                    maintenant = datetime.now()
+                    if maintenant.hour == int(b.get("hour", 10)):
+                        marque = xload(guild.id).get("_bday_done")
+                        jour_cle = maintenant.strftime("%Y-%m-%d")
+                        if marque != jour_cle:
+                            data = bday_load(guild.id)
+                            today = maintenant.strftime("%d/%m")
+                            fetes = [guild.get_member(int(u)) for u, d in data.items() if d == today]
+                            fetes = [m for m in fetes if m]
+                            ch = guild.get_channel(int(b["channel_id"]))
+                            if ch and fetes:
+                                for m in fetes:
+                                    try:
+                                        await ch.send(embed=discord.Embed(
+                                            title="🎂 Joyeux anniversaire !",
+                                            description=(b.get("message") or "Joyeux anniversaire {user} !")
+                                            .replace("{user}", m.mention)
+                                            .replace("{username}", m.display_name)
+                                            .replace("{server}", guild.name),
+                                            color=X_PURPLE))
+                                        if b.get("role_id"):
+                                            role = guild.get_role(int(b["role_id"]))
+                                            if role:
+                                                await m.add_roles(role, reason="Anniversaire")
+                                    except Exception:
+                                        continue
+                            full = xload(guild.id)
+                            full["_bday_done"] = jour_cle
+                            xsave(guild.id, full)
+        except Exception:
+            pass
+        await asyncio.sleep(60)
+
+
+# ===========================================================================
 #   AIDE — liste des nouvelles categories
 # ===========================================================================
 
@@ -2519,6 +3730,16 @@ EXTRA_HELP = [
      "`+lock` `+unlock` `+lockall` `+unlockall` `+slowmode` `+panic` `+raidmode` `+agegate`"),
     ("📋 Candidatures", "+apply",
      "`+applysend` `+applyadd` `+applydel` `+applylist`"),
+    ("🧨 Anti-nuke", "+antinuke",
+     "`+antinukewl` `+antinukelogs`"),
+    ("📒 Infractions", "+infractions",
+     "`+addinfraction` `+delinfraction` `+clearinfractions` `+topinfractions`"),
+    ("🔁 Messages automatiques", "+automessage",
+     "`+automessageadd` `+automessagelist` `+automessagedel`"),
+    ("🎂 Anniversaires", "+birthdays",
+     "`+birthday` `+birthdaylist` `+nextbirthdays` `+birthdayremove`"),
+    ("⌨️ Commandes personnalisees", "+customcmd",
+     "`+ccadd` `+ccdel` `+cclist`"),
 ]
 
 
@@ -2559,7 +3780,59 @@ def register_listeners(bot):
     @bot.listen("on_message")
     async def _extra_on_message(message):
         try:
-            await automod_check(message)
+            if await automod_check(message):
+                return
+        except Exception:
+            pass
+        try:
+            await cc_handle(message)
+        except Exception:
+            pass
+
+    @bot.listen("on_guild_channel_delete")
+    async def _extra_channel_delete(channel):
+        guild = channel.guild
+        c = xget(guild.id, "antinuke")
+        if not c.get("enabled") or not c.get("protect_channels"):
+            return
+        author = await an_audit_author(guild, discord.AuditLogAction.channel_delete)
+        if author and not an_whitelisted(guild, author):
+            await an_trigger(guild, author, "suppression de salons", int(c.get("max_channel_delete", 3)))
+
+    @bot.listen("on_guild_role_delete")
+    async def _extra_role_delete(role):
+        guild = role.guild
+        c = xget(guild.id, "antinuke")
+        if not c.get("enabled") or not c.get("protect_roles"):
+            return
+        author = await an_audit_author(guild, discord.AuditLogAction.role_delete)
+        if author and not an_whitelisted(guild, author):
+            await an_trigger(guild, author, "suppression de roles", int(c.get("max_role_delete", 3)))
+
+    @bot.listen("on_member_ban")
+    async def _extra_member_ban(guild, user):
+        c = xget(guild.id, "antinuke")
+        if not c.get("enabled") or not c.get("protect_bans"):
+            return
+        author = await an_audit_author(guild, discord.AuditLogAction.ban, user.id)
+        if author and author.id != user.id and not an_whitelisted(guild, author):
+            await an_trigger(guild, author, "bans en rafale", int(c.get("max_ban", 3)))
+
+    @bot.listen("on_member_join")
+    async def _extra_antinuke_bot(member):
+        try:
+            if not member.bot:
+                return
+            c = xget(member.guild.id, "antinuke")
+            if not c.get("enabled") or not c.get("anti_bot_add"):
+                return
+            author = await an_audit_author(member.guild, discord.AuditLogAction.bot_add, member.id)
+            if author and an_whitelisted(member.guild, author):
+                return
+            await member.kick(reason="Anti-nuke : ajout de bot non autorise")
+            await send_log(member.guild, "antinuke", discord.Embed(
+                title="🤖 Bot bloque", color=X_RED,
+                description=f"{member} a ete expulse (ajout par {author if author else 'inconnu'})."))
         except Exception:
             pass
 
@@ -2677,7 +3950,13 @@ def register_api(app):
         if request.method == "GET":
             cfg = xload(gid)
             bank = bank_load(gid)
+            inf = inf_load(gid)
             cfg["_stats"] = {
+                "infractions": sum(len(v) for v in inf.values()),
+                "membres_sanctionnes": len(inf),
+                "anniversaires": len(bday_load(gid)),
+                "automessages": len(cfg.get("automsg", {}).get("messages", [])),
+                "customcmds": len(cfg.get("customcmds", {}).get("commands", [])),
                 "comptes": len(bank),
                 "argent_total": sum((u.get("cash", 0) + u.get("bank", 0)) for u in bank.values()),
                 "articles": len(cfg.get("economy", {}).get("shop", [])),
@@ -2810,6 +4089,91 @@ def register_api(app):
             c["postes"] = postes
             saved.append("apply")
 
+        if "antinuke" in body:
+            b = body["antinuke"] or {}
+            c = cfg["antinuke"]
+            c["enabled"] = _b(b.get("enabled"))
+            c["log_channel"] = _i(b.get("log_channel"))
+            a = _s(b.get("punish"), "strip", 6).lower()
+            c["punish"] = a if a in ("strip", "kick", "ban") else "strip"
+            c["window"] = _n(b.get("window"), 60, 5, 3600)
+            c["max_channel_delete"] = _n(b.get("max_channel_delete"), 3, 1, 100)
+            c["max_role_delete"] = _n(b.get("max_role_delete"), 3, 1, 100)
+            c["max_ban"] = _n(b.get("max_ban"), 3, 1, 100)
+            c["max_kick"] = _n(b.get("max_kick"), 5, 1, 100)
+            for k in ("protect_channels", "protect_roles", "protect_bans", "protect_kicks", "anti_bot_add"):
+                c[k] = _b(b.get(k))
+            c["whitelist_roles"] = _ids(b.get("whitelist_roles"))
+            c["whitelist_users"] = _ids(b.get("whitelist_users"))
+            saved.append("antinuke")
+
+        if "infractions" in body:
+            b = body["infractions"] or {}
+            c = cfg["infractions"]
+            c["enabled"] = _b(b.get("enabled"))
+            c["log_channel"] = _i(b.get("log_channel"))
+            c["dm_user"] = _b(b.get("dm_user"), True)
+            c["expire_days"] = _n(b.get("expire_days"), 0, 0, 3650)
+            c["auto_mute_at"] = _n(b.get("auto_mute_at"), 3, 0, 100)
+            c["auto_kick_at"] = _n(b.get("auto_kick_at"), 0, 0, 100)
+            c["auto_ban_at"] = _n(b.get("auto_ban_at"), 5, 0, 100)
+            saved.append("infractions")
+
+        if "automsg" in body:
+            b = body["automsg"] or {}
+            c = cfg["automsg"]
+            c["enabled"] = _b(b.get("enabled"))
+            anciens = {int(m.get("channel", 0) or 0): m.get("last", 0) for m in c.get("messages", [])}
+            msgs = []
+            for m in (b.get("messages") or [])[:15]:
+                ch = _i((m or {}).get("channel"))
+                contenu = _s(m.get("content"), "", 1800)
+                if not ch or not contenu.strip():
+                    continue
+                msgs.append({
+                    "channel": ch,
+                    "interval_minutes": _n(m.get("interval_minutes"), 60, 5, 43200),
+                    "content": contenu,
+                    "titre": _s(m.get("titre"), "", 100),
+                    "couleur": _s(m.get("couleur"), "#5865F2", 7) or "#5865F2",
+                    "enabled": _b(m.get("enabled"), True),
+                    "last": anciens.get(ch, 0),
+                })
+            c["messages"] = msgs
+            saved.append("automsg")
+
+        if "birthdays" in body:
+            b = body["birthdays"] or {}
+            c = cfg["birthdays"]
+            c["enabled"] = _b(b.get("enabled"))
+            c["channel_id"] = _i(b.get("channel_id"))
+            c["role_id"] = _i(b.get("role_id"))
+            c["hour"] = _n(b.get("hour"), 10, 0, 23)
+            c["message"] = _s(b.get("message"), "Joyeux anniversaire {user} !", 500)
+            saved.append("birthdays")
+
+        if "customcmds" in body:
+            b = body["customcmds"] or {}
+            c = cfg["customcmds"]
+            c["enabled"] = _b(b.get("enabled"))
+            c["delete_trigger"] = _b(b.get("delete_trigger"))
+            cmds, vus = [], set()
+            for x in (b.get("commands") or [])[:50]:
+                nom = re.sub(r"[^a-z0-9_-]", "", _s((x or {}).get("nom"), "", 25).lower())
+                rep = _s(x.get("reponse"), "", 1800)
+                if not nom or nom in vus or not rep.strip():
+                    continue
+                vus.add(nom)
+                cmds.append({
+                    "nom": nom,
+                    "reponse": rep,
+                    "titre": _s(x.get("titre"), "", 100),
+                    "couleur": _s(x.get("couleur"), "#5865F2", 7) or "#5865F2",
+                    "roles": _ids(x.get("roles"), 10),
+                })
+            c["commands"] = cmds
+            saved.append("customcmds")
+
         xsave(gid, cfg)
         return jsonify({"ok": True, "saved": saved})
 
@@ -2854,8 +4218,29 @@ def setup(bot_instance, app_instance=None):
     register_polls(safe)
     register_guard(safe)
     register_apply(safe)
+    register_antinuke(safe)
+    register_infractions(safe)
+    register_automsg(safe)
+    register_birthdays(safe)
+    register_customcmds(safe)
     register_help(safe)
     register_listeners(bot)
+
+    try:
+        main_mod = __import__("sys").modules.get("__main__")
+        for oid in (getattr(main_mod, "OWNER_IDS", None) or []):
+            OWNER_IDS_EXTRA.add(str(oid))
+    except Exception:
+        pass
+
+    try:
+        bot.loop.create_task(extras_loop())
+    except Exception:
+        @bot.listen("on_ready")
+        async def _extra_start_loop():
+            if not getattr(bot, "_extras_loop_started", False):
+                bot._extras_loop_started = True
+                bot.loop.create_task(extras_loop())
 
     if app is not None:
         try:
@@ -2863,5 +4248,5 @@ def setup(bot_instance, app_instance=None):
         except Exception as e:
             print(f"[modules_extra] API non enregistree : {e}")
 
-    print("[modules_extra] 6 categories et 45+ commandes ajoutees.")
+    print("[modules_extra] 11 categories et 75+ commandes ajoutees.")
     return bot
