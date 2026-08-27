@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ModeraBot — Le bot Discord tout-en-un</title>
+<meta name="description" content="Modération, tickets, anti-raid, bienvenue, niveaux, économie et candidatures. Un seul bot, un dashboard complet.">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080b16; --side:#0c1121; --card:#111828; --card2:#172035;
+  --border:#1e2942; --border-hi:#2e3f68;
+  --text:#e6ecf9; --muted:#8794b3; --dim:#67728f;
+  --accent:#3b82f6; --accent2:#2563eb; --pink:#22d3ee;
+  --green:#22c55e; --red:#ef4444; --orange:#f59e0b; --blue:#60a5fa;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',system-ui,sans-serif;background:var(--bg);color:var(--text);
+  -webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(760px 460px at 12% -8%,rgba(59,130,246,.18),transparent 60%),
+             radial-gradient(680px 420px at 105% 4%,rgba(37,99,235,.13),transparent 62%)}
+a{color:inherit;text-decoration:none}
+.wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:0 24px}
+
+.top{position:sticky;top:0;z-index:60;background:rgba(8,11,22,.82);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border)}
+.top .in{max-width:1120px;margin:0 auto;padding:13px 24px;display:flex;align-items:center;gap:14px}
+.brand{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;letter-spacing:-.01em}
+.brand .logo{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:15px;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  box-shadow:0 0 18px rgba(59,130,246,.45)}
+.tnav{display:flex;align-items:center;gap:4px;margin-left:18px}
+.tnav a{padding:8px 12px;border-radius:9px;font-size:13.5px;font-weight:500;color:var(--muted);transition:.15s}
+.tnav a:hover{background:rgba(59,130,246,.08);color:var(--text)}
+.tacts{margin-left:auto;display:flex;align-items:center;gap:9px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 17px;border-radius:10px;
+  font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border-hi);
+  background:var(--card);color:var(--text);transition:.18s}
+.btn:hover{border-color:var(--accent);color:#fff}
+.btn.p{background:linear-gradient(135deg,var(--accent2),var(--accent));border-color:transparent;color:#fff;
+  box-shadow:0 6px 20px rgba(37,99,235,.35)}
+.btn.p:hover{filter:brightness(1.1)}
+.btn.lg{padding:13px 24px;font-size:14.5px;border-radius:12px}
+
+.hero{padding:74px 0 30px;text-align:center}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:20px;margin-bottom:22px;
+  font-size:12px;font-weight:600;color:var(--blue);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25)}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+.hero h1{font-size:clamp(34px,6vw,58px);font-weight:800;letter-spacing:-.035em;line-height:1.06}
+.hero h1 em{font-style:normal;background:linear-gradient(120deg,var(--accent),var(--pink));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{max-width:640px;margin:19px auto 0;font-size:16px;font-weight:500;color:var(--muted);line-height:1.65}
+.hero .cta{display:flex;flex-wrap:wrap;gap:11px;justify-content:center;margin-top:30px}
+.hero .sub{margin-top:15px;font-size:12.5px;font-weight:500;color:var(--dim)}
+
+.shot{position:relative;margin:52px auto 0;max-width:1000px;border-radius:18px;overflow:hidden;
+  border:1px solid var(--border-hi);background:linear-gradient(160deg,#141f38,#0c1424)}
+.shot::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 40%)}
+.shot .bar{display:flex;align-items:center;gap:7px;padding:11px 15px;border-bottom:1px solid var(--border)}
+.shot .bar i{width:10px;height:10px;border-radius:50%;background:var(--card2);display:block}
+.shot .bar span{margin-left:9px;font-size:11.5px;font-weight:500;color:var(--dim)}
+.shot .body{display:grid;grid-template-columns:190px 1fr;min-height:290px}
+.shot .sd{border-right:1px solid var(--border);padding:16px 12px;background:rgba(12,17,33,.6)}
+.shot .sd .g{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);padding:12px 8px 6px}
+.shot .sd .i{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:9px;font-size:12.5px;
+  font-weight:500;color:var(--muted)}
+.shot .sd .i.on{background:linear-gradient(90deg,rgba(59,130,246,.22),rgba(59,130,246,.04));color:#fff;font-weight:600}
+.shot .ct{padding:18px}
+.shot .ct .h{font-size:15px;font-weight:700;margin-bottom:14px}
+.shot .mini{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 15px;margin-bottom:10px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px}
+.shot .mini b{display:block;font-size:13px;font-weight:600}
+.shot .mini span{display:block;font-size:11.5px;font-weight:500;color:var(--muted);margin-top:2px}
+.shot .tg{width:40px;height:23px;border-radius:20px;flex-shrink:0;background:linear-gradient(135deg,var(--accent2),var(--accent));position:relative}
+.shot .tg::after{content:'';position:absolute;top:3px;right:3px;width:17px;height:17px;border-radius:50%;background:#fff}
+.shot .tg.off{background:var(--card2);border:1px solid var(--border-hi)}
+.shot .tg.off::after{left:3px;right:auto;background:var(--dim)}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:13px;margin:64px 0 0}
+.stat{position:relative;overflow:hidden;background:var(--card);border:1px solid var(--border);border-radius:15px;
+  padding:20px;transition:.2s}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--accent),transparent)}
+.stat:hover{border-color:var(--border-hi);transform:translateY(-2px)}
+.stat b{display:block;font-size:29px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.stat span{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.08em;margin-top:6px}
+
+section{padding:74px 0}
+.sh{text-align:center;margin-bottom:38px}
+.sh .k{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--blue);margin-bottom:10px}
+.sh h2{font-size:clamp(25px,4vw,36px);font-weight:700;letter-spacing:-.03em}
+.sh p{max-width:580px;margin:12px auto 0;font-size:14.5px;font-weight:500;color:var(--muted);line-height:1.65}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(292px,1fr));gap:14px}
+.feat{position:relative;overflow:hidden;background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:22px 23px;transition:.2s}
+.feat::before{content:'';position:absolute;top:0;left:0;width:120px;height:2px;
+  background:linear-gradient(90deg,var(--accent),transparent)}
+.feat:hover{border-color:var(--border-hi);transform:translateY(-3px)}
+.feat .ic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+  margin-bottom:15px;background:rgba(59,130,246,.13);color:var(--accent)}
+.feat h3{font-size:15.5px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.feat p{font-size:13px;font-weight:500;color:var(--muted);margin-top:7px;line-height:1.6}
+.feat .cmds{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.feat code{font-family:ui-monospace,Menlo,monospace;font-size:11px;font-weight:500;color:var(--accent);
+  background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);border-radius:6px;padding:3px 8px}
+.tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:20px;
+  color:#fff;background:linear-gradient(135deg,var(--accent),var(--pink))}
+
+.split{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center}
+.split h2{font-size:clamp(24px,3.4vw,32px);font-weight:700;letter-spacing:-.03em}
+.split > div > p{font-size:14.5px;font-weight:500;color:var(--muted);margin-top:14px;line-height:1.7}
+.checks{margin-top:22px;display:flex;flex-direction:column;gap:13px}
+.check{display:flex;align-items:flex-start;gap:11px;font-size:13.5px;font-weight:500;line-height:1.55}
+.check .cc{width:21px;height:21px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(34,197,94,.13);color:var(--green);margin-top:1px}
+.check span{color:var(--muted)}
+.check b{font-weight:600;color:var(--text)}
+
+.panel{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.panel .ph{padding:15px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.panel .ph .av{width:31px;height:31px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff}
+.panel .ph b{font-size:13.5px;font-weight:600}
+.panel .ph .bt{margin-left:auto;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--blue);background:rgba(96,165,250,.14);border:1px solid rgba(96,165,250,.3);padding:2px 7px;border-radius:5px}
+.panel .pb{padding:17px 18px}
+.emb{border-left:3px solid var(--accent);background:var(--card2);border-radius:5px;padding:13px 15px}
+.emb h4{font-size:13.5px;font-weight:700;margin-bottom:7px}
+.emb p{font-size:12.5px;font-weight:500;color:var(--muted);line-height:1.6}
+.emb .fs{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:12px}
+.emb .f b{display:block;font-size:11.5px;font-weight:700;margin-bottom:2px}
+.emb .f span{font-size:12px;font-weight:500;color:var(--muted)}
+.btns{display:flex;gap:8px;margin-top:13px;flex-wrap:wrap}
+.dbtn{font-size:12px;font-weight:600;padding:7px 14px;border-radius:8px;background:var(--accent2);color:#fff}
+.dbtn.s{background:var(--card2);color:var(--muted);border:1px solid var(--border-hi)}
+
+.cmdbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:26px}
+.cmdbar code{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;font-weight:500;color:var(--text);
+  background:var(--card);border:1px solid var(--border);border-radius:9px;padding:8px 13px;transition:.16s}
+.cmdbar code:hover{border-color:var(--border-hi);color:#fff}
+
+.faq{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.q{background:var(--card);border:1px solid var(--border);border-radius:13px;overflow:hidden}
+.q summary{padding:16px 19px;font-size:14px;font-weight:600;cursor:pointer;list-style:none;
+  display:flex;align-items:center;gap:12px}
+.q summary::-webkit-details-marker{display:none}
+.q summary::after{content:'';margin-left:auto;width:8px;height:8px;flex-shrink:0;border-right:2px solid var(--dim);
+  border-bottom:2px solid var(--dim);transform:rotate(45deg);transition:.2s}
+.q[open] summary::after{transform:rotate(-135deg)}
+.q p{padding:0 19px 17px;font-size:13.5px;font-weight:500;color:var(--muted);line-height:1.7}
+
+.final{position:relative;overflow:hidden;border-radius:20px;border:1px solid var(--border-hi);
+  background:linear-gradient(125deg,#152443,#101a2e 55%,#0b1322);padding:52px 34px;text-align:center}
+.final::after{content:'';position:absolute;top:-90px;right:-50px;width:320px;height:320px;border-radius:50%;
+  background:radial-gradient(circle,rgba(59,130,246,.35),transparent 68%);filter:blur(40px)}
+.final > *{position:relative;z-index:2}
+.final h2{font-size:clamp(25px,4vw,34px);font-weight:700;letter-spacing:-.03em}
+.final p{max-width:520px;margin:14px auto 0;font-size:14.5px;font-weight:500;color:var(--muted);line-height:1.65}
+.final .cta{display:flex;flex-wrap:wrap;gap:11px;justify-content:center;margin-top:28px}
+
+footer{border-top:1px solid var(--border);padding:34px 0;margin-top:74px}
+footer .in{max-width:1120px;margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+footer .lk{margin-left:auto;display:flex;gap:20px;flex-wrap:wrap}
+footer a{font-size:13px;font-weight:500;color:var(--muted);transition:.15s}
+footer a:hover{color:var(--text)}
+footer .cp{font-size:12.5px;font-weight:500;color:var(--dim);width:100%;margin-top:6px}
+
+@media(max-width:900px){
+  .split{grid-template-columns:1fr;gap:30px}
+  .shot .body{grid-template-columns:1fr}
+  .shot .sd{display:none}
+}
+@media(max-width:720px){
+  .tnav{display:none}
+  .top .in{padding:11px 16px;gap:10px}
+  .wrap{padding:0 16px}
+  .hero{padding:52px 0 20px}
+  section{padding:56px 0}
+  .emb .fs{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .tacts .btn:not(.p){display:none}
+  .tacts .btn.p{padding:8px 14px}
+  .final{padding:40px 20px}
+  .hero .cta .btn{width:100%}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="in">
+    <a href="#" class="brand"><span class="logo">M</span>ModeraBot</a>
+    <nav class="tnav">
+      <a href="#modules">Modules</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#commandes">Commandes</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="tacts">
+      <a class="btn" href="/servers.html">Dashboard</a>
+      <a class="btn p" id="inviteTop" href="#" target="_blank" rel="noopener">Ajouter le bot</a>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+  <section class="hero">
+    <div class="pill"><span class="dot"></span><span id="statusTxt">Bot en ligne</span></div>
+    <h1>Un seul bot pour<br><em>gérer tout ton serveur</em></h1>
+    <p>Modération, tickets, anti-raid, bienvenue, niveaux, giveaways, économie et candidatures.
+       Tout se configure depuis un dashboard clair, sans toucher à une seule ligne de code.</p>
+    <div class="cta">
+      <a class="btn p lg" id="inviteHero" href="#" target="_blank" rel="noopener">Ajouter à mon serveur</a>
+      <a class="btn lg" href="/servers.html">Ouvrir le dashboard</a>
+    </div>
+    <div class="sub">Gratuit — configuration en moins de deux minutes</div>
+
+    <div class="shot">
+      <div class="bar"><i></i><i></i><i></i><span>dashboard.moderabot</span></div>
+      <div class="body">
+        <div class="sd">
+          <div class="g">Support</div>
+          <div class="i"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 6v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-6z"/><line x1="12" y1="7" x2="12" y2="17"/></svg>Tickets</div>
+          <div class="g">Sécurité</div>
+          <div class="i on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Anti-raid</div>
+          <div class="i"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Vérification</div>
+          <div class="g">Communauté</div>
+          <div class="i"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Bienvenue</div>
+          <div class="i"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Niveaux & XP</div>
+        </div>
+        <div class="ct">
+          <div class="h">Anti-raid</div>
+          <div class="mini"><div><b>Anti-join flood</b><span>5 arrivées en 10 secondes — expulsion</span></div><div class="tg"></div></div>
+          <div class="mini"><div><b>Anti-spam</b><span>5 messages en 5 secondes — mute</span></div><div class="tg"></div></div>
+          <div class="mini"><div><b>Anti-mention de masse</b><span>Limite de 5 mentions par message</span></div><div class="tg"></div></div>
+          <div class="mini"><div><b>Anti-caps</b><span>70 % de majuscules maximum</span></div><div class="tg off"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><b id="stServers">—</b><span>Serveurs protégés</span></div>
+      <div class="stat"><b id="stMembers">—</b><span>Membres couverts</span></div>
+      <div class="stat"><b>13</b><span>Modules inclus</span></div>
+      <div class="stat"><b id="stPing">—</b><span>Latence Discord</span></div>
+    </div>
+  </section>
+</div>
+
+<div class="wrap">
+  <section id="modules">
+    <div class="sh">
+      <div class="k">Modules</div>
+      <h2>Tout ce dont ton serveur a besoin</h2>
+      <p>Chaque module a son panneau de configuration dans Discord et sa page dans le dashboard.
+         Tu actives seulement ce que tu utilises.</p>
+    </div>
+    <div class="grid">
+
+      <div class="feat">
+        <div class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 6v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-6z"/><line x1="12" y1="7" x2="12" y2="17"/></svg></div>
+        <h3>Tickets</h3>
+        <p>Jusqu'à 25 types de tickets, chacun avec sa catégorie, ses rôles staff et son message d'ouverture. Menu déroulant, boutons ou container V2.</p>
+        <div class="cmds"><code>+ticket</code></div>
+      </div>
+
+      <div class="feat">
+        <div class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <h3>Anti-raid</h3>
+        <p>Anti-flood d'arrivées, anti-spam, anti-mention de masse, anti-caps et anti-emoji. Chaque filtre a son seuil et sa sanction.</p>
+        <div class="cmds"><code>+antiraid</code><code>+antilink</code></div>
+      </div>
+
+      <div class="feat">
+        <div class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <h3>Vérification</h3>
+        <p>Captcha à l'arrivée avec rôle vérifié, nombre d'essais et expulsion en cas d'échec. Les bots et les faux comptes restent dehors.</p>
+        <div class="cmds"><code>+captcha</code></div>
+      </div>
+
+      <div class="feat">
+        <div class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>
+        <h3>Bienvenue &amp; départs</h3>
+        <p>Message texte ou embed, image de fond, message privé automatique, rôles donnés à l'arrivée et suppression programmée.</p>
+        <div class="cmds"><code>+welcome</code><code>+joinsettings</code></div>
+      </div>
+
+      <div class="feat">
+        <div class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+        <h3>Niveaux &amp; XP</h3>
+        <p>De l'expérience à chaque message, un salon d'annonce dédié, un classement du serveur et des gains réglables au point près.</p>
+        <div class="cmds"><code>+setup</code><code>+level</code></div>
+      </div>
+
+      <div class="feat">
+        <div class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>
+        <h3>Giveaways</h3>
+        <p>Concours avec bouton de participation, conditions de rôles, présence vocale obligatoire, tirage automatique et relance des gagnants.</p>
+        <div class="cmds"><code>+giveaway</code><code>+greroll</code></div>
+      </div>
+
+      <div class="feat">
+        <div class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <h3>Économie <span class="tag">Nouveau</span></h3>
+        <p>Monnaie du serveur, banque, salaire, braquages et boutique d'articles qui peuvent donner un rôle à l'achat.</p>
+        <div class="cmds"><code>+economy</code><code>+daily</code><code>+shop</code></div>
+      </div>
+
+      <div class="feat">
+        <div class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <h3>AutoMod <span class="tag">Nouveau</span></h3>
+        <p>Mots interdits, blocage des publicités, textes déformés, pavés et pièces jointes. Avec exceptions par salon et par rôle.</p>
+        <div class="cmds"><code>+automod</code><code>+badword</code></div>
+      </div>
+
+      <div class="feat">
+        <div class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg></div>
+        <h3>Suggestions <span class="tag">Nouveau</span></h3>
+        <p>Les membres proposent leurs idées, la communauté vote, le staff approuve ou refuse depuis les boutons de la suggestion.</p>
+        <div class="cmds"><code>+suggest</code><code>+approve</code></div>
+      </div>
+
+      <div class="feat">
+        <div class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="15" x2="12" y2="18"/></svg></div>
+        <h3>Protection <span class="tag">Nouveau</span></h3>
+        <p>Verrouillage du serveur en une commande, slowmode global, mode raid et blocage des comptes créés il y a trop peu de temps.</p>
+        <div class="cmds"><code>+guard</code><code>+lockall</code><code>+panic</code></div>
+      </div>
+
+      <div class="feat">
+        <div class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6a2 2 0 0 1 2 2v1h1a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1V4a2 2 0 0 1 2-2z"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></div>
+        <h3>Candidatures <span class="tag">Nouveau</span></h3>
+        <p>Un panneau public de recrutement : le membre choisit un poste, remplit un formulaire, le staff accepte ou refuse en un clic.</p>
+        <div class="cmds"><code>+apply</code><code>+applysend</code></div>
+      </div>
+
+      <div class="feat">
+        <div class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/></svg></div>
+        <h3>Logs &amp; modération</h3>
+        <p>Messages, vocaux, rôles, salons, sanctions et arrivées journalisés séparément. Ban, kick, mute, warn et purge inclus.</p>
+        <div class="cmds"><code>+logs</code><code>+modo</code><code>+ban</code></div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+<div class="wrap">
+  <section id="dashboard">
+    <div class="split">
+      <div>
+        <div class="k" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--blue);margin-bottom:10px">Dashboard</div>
+        <h2>Configure ton serveur depuis ton navigateur</h2>
+        <p>Connexion avec ton compte Discord, sélection du serveur, et tous les réglages sont là.
+           Les salons et les rôles sont chargés automatiquement : plus besoin de copier des identifiants à la main.</p>
+        <div class="checks">
+          <div class="check"><span class="cc"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span><b>Sauvegarde en direct</b> — les modifications arrivent au bot immédiatement.</span></div>
+          <div class="check"><span class="cc"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span><b>Accès réservé aux administrateurs</b> — la permission est vérifiée côté Discord.</span></div>
+          <div class="check"><span class="cc"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span><b>Import et export</b> — copie la configuration d'un serveur vers un autre.</span></div>
+          <div class="check"><span class="cc"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span><span><b>État du bot en temps réel</b> — latence, disponibilité et nombre de serveurs.</span></div>
+        </div>
+        <div style="margin-top:26px"><a class="btn p" href="/servers.html">Ouvrir le dashboard</a></div>
+      </div>
+      <div class="panel">
+        <div class="ph"><div class="av">M</div><div><b>ModeraBot</b></div><span class="bt">Bot</span></div>
+        <div class="pb">
+          <div class="emb">
+            <h4>Ticket — Support</h4>
+            <p>Bienvenue ! Explique ton problème, un membre du staff arrive.</p>
+            <div class="fs">
+              <div class="f"><b>Ouvert par</b><span>@membre</span></div>
+              <div class="f"><b>Catégorie</b><span>Support général</span></div>
+            </div>
+          </div>
+          <div class="btns">
+            <span class="dbtn">Fermer le ticket</span>
+            <span class="dbtn s">Ajouter un membre</span>
+            <span class="dbtn s">Transcript</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="wrap">
+  <section id="commandes">
+    <div class="sh">
+      <div class="k">Commandes</div>
+      <h2>Plus de 150 commandes</h2>
+      <p>Préfixe personnalisable par serveur. Chaque grosse fonctionnalité s'ouvre avec un panneau
+         interactif plutôt qu'une longue liste d'arguments à retenir.</p>
+    </div>
+    <div class="cmdbar">
+      <code>+help</code><code>+ticket</code><code>+welcome</code><code>+antiraid</code><code>+captcha</code>
+      <code>+logs</code><code>+giveaway</code><code>+setup</code><code>+ban</code><code>+mute</code>
+      <code>+warn</code><code>+clear</code><code>+backup</code><code>+starboard</code><code>+invites</code>
+      <code>+economy</code><code>+automod</code><code>+suggest</code><code>+pollpro</code><code>+guard</code>
+      <code>+apply</code><code>+modules</code>
+    </div>
+  </section>
+</div>
+
+<div class="wrap">
+  <section id="faq">
+    <div class="sh">
+      <div class="k">FAQ</div>
+      <h2>Questions fréquentes</h2>
+    </div>
+    <div class="faq">
+      <details class="q" open><summary>Comment ajouter ModeraBot à mon serveur ?</summary>
+        <p>Clique sur « Ajouter à mon serveur », choisis ton serveur dans la fenêtre Discord et valide les permissions.
+           Il faut être administrateur du serveur. Le bot est utilisable tout de suite après.</p></details>
+      <details class="q"><summary>Est-ce que le bot est gratuit ?</summary>
+        <p>Oui. Tous les modules de modération, de sécurité et de communauté sont gratuits.
+           Quelques options de confort supplémentaires sont réservées au Premium.</p></details>
+      <details class="q"><summary>Comment changer le préfixe des commandes ?</summary>
+        <p>Dans le dashboard, page Général, ou directement dans Discord avec la commande de préfixe.
+           Le préfixe est propre à chaque serveur.</p></details>
+      <details class="q"><summary>Le bot peut-il arrêter un raid en cours ?</summary>
+        <p>Oui. L'anti-raid bloque les arrivées massives selon ton seuil, et la commande de mode panique
+           verrouille tous les salons avec un slowmode en une seule fois. Tout se rouvre de la même façon.</p></details>
+      <details class="q"><summary>Mes réglages sont-ils conservés si le bot redémarre ?</summary>
+        <p>Oui. Toute la configuration est enregistrée par serveur, et les panneaux publics
+           (tickets, candidatures, suggestions) continuent de fonctionner après un redémarrage.</p></details>
+      <details class="q"><summary>Puis-je copier la configuration d'un serveur à un autre ?</summary>
+        <p>Oui, la page Import / Export du dashboard exporte toute la configuration en JSON
+           et permet de l'appliquer sur un autre serveur.</p></details>
+    </div>
+  </section>
+</div>
+
+<div class="wrap">
+  <section style="padding-top:12px">
+    <div class="final">
+      <h2>Prêt à sécuriser ton serveur ?</h2>
+      <p>Installation en deux minutes, aucune configuration obligatoire pour démarrer.
+         Tu actives les modules quand tu en as besoin.</p>
+      <div class="cta">
+        <a class="btn p lg" id="inviteFinal" href="#" target="_blank" rel="noopener">Ajouter à mon serveur</a>
+        <a class="btn lg" href="/servers.html">Voir le dashboard</a>
+      </div>
+    </div>
+  </section>
+</div>
+</main>
+
+<footer>
+  <div class="in">
+    <a href="#" class="brand"><span class="logo">M</span>ModeraBot</a>
+    <div class="lk">
+      <a href="#modules">Modules</a>
+      <a href="/servers.html">Dashboard</a>
+      <a href="#commandes">Commandes</a>
+      <a href="#faq">FAQ</a>
+      <a id="inviteFoot" href="#" target="_blank" rel="noopener">Ajouter le bot</a>
+    </div>
+    <div class="cp">ModeraBot — non affilié à Discord Inc.</div>
+  </div>
+</footer>
+
+<script>
+const API_BASE=(window.MB_API_BASE||'').replace(/\/+$/,'');
+const apiURL=p=>API_BASE+p;
+const $=id=>document.getElementById(id);
+const nb=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const INVITE_FALLBACK='https://discord.com/oauth2/authorize?client_id=&scope=bot%20applications.commands&permissions=8';
+
+function setInvite(url){
+  ['inviteTop','inviteHero','inviteFinal','inviteFoot'].forEach(id=>{ const el=$(id); if(el) el.href=url; });
+}
+setInvite(INVITE_FALLBACK);
+
+async function loadConfig(){
+  try{
+    const r=await fetch(apiURL('/api/config'),{cache:'no-store'});
+    if(!r.ok) return;
+    const c=await r.json();
+    if(c.invite_url) return setInvite(c.invite_url);
+    if(c.client_id) setInvite('https://discord.com/oauth2/authorize?client_id='+encodeURIComponent(c.client_id)
+      +'&scope=bot%20applications.commands&permissions=8');
+  }catch{}
+}
+
+async function loadStatus(){
+  try{
+    const r=await fetch(apiURL('/api/status'),{cache:'no-store'});
+    if(!r.ok) throw 0;
+    const s=await r.json();
+    if(s.guild_count!=null) $('stServers').textContent=nb(s.guild_count);
+    if(s.member_count!=null) $('stMembers').textContent=nb(s.member_count);
+    if(s.ws_latency_ms!=null) $('stPing').textContent=s.ws_latency_ms+' ms';
+    $('statusTxt').textContent=s.bot_ready
+      ? ((s.bot_name?s.bot_name.split('#')[0]:'Bot')+' en ligne')
+      : 'Bot hors ligne';
+  }catch{
+    $('statusTxt').textContent='Bot Discord tout-en-un';
+  }
+}
+
+loadConfig();
+loadStatus();
+setInterval(loadStatus,30000);
+</script>
+</body>
+</html>
