@@ -290,13 +290,32 @@ def casier_actives(gid, uid):
 _AJOUTEES = []
 
 def _commande(bot, nom, **kwargs):
-    """Decorateur qui n'ecrase jamais une commande deja definie dans app.py."""
+    """Ajoute une commande sans jamais ecraser celles d'app.py.
+
+    Le nom ET les alias sont verifies : un seul alias deja pris (par exemple
+    `inv`) faisait echouer tout le chargement du module.
+    """
     def enrobe(fonction):
         if bot.get_command(nom):
             print(f"[modules_extra] +{nom} existe deja dans app.py : conservee telle quelle.")
             return fonction
-        bot.command(name=nom, **kwargs)(fonction)
-        _AJOUTEES.append([nom] + list(kwargs.get("aliases", [])))
+
+        options = dict(kwargs)
+        demandes = list(options.get("aliases", []) or [])
+        libres = [a for a in demandes if not bot.get_command(a)]
+        pris = [a for a in demandes if a not in libres]
+        if pris:
+            print(f"[modules_extra] +{nom} : alias deja utilise(s), ignore(s) : {', '.join(pris)}")
+        options["aliases"] = libres
+
+        try:
+            bot.command(name=nom, **options)(fonction)
+        except Exception as err:
+            # Un conflit résiduel ne doit jamais empecher le reste de charger.
+            print(f"[modules_extra] +{nom} non ajoutee : {err}")
+            return fonction
+
+        _AJOUTEES.append([nom] + libres)
         return fonction
     return enrobe
 
