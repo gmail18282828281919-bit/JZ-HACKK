@@ -2345,58 +2345,96 @@ else xstart();
 .pnl-s.warn .pnl-dot{background:var(--orange)}
 </style>
 <script>
-/* Envoi des panneaux : choisir un salon, puis publier le panneau. */
+/* Envoi des panneaux : on choisit le salon, on appuie sur Envoyer, et le
+   panneau tel qu'il est configuré ici est publié sur Discord. */
 (function(){
+
+const col=c=>String(c||'#5865F2');
 
 const PANELS=[
   {key:'tickets',page:'pg-tickets',cmd:'+ticket',
    titre:'Envoyer le panneau des tickets',
-   sous:'Choisis le salon, puis publie le panneau que les membres utiliseront pour ouvrir un ticket.',
-   chan:'tickets.panel.salon',btn:'Envoyer le panneau',
+   sous:'Publie le panneau que les membres utilisent pour ouvrir un ticket.',
+   chan:'tickets.panel.salon',
    ready:c=>(c.tickets.choix||[]).length>0,
-   warn:'Ajoute au moins un type de ticket avant de publier le panneau.'},
+   warn:'Ajoute au moins un type de ticket avant de publier le panneau.',
+   build:c=>{ const p=c.tickets.panel||{}, ch=c.tickets.choix||[];
+     return {embed:{title:p.titre||'Support',description:p.description||'',color:col(p.couleur),image:p.image||''},
+       mode:p.mode||'select',
+       options:ch.map(t=>({label:t.nom||'Sans nom',description:t.description||'',emoji:t.emoji||'',
+                           style:t.btn_color||'bleu',categorie:t.categorie||null,roles:t.roles||[]}))}; }},
 
   {key:'captcha',page:'pg-captcha',cmd:'+captcha',
    titre:'Envoyer le panneau de vérification',
    sous:'Publie l\'embed de vérification : les nouveaux membres y saisissent leur code.',
-   chan:'captcha.channel_id',btn:'Envoyer le panneau',
+   chan:'captcha.channel_id',
    ready:c=>!!c.captcha.enabled,
-   warn:'Active la vérification avant de publier le panneau.'},
+   warn:'Active la vérification avant de publier le panneau.',
+   build:c=>({embed:{title:'Vérification',description:c.captcha.welcome_message||'',color:col()},
+     code_length:c.captcha.code_length||6,max_tries:c.captcha.max_tries||3,
+     verified_role:c.captcha.verified_role||null,unverified_role:c.captcha.unverified_role||null,
+     kick_on_fail:!!c.captcha.kick_on_fail,style:c.captcha.style||'code'})},
 
   {key:'giveaway',page:'pg-giveaway',cmd:'+giveaway',
-   titre:'Lancer un giveaway',
-   sous:'Publie un concours dans le salon choisi avec les valeurs par défaut ci-dessus.',
-   chan:'giveaway.salon_id',btn:'Lancer le giveaway',
+   titre:'Envoyer le panneau du giveaway',
+   sous:'Publie le concours dans le salon choisi, avec les réglages ci-dessus.',
+   chan:'giveaway.salon_id',
    ready:c=>!!String(c.giveaway.duree||'').trim(),
-   warn:'Renseigne une durée par défaut avant de lancer un giveaway.'},
+   warn:'Renseigne une durée par défaut avant d\'envoyer le giveaway.',
+   build:c=>({embed:{title:(c.giveaway.emoji||'🎉')+' Giveaway',
+       description:'Clique sur le bouton pour participer.',color:col()},
+     emoji:c.giveaway.emoji||'🎉',btn_text:c.giveaway.btn_text||'Participer',
+     btn_color:c.giveaway.btn_color||'bleu',duree:c.giveaway.duree||'',
+     gagnants:c.giveaway.gagnants||1,required_roles:c.giveaway.required_roles||[],
+     blacklist_roles:c.giveaway.blacklist_roles||[],vocal_required:!!c.giveaway.vocal_required})},
 
   {key:'apply',page:'pg-xapply',cmd:'+applysend',
    titre:'Envoyer le panneau de candidatures',
    sous:'Publie l\'embed public de recrutement dans le salon choisi.',
-   chan:'extras.apply.panel_channel',btn:'Envoyer le panneau',
+   chan:'extras.apply.panel_channel',
    ready:c=>!!(c.extras&&c.extras.apply.enabled&&(c.extras.apply.postes||[]).length),
-   warn:'Active les candidatures et ajoute au moins un poste avant de publier.'},
+   warn:'Active les candidatures et ajoute au moins un poste avant de publier.',
+   build:c=>{ const a=(c.extras||{}).apply||{};
+     return {embed:{title:a.titre||'Candidatures',description:a.description||'',color:col(a.couleur)},
+       options:(a.postes||[]).map(p=>({label:p.nom||'Sans nom',description:p.description||'',
+                                       emoji:p.emoji||'',questions:p.questions||[]})),
+       review_channel:a.review_channel||null,accepted_role:a.accepted_role||null,
+       cooldown_hours:a.cooldown_hours||0}; }},
 
   {key:'suggestions',page:'pg-xsuggestions',cmd:'+suggestions',
    titre:'Envoyer le panneau des suggestions',
    sous:'Publie l\'embed qui explique comment proposer une idée.',
-   chan:'extras.suggestions.channel_id',btn:'Envoyer le panneau',
+   chan:'extras.suggestions.channel_id',
    ready:c=>!!(c.extras&&c.extras.suggestions.enabled),
-   warn:'Active les suggestions avant de publier le panneau.'},
+   warn:'Active les suggestions avant de publier le panneau.',
+   build:c=>{ const s=(c.extras||{}).suggestions||{};
+     return {embed:{title:'Suggestions',
+         description:'Propose ton idée avec la commande `'+(c.prefix||'+')+'suggest`.',color:col()},
+       up_emoji:s.up_emoji||'',down_emoji:s.down_emoji||'',anonymous:!!s.anonymous,
+       threads:!!s.threads,min_length:s.min_length||0}; }},
 
   {key:'polls',page:'pg-xpolls',cmd:'+pollconfig',
    titre:'Envoyer le panneau des sondages',
    sous:'Publie l\'embed qui rappelle comment voter.',
-   chan:'extras.polls.channel_id',btn:'Envoyer le panneau',
+   chan:'extras.polls.channel_id',
    ready:c=>!!(c.extras&&c.extras.polls.enabled),
-   warn:'Active les sondages avant de publier le panneau.'},
+   warn:'Active les sondages avant de publier le panneau.',
+   build:c=>{ const p=(c.extras||{}).polls||{};
+     return {embed:{title:'Sondages',
+         description:'Les sondages du serveur sont publiés ici.',color:col(p.color)},
+       default_duration:p.default_duration||'1h',allow_multi:!!p.allow_multi,
+       show_voters:!!p.show_voters,ping_role:p.ping_role||null}; }},
 
   {key:'birthdays',page:'pg-xbirthdays',cmd:'+birthdays',
    titre:'Envoyer le panneau des anniversaires',
    sous:'Publie l\'embed où les membres enregistrent leur date.',
-   chan:'extras.birthdays.channel_id',btn:'Envoyer le panneau',
+   chan:'extras.birthdays.channel_id',
    ready:c=>!!(c.extras&&c.extras.birthdays.enabled),
-   warn:'Active les anniversaires avant de publier le panneau.'},
+   warn:'Active les anniversaires avant de publier le panneau.',
+   build:c=>{ const b=(c.extras||{}).birthdays||{};
+     return {embed:{title:'Anniversaires',
+         description:'Enregistre ta date avec `'+(c.prefix||'+')+'birthday JJ/MM`.',color:col('#9b59b6')},
+       role_id:b.role_id||null,hour:b.hour||0,message:b.message||''}; }},
 ];
 
 const PKEY=()=>'mb_panels_'+guildId;
@@ -2424,7 +2462,7 @@ function pinject(){
         <div class="pnl">
           <div class="pnl-c"><label>Salon où publier le panneau</label>
             <span data-select="channel" data-sk="${esc(p.chan)}"></span></div>
-          <div class="pnl-a"><button class="btn p" data-pnlsend="${esc(p.key)}">${p.btn}</button></div>
+          <div class="pnl-a"><button class="btn p" data-pnlsend="${esc(p.key)}">Envoyer le panneau</button></div>
         </div>
         <div class="pnl-s" data-pnlstatus="${esc(p.key)}"><span class="pnl-dot"></span><b>—</b></div>
       </div>
@@ -2455,6 +2493,14 @@ function pstatus(){
   });
 }
 
+/* Routes d'envoi acceptées, de la plus précise à la plus générale : le bot
+   n'a besoin d'en implémenter qu'une seule. */
+const PROUTES=k=>[
+  `/api/guild/${encodeURIComponent(guildId)}/panel/${encodeURIComponent(k)}`,
+  `/api/guild/${encodeURIComponent(guildId)}/panel`,
+  `/api/guild/${encodeURIComponent(guildId)}/send-panel`,
+];
+
 async function psend(p,btn){
   const ch=getPath(cfg,p.chan);
   if(!p.ready(cfg)) return toast(p.warn,'err');
@@ -2470,23 +2516,33 @@ async function psend(p,btn){
       if(!okSave){ btn.disabled=false; btn.textContent=old;
         return toast('Enregistrement impossible — le bot ne répond pas','err'); }
     }
-    const r=await fetch(apiURL(`/api/guild/${encodeURIComponent(guildId)}/panel/${encodeURIComponent(p.key)}`),{
-      method:'POST',credentials:API_CREDS,
-      headers:{'Content-Type':'application/json',Accept:'application/json',...authHeaders()},
-      body:JSON.stringify({panel:p.key,guild_id:guildId,channel_id:String(ch),config:cfg})});
-    ok=r.ok;
-    if(r.status===404||r.status===405) missing=true;
-    else if(!ok){ try{ const j=await r.json(); err=j.error||j.message||('HTTP '+r.status); }catch{ err='HTTP '+r.status; } }
-  }catch(e){ err='API du bot injoignable'; }
+    /* Tout le panneau configuré ici part avec la requête : le bot n'a plus
+       qu'à publier l'embed et ses boutons dans le salon demandé. */
+    let payload={panel:p.key,guild_id:guildId,channel_id:String(ch),config:cfg};
+    try{ payload=Object.assign(payload,p.build(cfg)); }catch(e){}
+    const headers={'Content-Type':'application/json',Accept:'application/json',...authHeaders()};
+    const body=JSON.stringify(payload);
+
+    missing=true;
+    for(const url of PROUTES(p.key)){
+      let r;
+      try{ r=await fetch(apiURL(url),{method:'POST',credentials:API_CREDS,headers,body}); }
+      catch(e){ missing=false; err='API du bot injoignable'; break; }
+      if(r.status===404||r.status===405) continue;     // route absente : on tente la suivante
+      missing=false; ok=r.ok;
+      if(!ok){ try{ const j=await r.json(); err=j.error||j.message||('HTTP '+r.status); }
+               catch{ err='HTTP '+r.status; } }
+      break;
+    }
+  }catch(e){ missing=false; err='API du bot injoignable'; }
 
   btn.disabled=false; btn.textContent=old;
-  if(ok){ pset(p.key,Date.now()); pstatus(); return toast('Panneau envoyé dans le salon ✓'); }
+  if(ok){ pset(p.key,Date.now()); pstatus(); return toast('Panneau envoyé dans '+pname(ch)+' ✓'); }
   if(missing){
-    /* Le bot n'a pas encore la route d'envoi : la config est enregistrée,
-       il reste la commande Discord pour publier le panneau. */
-    const cmd=p.key==='apply'?`${p.cmd} #${(pname(ch)||'').replace(/^#/,'')}`:p.cmd;
-    try{ await navigator.clipboard.writeText(cmd); }catch{}
-    return toast('Réglages enregistrés. Ton bot n\'a pas la route d\'envoi : tape '+cmd+' sur Discord (commande copiée)','err');
+    /* Le bot n'a aucune route d'envoi : la config est enregistrée, il reste
+       la commande Discord pour publier le panneau. */
+    try{ await navigator.clipboard.writeText(p.cmd); }catch{}
+    return toast('Réglages enregistrés. Ton bot n\'a pas encore la route d\'envoi : tape '+p.cmd+' sur Discord (commande copiée)','err');
   }
   toast('Envoi impossible — '+(err||'API du bot injoignable'),'err');
 }
